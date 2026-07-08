@@ -1,0 +1,83 @@
+{
+  "pages": ["pages/home/index", "pages/history/index", "pages/assistant/index", "pages/message/index", "pages/surrounding/index", "pages/my/index"],
+  "usingComponents": {
+    "t-toast": "tdesign-miniprogram/toast/toast"
+  },
+  "subpackages": [
+    {
+      "root": "pages/search",
+      "name": "search",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/my/info-edit",
+      "name": "edit",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/chat",
+      "name": "chat",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/login",
+      "name": "login",
+      "pages": ["login"]
+    },
+    {
+      "root": "pages/loginCode",
+      "name": "loginCode",
+      "pages": ["loginCode"]
+    },
+    {
+      "root": "pages/dataCenter",
+      "name": "dataCenter",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/setting",
+      "name": "setting",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/release",
+      "name": "release",
+      "pages": ["index"]
+    }
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "Weixin",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "custom": true,
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/message/index",
+        "text": "瞬间墙"
+      },
+      {
+        "pagePath": "pages/assistant/index",
+        "text": "AI助手"
+      },
+      {
+        "pagePath": "pages/surrounding/index",
+        "text": "周边"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "resolveAlias": {
+    "~/*": "/*"
+  },
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,9 @@
+<view class="page">
+  <view style="height: {{statusBarHeight}}px"></view>
+  <view class="header"><text class="title">周边</text><text class="subtitle">为猫咪挑选更合适的日常用品</text></view>
+  <view class="empty-card">
+    <view class="icon">🛍️</view>
+    <text class="empty-title">周边好物正在准备中</text>
+    <text class="empty-desc">后续将在这里展示饮水、喂食、清洁和健康用品</text>
+  </view>
+</view>

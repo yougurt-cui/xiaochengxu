@@ -1,0 +1,38 @@
+<view class="page">
+  <view style="height: {{statusBarHeight}}px"></view>
+
+  <view class="navbar">
+    <view class="brand-cat">🐱</view>
+    <view class="nav-title">
+      <text class="title">宠析</text>
+      <text class="subtitle">记录猫咪的每一天</text>
+    </view>
+    <view class="nav-spacer"></view>
+  </view>
+
+  <view class="welcome">
+    <view>
+      <text class="welcome-title">今日状态</text>
+      <text class="update">{{refreshedAt}} 更新</text>
+    </view>
+    <view class="normal history-entry" bindtap="goHistory"><text>◷</text>历史数据<text class="entry-arrow">›</text></view>
+  </view>
+
+  <view class="dashboard-photo" bindtap="refresh">
+    <image src="/static/home/cat-health-dashboard.png" mode="widthFix" />
+    <view class="photo-badge"><text>♥</text> 今日健康记录</view>
+  </view>
+
+  <view class="actions">
+    <view class="action-card water-action" bindtap="comingSoon">
+      <view class="action-icon">💧</view>
+      <view><text class="action-title">记录饮水</text><text class="action-desc">补充今日饮水量</text></view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="action-card diary-action" bindtap="goHistory">
+      <view class="action-icon">📔</view>
+      <view><text class="action-title">健康日记</text><text class="action-desc">查看历史变化</text></view>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+</view>

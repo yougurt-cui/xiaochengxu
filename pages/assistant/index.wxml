@@ -1,0 +1,156 @@
+<view class="page" bindtap="clearTooltip">
+  <view class="top-fixed">
+    <view style="height: {{statusBarHeight}}px"></view>
+    <view class="navbar">
+      <view class="back" bindtap="goBack">‹</view>
+      <view class="nav-title">
+        <text class="title">{{tested ? '营养成分解析' : 'AI助手'}}</text>
+        <text wx:if="{{!tested}}" class="subtitle">说出意图，我来整理换粮信息</text>
+      </view>
+      <view class="nav-placeholder"></view>
+    </view>
+  </view>
+  <view style="height: calc({{statusBarHeight}}px + 128rpx)"></view>
+
+  <view class="content {{!recognized && !tested ? 'initial-content' : ''}}" style="min-height: calc(100vh - {{statusBarHeight}}px - 296rpx - env(safe-area-inset-bottom))">
+    <view wx:if="{{savedMode && !tested}}" class="saved-card">
+        <view class="saved-head">
+          <view class="saved-icon">▧</view>
+          <text>上次未完成的换粮对话</text>
+          <text class="autosave">已自动保存</text>
+          <view class="delete-saved" catchtap="deleteSavedConversation">删除</view>
+        </view>
+        <view class="saved-title">{{savedDraft.userMessage || '上次换粮对话'}} <text>›</text></view>
+        <view class="saved-detail">当前粮：{{savedDraft.currentFood.brand}} {{savedDraft.currentFood.name}}　·　目标粮：{{savedDraft.targetFood.brand}} {{savedDraft.targetFood.name}}</view>
+        <view class="saved-time">最近自动保存</view>
+        <button class="continue-button" data-action="resume" bindtap="continueConversation">继续对话　›</button>
+      </view>
+
+    <block wx:if="{{!tested}}">
+    <view class="conversation-card">
+      <view class="chat assistant-chat">
+        <view class="avatar">🐱</view>
+        <view class="bubble example-bubble">
+          <text class="bubble-lead">你可以直接说：</text>
+          <text>三岁英短最近软便，正在吃皇家肠胃舒适，想换鲜朗</text>
+        </view>
+      </view>
+
+      <view wx:if="{{userMessage}}" class="chat user-chat">
+        <view class="bubble user-bubble">{{userMessage}}</view>
+        <image class="user-avatar" src="/static/avatar1.png" mode="aspectFill" />
+      </view>
+
+      <view wx:if="{{assistantMessage}}" class="chat assistant-reply">
+        <view class="avatar small-avatar">🐱</view>
+        <view class="bubble">{{assistantMessage}}</view>
+      </view>
+
+      <view class="prompt-row">
+        <view class="prompt-chip" data-message="三岁英短软便想换粮" bindtap="usePrompt">三岁英短软便想换粮</view>
+        <view class="prompt-chip" data-message="想换低敏粮" bindtap="usePrompt">想换低敏粮</view>
+        <view class="refresh-chip" bindtap="cyclePrompts">↻</view>
+      </view>
+
+      <view class="composer">
+        <input class="message-input" value="{{inputMessage}}" placeholder="输入猫咪状态和想换的猫粮" maxlength="4000" confirm-type="send" bindinput="onMessageInput" bindconfirm="sendMessage" />
+        <button class="send {{sending || !inputMessage ? 'disabled' : ''}}" loading="{{sending}}" disabled="{{sending || !inputMessage}}" bindtap="sendMessage">➤</button>
+      </view>
+    </view>
+
+    <view wx:if="{{recognized}}" class="ready-block">
+      <text class="ready-cat">🐱</text>
+      <text class="ready-title">我已整理好你的换粮信息</text>
+      <text class="ready-subtitle">请确认后开始分析</text>
+    </view>
+
+    <view wx:if="{{recognized}}" class="confirm-card">
+      <view class="confirm-head">
+        <text class="confirm-heading">换粮信息</text>
+        <view class="modify" bindtap="focusComposer">⌕ 修改</view>
+      </view>
+      <view class="info-list">
+        <view class="info-row" data-type="current" bindtap="openFoodSheet">
+          <view class="row-icon pink">♙</view>
+          <text class="label">当前粮</text>
+          <text class="value">{{currentFood.brand}} {{currentFood.name}}</text>
+          <text class="chevron">›</text>
+        </view>
+        <view class="info-row" data-type="target" bindtap="openFoodSheet">
+          <view class="row-icon green">⌁</view>
+          <text class="label">目标粮</text>
+          <text class="value">{{targetFood.brand}} {{targetFood.name}}</text>
+          <text class="chevron">›</text>
+        </view>
+        <view class="info-row" bindtap="openSymptoms">
+          <view class="row-icon yellow">🐱</view>
+          <text class="label">猫咪状态</text>
+          <text class="value symptom">{{symptomText}}</text>
+          <text class="chevron">›</text>
+        </view>
+      </view>
+      <button class="primary-action" loading="{{testing}}" bindtap="startTest">{{testing ? '正在分析...' : '开始换粮分析 ✦'}}</button>
+    </view>
+
+    <view wx:if="{{recognized}}" class="privacy-note">♧　信息仅用于分析，不会保存你的个人隐私</view>
+    </block>
+
+    <view wx:if="{{tested}}" id="result" class="ingredient-result">
+      <view class="radar-card">
+        <view class="radar-legend">
+          <view><text class="legend-dot current-dot"></text>{{currentFood.brand}} {{currentFood.name}}</view>
+          <view><text class="legend-dot target-dot"></text>{{targetFood.brand}} {{targetFood.name}}</view>
+        </view>
+        <view class="radar-wrap">
+          <canvas type="2d" id="nutritionRadar" class="radar-canvas"></canvas>
+          <view wx:for="{{radarMetrics}}" wx:key="key" class="metric-label {{item.position}}"><text>{{item.label}}</text><text>{{item.current}}</text><text class="target-score">{{item.target}}</text></view>
+        </view>
+      </view>
+
+      <view class="formula-card">
+        <text class="formula-title">配方结构对比</text>
+        <view class="food-tabs">
+          <view class="food-tab {{activeFoodTab === 'current' ? 'active' : ''}}" data-tab="current" bindtap="switchFoodTab">当前粮（{{currentFood.brand}} {{currentFood.name}}）</view>
+          <view class="food-tab {{activeFoodTab === 'target' ? 'active' : ''}}" data-tab="target" bindtap="switchFoodTab">目标粮（{{targetFood.brand}} {{targetFood.name}}）</view>
+        </view>
+        <view class="formula-list">
+          <view wx:for="{{roleGroups}}" wx:key="key" class="formula-row" bindtap="comingSoon">
+            <view class="formula-icon tone-{{item.tone}}">{{item.icon}}</view>
+            <text class="formula-name">{{item.title}}</text>
+            <view class="formula-tags"><text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text></view>
+            <text class="formula-arrow">›</text>
+          </view>
+          <view wx:if="{{!roleGroups.length}}" class="formula-empty">暂无原材料营养角色分类数据</view>
+        </view>
+        <view class="formula-tip">ⓘ　点击右侧箭头可查看该项的原材料明细</view>
+      </view>
+
+      <button class="report-button" bindtap="comingSoon">▧　生成换粮报告</button>
+      <view class="report-note">生成完整换粮分析与建议，包括风险提醒、换粮方案等</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showExitModal}}" class="exit-mask" bindtap="continueConversation"></view>
+  <view wx:if="{{showExitModal}}" class="exit-modal">
+    <text class="exit-cat">🐱</text>
+    <text class="exit-title">退出当前对话？</text>
+    <text class="exit-desc">本次换粮信息会自动保存，下次可继续
+补充和分析。</text>
+    <view class="exit-summary">已识别：当前粮、目标粮、猫咪状态</view>
+    <button class="leave-button" bindtap="directLeave">直接离开</button>
+    <button class="stay-button" bindtap="continueConversation">继续对话</button>
+  </view>
+
+  <view wx:if="{{showFoodSheet || showSymptomSheet}}" class="mask" bindtap="closeSheet"></view>
+  <view class="sheet {{showFoodSheet ? 'open' : ''}}">
+    <view class="sheet-head"><text>{{foodTitle}}</text><text bindtap="closeSheet">×</text></view>
+    <view wx:if="{{loadingFoods}}" class="food-loading">正在加载该品牌的产品…</view>
+    <view wx:for="{{foodOptions}}" wx:key="id" class="food-option" data-id="{{item.id}}" bindtap="chooseFood"><view class="option-image">{{item.emoji}}</view><view><text class="option-brand">{{item.brand}}</text><text class="option-name">{{item.name}}</text></view><text class="check">{{item.selected ? '✓' : ''}}</text></view>
+    <view wx:if="{{!loadingFoods && !foodOptions.length}}" class="food-loading">该品牌暂无可选择的产品</view>
+  </view>
+  <view class="sheet {{showSymptomSheet ? 'open' : ''}}">
+    <view class="sheet-head"><text>编辑猫咪状态</text><text bindtap="closeSheet">×</text></view>
+    <view class="symptom-grid"><view wx:for="{{symptomOptions}}" wx:key="label" class="chip {{item.selected ? 'selected' : ''}}" data-label="{{item.label}}" bindtap="toggleSymptom">{{item.selected ? '✓ ' : ''}}{{item.label}}</view></view>
+    <button class="confirm" bindtap="confirmSymptoms">确认</button>
+  </view>
+</view>
