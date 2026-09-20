@@ -1,5 +1,6 @@
 import { api, mediaUrl, errorText } from '../../api/miniprogram';
 import { loadStore, saveStore, persistImage } from '../../utils/pet-store';
+
 const covers = [
   {
     id: 'play',
@@ -14,6 +15,35 @@ const covers = [
     image: '/pages/pet-space/static/cat-1.webp',
   },
 ];
+
+function mapFoodItem(p) {
+  return {
+    id: p.catalog_key || p.id,
+    name: p.product_name || p.name || '',
+    brand: p.brand || '',
+    tag: p.brand || '',
+    displayText: p.display_text || p.displayText || '',
+    originType: p.origin_type || p.originType || '',
+    image: mediaUrl(p.main_image_url || p.image_url || p.cover_url || p.image || ''),
+    images: p.images || [],
+    source: p.source || 'catalog',
+  };
+}
+
+function mapLocalFood(p) {
+  return {
+    id: p.id,
+    name: p.name || p.series || '',
+    brand: p.brand || '',
+    tag: p.brand || '',
+    displayText: p.displayText || '',
+    originType: p.originType || '用户补充',
+    image: p.image || (p.images && p.images[0]) || '',
+    images: p.images || [],
+    source: 'local',
+  };
+}
+
 Page({
   data: {
     kind: 'toys',
@@ -31,7 +61,11 @@ Page({
     form: { name: '', note: '', images: [] },
     editingId: '',
     editorMode: 'form',
+    catalogAdding: false,
+    catalogForm: { brand: '', series: '', images: [] },
+    catalogEditorMode: 'form',
   },
+
   onLoad(q) {
     const kind = q.kind === 'food' ? 'food' : 'toys';
     this.setData({
@@ -57,18 +91,46 @@ Page({
     });
     this.loadCatalog();
   },
+
   onShow() {
     this.refreshMine();
   },
+
   refreshMine() {
     this.setData({ mine: loadStore().supplies[this.data.kind] });
   },
+
   changeSlide(e) {
     this.setData({ slide: e.detail.current });
   },
+
   inputSearch(e) {
     this.setData({ [e.currentTarget.dataset.key]: e.detail.value });
   },
+
+  localCatalogItems() {
+    return (loadStore().catalogFood || []).map(mapLocalFood);
+  },
+
+  mergeFoodItems(remote = []) {
+    const brand = (this.data.brand || '').trim();
+    const query = (this.data.query || '').trim();
+    const local = this.localCatalogItems().filter((item) => {
+      if (brand && !(item.brand || '').includes(brand)) return false;
+      if (
+        query &&
+        !(item.name || '').includes(query) &&
+        !(item.displayText || '').includes(query) &&
+        !(item.brand || '').includes(query)
+      ) {
+        return false;
+      }
+      return true;
+    });
+    const seen = new Set(local.map((item) => item.id));
+    return [...local, ...remote.filter((item) => !seen.has(item.id))];
+  },
+
   async loadCatalog() {
     const requestId = (this._requestId || 0) + 1;
     this._requestId = requestId;
@@ -88,20 +150,16 @@ Page({
       );
       if (requestId !== this._requestId) return;
       const items = food
-        ? r.items.map((p) => ({
-            id: p.catalog_key,
-            name: p.product_name,
-            tag: p.brand,
-            note: '食品目录 · 查看并加入我的食物',
-            image: mediaUrl(p.image_url || p.cover_url),
-            source: 'catalog',
-          }))
-        : r.items
+        ? this.mergeFoodItems((r.items || []).map(mapFoodItem))
+        : (r.items || [])
             .filter((p) => ['PET_TOY', 'OWNER_TOY', 'SMART_DEVICE', 'DAILY_USE'].includes(p.category))
             .map((p) => ({
               id: p.id,
               name: p.title,
+              brand: '',
               tag: p.category_name,
+              displayText: p.description || '',
+              originType: '',
               note: p.description,
               image: mediaUrl(p.cover_url),
               source: 'idea',
@@ -111,21 +169,35 @@ Page({
         const featured = items
           .filter((p) => p.image)
           .slice(0, 5)
-          .map((p) => ({ id: p.id, title: p.name, subtitle: p.tag + ' · ' + p.note, image: p.image }));
+          .map((p) => ({
+            id: p.id,
+            title: p.name,
+            subtitle: `${p.tag} · ${p.displayText || p.note || ''}`,
+            image: p.image,
+          }));
         if (featured.length) this.setData({ slides: [...featured, ...covers].slice(0, 5) });
       }
     } catch (e) {
-      if (requestId === this._requestId) this.setData({ error: errorText(e) });
+      if (requestId === this._requestId) {
+        if (this.data.kind === 'food') {
+          this.setData({ items: this.mergeFoodItems([]), error: '' });
+        } else {
+          this.setData({ error: errorText(e) });
+        }
+      }
     } finally {
       if (requestId === this._requestId) this.setData({ loading: false });
     }
   },
+
   openItem(e) {
-    this.setData({ selected: this.data.items.find((p) => p.id === e.currentTarget.dataset.id) });
+    this.setData({ selected: this.data.items.find((p) => p.id === e.currentTarget.dataset.id) || null });
   },
+
   closeDetail() {
     this.setData({ selected: null });
   },
+
   addToMine() {
     const p = this.data.selected;
     if (!p) return;
@@ -135,7 +207,14 @@ Page({
       return;
     }
     try {
-      supplies[this.data.kind].push({ ...p, id: `item-${Date.now()}`, sourceId: p.id });
+      supplies[this.data.kind].push({
+        id: `item-${Date.now()}`,
+        sourceId: p.id,
+        name: p.name,
+        note: p.displayText || p.note || '',
+        images: p.images || (p.image ? [p.image] : []),
+        brand: p.brand || '',
+      });
       saveStore({ supplies });
       this.refreshMine();
       this.closeDetail();
@@ -144,6 +223,133 @@ Page({
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
     }
   },
+
+  openCatalogAdd() {
+    if (this.data.kind !== 'food') return;
+    this.setData({
+      catalogAdding: true,
+      catalogEditorMode: 'form',
+      catalogForm: {
+        brand: this.data.brand.trim() || '',
+        series: this.data.query.trim() || '',
+        images: [],
+      },
+    });
+  },
+
+  closeCatalogAdd() {
+    this.setData({ catalogAdding: false, catalogEditorMode: 'form' });
+  },
+
+  inputCatalog(e) {
+    this.setData({ [`catalogForm.${e.currentTarget.dataset.key}`]: e.detail.value });
+  },
+
+  openCatalogIngredient() {
+    this.setData({ catalogEditorMode: 'ingredient' });
+  },
+
+  closeCatalogIngredient() {
+    this.setData({ catalogEditorMode: 'form' });
+  },
+
+  onCatalogIngredientFound() {
+    wx.showActionSheet({
+      itemList: ['拍照', '从相册选择'],
+      success: (res) => {
+        const sourceType = res.tapIndex === 0 ? ['camera'] : ['album'];
+        this.pickCatalogImages(sourceType);
+      },
+    });
+  },
+
+  pickCatalogImages(sourceType) {
+    const remain = 3 - (this.data.catalogForm.images || []).length;
+    if (remain <= 0) {
+      wx.showToast({ title: '最多上传 3 张图片', icon: 'none' });
+      return;
+    }
+    wx.chooseMedia({
+      count: remain,
+      mediaType: ['image'],
+      sourceType,
+      sizeType: ['compressed'],
+      success: (res) => {
+        const files = (res.tempFiles || []).filter((file) => {
+          if (file.size > 10 * 1024 * 1024) {
+            wx.showToast({ title: '单张图片不能超过 10MB', icon: 'none' });
+            return false;
+          }
+          return true;
+        });
+        if (!files.length) return;
+        const next = [...(this.data.catalogForm.images || []), ...files.map((file) => file.tempFilePath)].slice(0, 3);
+        this.setData({
+          catalogEditorMode: 'form',
+          'catalogForm.images': next,
+        });
+      },
+    });
+  },
+
+  previewCatalogImage(e) {
+    const current = e.currentTarget.dataset.current;
+    const urls = this.data.catalogForm.images || [];
+    if (!current || !urls.length) return;
+    wx.previewImage({ current, urls });
+  },
+
+  removeCatalogImage(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    this.setData({
+      'catalogForm.images': (this.data.catalogForm.images || []).filter((_, i) => i !== index),
+    });
+  },
+
+  async saveCatalogFood() {
+    const brand = (this.data.catalogForm.brand || '').trim();
+    const series = (this.data.catalogForm.series || '').trim();
+    if (!brand) {
+      wx.showToast({ title: '请填写品牌', icon: 'none' });
+      return;
+    }
+    if (!series) {
+      wx.showToast({ title: '请填写系列', icon: 'none' });
+      return;
+    }
+    try {
+      const images = [];
+      for (const path of this.data.catalogForm.images || []) {
+        if (!path) continue;
+        const needPersist = /tmp/i.test(path) || (!/^wxfile:\/\//.test(path) && !/^https?:\/\//.test(path));
+        images.push(needPersist ? await persistImage(path) : path);
+      }
+      const entry = {
+        id: `local-${Date.now()}`,
+        brand,
+        name: series,
+        series,
+        displayText: images.length ? '已上传配料表图片，待接口解析配方' : '',
+        originType: '用户补充',
+        image: images[0] || '',
+        images,
+        source: 'local',
+        createdAt: Date.now(),
+      };
+      const catalogFood = [entry, ...(loadStore().catalogFood || [])];
+      saveStore({ catalogFood });
+      const mapped = mapLocalFood(entry);
+      this.setData({
+        items: [mapped, ...this.data.items.filter((item) => item.id !== mapped.id)],
+        catalogAdding: false,
+        catalogEditorMode: 'form',
+      });
+      wx.showToast({ title: '已加入食品目录', icon: 'success' });
+    } catch (e) {
+      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+    }
+  },
+
   editMine(e) {
     const item = this.data.mine.find((i) => i.id === e.currentTarget.dataset.id);
     this.setData({
@@ -155,25 +361,31 @@ Page({
       editorMode: 'form',
     });
   },
+
   closeEditor() {
     this.setData({ editing: false, editorMode: 'form' });
   },
+
   input(e) {
     this.setData({ [`form.${e.currentTarget.dataset.key}`]: e.detail.value });
   },
+
   openIngredientSheet() {
     if (this.data.kind !== 'food') return;
     this.setData({ editorMode: 'ingredient' });
   },
+
   closeIngredientSheet() {
     this.setData({ editorMode: 'form' });
   },
+
   previewIngredientExample() {
     wx.previewImage({
       current: '/pages/pet-space/static/ingredient-example.jpg',
       urls: ['/pages/pet-space/static/ingredient-example.jpg'],
     });
   },
+
   onIngredientFound() {
     wx.showActionSheet({
       itemList: ['拍照', '从相册选择'],
@@ -183,6 +395,7 @@ Page({
       },
     });
   },
+
   pickIngredientImages(sourceType) {
     const remain = 3 - (this.data.form.images || []).length;
     if (remain <= 0) {
@@ -212,18 +425,21 @@ Page({
       },
     });
   },
+
   previewFormImage(e) {
     const current = e.currentTarget.dataset.current;
     const urls = this.data.form.images || [];
     if (!current || !urls.length) return;
     wx.previewImage({ current, urls });
   },
+
   removeFormImage(e) {
     const index = Number(e.currentTarget.dataset.index);
     this.setData({
       'form.images': (this.data.form.images || []).filter((_, i) => i !== index),
     });
   },
+
   async saveMine() {
     if (!this.data.form.name.trim()) {
       wx.showToast({ title: '请填写名称', icon: 'none' });
@@ -254,6 +470,7 @@ Page({
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
     }
   },
+
   onUnload() {
     this._requestId = (this._requestId || 0) + 1;
   },

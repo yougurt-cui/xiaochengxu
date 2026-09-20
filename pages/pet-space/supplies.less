@@ -148,6 +148,9 @@
   text-align: left;
   line-height: 1.5;
 }
+.catalog-media {
+  position: relative;
+}
 .catalog-image,
 .catalog-placeholder {
   width: 100%;
@@ -162,6 +165,21 @@
 .catalog-placeholder.food {
   background: @colors-food;
 }
+.catalog-brand {
+  position: absolute;
+  left: 12rpx;
+  top: 12rpx;
+  max-width: calc(100% - 24rpx);
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  background: fade(@colors-text, 55%);
+  color: @colors-inverse;
+  font-size: 20rpx;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .catalog-copy {
   padding: 20rpx;
 }
@@ -170,15 +188,55 @@
   font-size: 20rpx;
   margin-bottom: 8rpx;
 }
-.card-action {
+.catalog-action {
   color: @colors-primary;
-  font-size: 22rpx;
-  margin-top: 20rpx;
+  font-size: @type-caption;
+  font-weight: @weight-medium;
 }
-.detail-image {
+.catalog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28rpx;
+  padding: 48rpx 32rpx;
+}
+.catalog-empty-button {
+  margin: 0;
+  min-width: 240rpx;
+  height: 72rpx;
+  padding: 0 36rpx;
+  line-height: 72rpx;
+  border-radius: @radius-pill;
+  background: @colors-primary;
+  color: @colors-inverse;
+  font-size: 28rpx;
+  font-weight: @weight-semibold;
+}
+.detail-image,
+.detail-placeholder {
   width: 100%;
   border-radius: @radius-medium;
   margin-bottom: 20rpx;
+}
+.detail-placeholder {
+  height: 320rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: @colors-toy;
+}
+.detail-placeholder.food {
+  background: @colors-food;
+}
+.detail-title {
+  margin-top: 8rpx;
+  margin-bottom: 8rpx;
+}
+.detail-meta {
+  display: block;
+  margin-bottom: 12rpx;
+  color: @colors-muted;
+  font-size: 22rpx;
 }
 .detail-note {
   white-space: pre-wrap;

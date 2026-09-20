@@ -2,7 +2,7 @@
 const KEY = 'pet_companion_v1';
 export function loadStore() {
   const saved = wx.getStorageSync(`${KEY}:${(wx.getStorageSync('miniprogram_user') || {}).id || 'guest'}`) || {};
-  return { pet: null, parent: null, favorites: [], posts: [], supplies: { toys: [], food: [] }, records: [], ...saved };
+  return { pet: null, parent: null, favorites: [], posts: [], supplies: { toys: [], food: [] }, catalogFood: [], records: [], ...saved };
 }
 export function saveStore(patch) {
   const next = { ...loadStore(), ...patch };
