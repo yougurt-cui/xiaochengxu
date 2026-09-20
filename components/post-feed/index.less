@@ -1,0 +1,78 @@
+@import '../../styles/tokens.less';
+.feed {
+  display: flex;
+  gap: 20rpx;
+}
+.column {
+  flex: 1;
+  min-width: 0;
+}
+.post {
+  margin-bottom: 20rpx;
+}
+.post-open {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  background: transparent;
+  text-align: left;
+  line-height: 1.6;
+}
+.post-open::after,
+.save::after {
+  border: 0;
+}
+.photo {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: @radius-medium;
+  background: @colors-surfaceMuted;
+}
+
+.tag {
+  font-size: @type-caption;
+  color: @colors-primaryText;
+  margin: 12rpx 0 6rpx;
+}
+.title {
+  display: block;
+  font-size: @type-cardTitle;
+  font-weight: @weight-semibold;
+  margin: 0;
+  line-height: 1.45;
+}
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6rpx 0 0;
+}
+.byline {
+  min-width: 0;
+  flex: 1;
+  font-size: 20rpx;
+  color: @colors-secondary;
+}
+.byline-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.byline .time {
+  margin-top: 4rpx;
+  font-size: 18rpx;
+  color: @colors-muted;
+}
+.save {
+  width: 64rpx;
+  min-width: 64rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 8rpx;
+  margin: 0;
+  background: transparent;
+}

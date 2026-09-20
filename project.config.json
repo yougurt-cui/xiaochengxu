@@ -2,7 +2,12 @@
   "description": "项目配置文件，详见文档：https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html",
   "packOptions": {
     "ignore": [],
-    "include": []
+    "include": [
+      {
+        "type": "suffix",
+        "value": ".wxs"
+      }
+    ]
   },
   "setting": {
     "bundle": false,
@@ -49,11 +54,14 @@
     "compileWorklet": false,
     "localPlugins": false,
     "swc": false,
-    "disableSWC": true
+    "disableSWC": true,
+    "lessSetting": {
+      "commonUseFilePath": "app.less"
+    }
   },
   "compileType": "miniprogram",
   "libVersion": "3.7.8",
-  "appid": "wx2c638bd2fdeae793",
+  "appid": "wxec9a56b911900aa0",
   "projectname": "miniprogram-starter",
   "condition": {
     "miniprogram": {

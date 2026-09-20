@@ -1,18 +1,7 @@
 <view class="page" bindtap="clearTooltip">
-  <view class="top-fixed">
-    <view style="height: {{statusBarHeight}}px"></view>
-    <view class="navbar">
-      <view class="back" bindtap="goBack">‹</view>
-      <view class="nav-title">
-        <text class="title">{{tested ? '营养成分解析' : 'AI助手'}}</text>
-        <text wx:if="{{!tested}}" class="subtitle">说出意图，我来整理换粮信息</text>
-      </view>
-      <view class="nav-placeholder"></view>
-    </view>
-  </view>
-  <view style="height: calc({{statusBarHeight}}px + 128rpx)"></view>
-
-  <view class="content {{!recognized && !tested ? 'initial-content' : ''}}" style="min-height: calc(100vh - {{statusBarHeight}}px - 296rpx - env(safe-area-inset-bottom))">
+  <page-header title="{{tested ? '营养成分解析' : '宠物管家'}}" />
+  <button wx:if="{{tested}}" class="text-button" bindtap="goBack"><p-icon name="back" size="28" />返回对话</button>
+  <view class="content {{!recognized && !tested ? 'initial-content' : ''}}">
     <view wx:if="{{savedMode && !tested}}" class="saved-card">
         <view class="saved-head">
           <view class="saved-icon">▧</view>
@@ -27,39 +16,10 @@
       </view>
 
     <block wx:if="{{!tested}}">
-    <view class="conversation-card">
-      <view class="chat assistant-chat">
-        <view class="avatar">🐱</view>
-        <view class="bubble example-bubble">
-          <text class="bubble-lead">你可以直接说：</text>
-          <text>三岁英短最近软便，正在吃皇家肠胃舒适，想换鲜朗</text>
-        </view>
-      </view>
-
-      <view wx:if="{{userMessage}}" class="chat user-chat">
-        <view class="bubble user-bubble">{{userMessage}}</view>
-        <image class="user-avatar" src="/static/avatar1.png" mode="aspectFill" />
-      </view>
-
-      <view wx:if="{{assistantMessage}}" class="chat assistant-reply">
-        <view class="avatar small-avatar">🐱</view>
-        <view class="bubble">{{assistantMessage}}</view>
-      </view>
-
-      <view class="prompt-row">
-        <view class="prompt-chip" data-message="三岁英短软便想换粮" bindtap="usePrompt">三岁英短软便想换粮</view>
-        <view class="prompt-chip" data-message="想换低敏粮" bindtap="usePrompt">想换低敏粮</view>
-        <view class="refresh-chip" bindtap="cyclePrompts">↻</view>
-      </view>
-
-      <view class="composer">
-        <input class="message-input" value="{{inputMessage}}" placeholder="输入猫咪状态和想换的猫粮" maxlength="4000" confirm-type="send" bindinput="onMessageInput" bindconfirm="sendMessage" />
-        <button class="send {{sending || !inputMessage ? 'disabled' : ''}}" loading="{{sending}}" disabled="{{sending || !inputMessage}}" bindtap="sendMessage">➤</button>
-      </view>
-    </view>
-
+    <view wx:if="{{!chatMessages.length}}" class="chat-welcome"><view class="welcome-card"><view class="welcome-row"><view class="bot-mark"><p-icon name="ai-search" tone="primary" size="60" /></view><view class="welcome-copy"><view class="welcome-heading"><text class="welcome-title">嗨，我是你的宠物管家</text><button class="welcome-history" bindtap="openConversationHistory"><p-icon name="history" tone="primary" size="24" />对话记录</button></view><text class="welcome-subtitle">今天想聊点什么？</text></view></view><text class="welcome-description">聊聊饮食与状态，养宠的小问题一起理清。</text></view><view class="quick-prompts"><button data-message="三岁英短最近软便，正在吃皇家肠胃舒适，想换鲜朗" bindtap="usePrompt"><p-icon name="cat" size="32" />最近软便，想了解换粮的注意事项<text>↗</text></button><button data-message="我想换低敏粮，需要提供哪些信息？" bindtap="usePrompt"><p-icon name="food" size="32" />想换低敏粮，从哪里开始？<text>↗</text></button></view></view>
+    <view wx:if="{{chatMessages.length}}" class="active-chat-toolbar"><text>宠物管家 · 换粮咨询</text><button class="text-button" bindtap="openConversationHistory"><p-icon name="history" size="26" />对话记录</button></view><view class="conversation-thread"><view wx:for="{{chatMessages}}" wx:key="id" class="thread-message {{item.role}}"><view wx:if="{{item.role === 'assistant'}}" class="assistant-label"><view class="reply-avatar"><p-icon name="cat" tone="accentText" size="32" /></view><text>宠物管家</text></view><text selectable>{{item.text}}</text><button wx:if="{{item.error}}" class="retry-button" bindtap="retryMessage">重新发送</button></view><view wx:if="{{sending}}" class="loading-message"><view class="typing-dot"></view><view class="typing-dot"></view><view class="typing-dot"></view><text>正在整理你的问题</text></view></view>
     <view wx:if="{{recognized}}" class="ready-block">
-      <text class="ready-cat">🐱</text>
+      <p-icon name="cat" size="48" />
       <text class="ready-title">我已整理好你的换粮信息</text>
       <text class="ready-subtitle">请确认后开始分析</text>
     </view>
@@ -83,16 +43,15 @@
           <text class="chevron">›</text>
         </view>
         <view class="info-row" bindtap="openSymptoms">
-          <view class="row-icon yellow">🐱</view>
+          <view class="row-icon yellow"><p-icon name="cat" tone="accentText" /></view>
           <text class="label">猫咪状态</text>
           <text class="value symptom">{{symptomText}}</text>
           <text class="chevron">›</text>
         </view>
       </view>
-      <button class="primary-action" loading="{{testing}}" bindtap="startTest">{{testing ? '正在分析...' : '开始换粮分析 ✦'}}</button>
+      <button class="primary-action" loading="{{testing}}" bindtap="startTest">{{testing ? '正在分析...' : '开始换粮分析'}}</button>
     </view>
 
-    <view wx:if="{{recognized}}" class="privacy-note">♧　信息仅用于分析，不会保存你的个人隐私</view>
     </block>
 
     <view wx:if="{{tested}}" id="result" class="ingredient-result">
@@ -132,7 +91,7 @@
 
   <view wx:if="{{showExitModal}}" class="exit-mask" bindtap="continueConversation"></view>
   <view wx:if="{{showExitModal}}" class="exit-modal">
-    <text class="exit-cat">🐱</text>
+    <p-icon name="cat" size="64" />
     <text class="exit-title">退出当前对话？</text>
     <text class="exit-desc">本次换粮信息会自动保存，下次可继续
 补充和分析。</text>
@@ -142,15 +101,17 @@
   </view>
 
   <view wx:if="{{showFoodSheet || showSymptomSheet}}" class="mask" bindtap="closeSheet"></view>
-  <view class="sheet {{showFoodSheet ? 'open' : ''}}">
+  <view wx:if="{{showFoodSheet}}" class="sheet {{showFoodSheet ? 'open' : ''}}">
     <view class="sheet-head"><text>{{foodTitle}}</text><text bindtap="closeSheet">×</text></view>
     <view wx:if="{{loadingFoods}}" class="food-loading">正在加载该品牌的产品…</view>
     <view wx:for="{{foodOptions}}" wx:key="id" class="food-option" data-id="{{item.id}}" bindtap="chooseFood"><view class="option-image">{{item.emoji}}</view><view><text class="option-brand">{{item.brand}}</text><text class="option-name">{{item.name}}</text></view><text class="check">{{item.selected ? '✓' : ''}}</text></view>
     <view wx:if="{{!loadingFoods && !foodOptions.length}}" class="food-loading">该品牌暂无可选择的产品</view>
   </view>
-  <view class="sheet {{showSymptomSheet ? 'open' : ''}}">
+  <view wx:if="{{showSymptomSheet}}" class="sheet {{showSymptomSheet ? 'open' : ''}}">
     <view class="sheet-head"><text>编辑猫咪状态</text><text bindtap="closeSheet">×</text></view>
     <view class="symptom-grid"><view wx:for="{{symptomOptions}}" wx:key="label" class="chip {{item.selected ? 'selected' : ''}}" data-label="{{item.label}}" bindtap="toggleSymptom">{{item.selected ? '✓ ' : ''}}{{item.label}}</view></view>
     <button class="confirm" bindtap="confirmSymptoms">确认</button>
   </view>
+<view wx:if="{{!tested && !showFoodSheet && !showSymptomSheet && !showExitModal && !historyVisible}}" class="chat-input-dock" style="{{keyboardHeight ? 'bottom:' + keyboardHeight + 'px' : ''}}"><view class="chat-input-box"><textarea class="chat-textarea" focus="{{composerFocused}}" bindblur="blurComposer" value="{{inputMessage}}" placeholder="描述一下它的饮食和状态…" maxlength="4000" fixed adjust-position="{{false}}" cursor-spacing="20" show-confirm-bar="{{false}}" confirm-type="send" bindinput="onMessageInput" bindconfirm="sendMessage" bindkeyboardheightchange="onKeyboardChange" /><view class="input-actions"><text>换粮咨询</text><button wx:if="{{sending}}" class="send-button" bindtap="stopSending" aria-label="停止生成"><p-icon name="stop" tone="inverse" size="26" /></button><button wx:else class="send-button" disabled="{{!inputMessage}}" bindtap="sendMessage" aria-label="发送"><p-icon name="up" tone="inverse" size="28" /></button></view></view><view class="chat-disclaimer">AI 内容仅供参考，不能替代兽医诊断</view></view>
+<view wx:if="{{historyVisible}}" class="sheet-mask" bindtap="closeHistory"></view><view wx:if="{{historyVisible}}" class="bottom-sheet"><view class="sheet-heading"><text>对话记录</text><button bindtap="closeHistory" aria-label="关闭"><p-icon name="close" /></button></view><button wx:for="{{conversations}}" wx:key="id" class="menu-row" data-id="{{item.id}}" bindtap="restoreConversation"><p-icon name="chat" /><view class="row-copy">{{item.title}}</view><text>›</text></button><view wx:if="{{!conversations.length}}" class="empty-state">从第一句开始，对话会保存在当前设备。</view><button class="primary-button" bindtap="newConversation">开启新对话</button></view>
 </view>

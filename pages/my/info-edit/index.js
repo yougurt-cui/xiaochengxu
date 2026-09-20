@@ -1,173 +1,40 @@
-import request from '~/api/request';
-import { areaList } from './areaData.js';
-
+import { loadStore, saveStore, persistImage } from '../../../utils/pet-store';
+import { login, uploadImage, errorText } from '../../../api/miniprogram';
 Page({
-  data: {
-    personInfo: {
-      name: '',
-      gender: 0,
-      birth: '',
-      address: [],
-      introduction: '',
-      photos: [],
-    },
-    genderOptions: [
-      {
-        label: '男',
-        value: 0,
-      },
-      {
-        label: '女',
-        value: 1,
-      },
-      {
-        label: '保密',
-        value: 2,
-      },
-    ],
-    birthVisible: false,
-    birthStart: '1970-01-01',
-    birthEnd: '2025-03-01',
-    birthTime: 0,
-    birthFilter: (type, options) => (type === 'year' ? options.sort((a, b) => b.value - a.value) : options),
-    addressText: '',
-    addressVisible: false,
-    provinces: [],
-    cities: [],
-
-    gridConfig: {
-      column: 3,
-      width: 160,
-      height: 160,
-    },
-  },
-
+  data: { name: '', image: '', saving: false },
   onLoad() {
-    this.initAreaData();
-    this.getPersonalInfo();
+    const p = wx.getStorageSync('miniprogram_user') || loadStore().parent || {};
+    this.setData({ name: p.name || p.nickName || '', image: p.image || p.avatarUrl || '' });
   },
-
-  getPersonalInfo() {
-    request('/api/genPersonalInfo').then((res) => {
-      this.setData(
-        {
-          personInfo: res.data.data,
-        },
-        () => {
-          const { personInfo } = this.data;
-          this.setData({
-            addressText: `${areaList.provinces[personInfo.address[0]]} ${areaList.cities[personInfo.address[1]]}`,
-          });
-        },
-      );
-    });
-  },
-
-  getAreaOptions(data, filter) {
-    const res = Object.keys(data).map((key) => ({ value: key, label: data[key] }));
-    return typeof filter === 'function' ? res.filter(filter) : res;
-  },
-
-  getCities(provinceValue) {
-    return this.getAreaOptions(
-      areaList.cities,
-      (city) => `${city.value}`.slice(0, 2) === `${provinceValue}`.slice(0, 2),
-    );
-  },
-
-  initAreaData() {
-    const provinces = this.getAreaOptions(areaList.provinces);
-    const cities = this.getCities(provinces[0].value);
-    this.setData({ provinces, cities });
-  },
-
-  onAreaPick(e) {
-    const { column, index } = e.detail;
-    const { provinces } = this.data;
-
-    // 更改省份则更新城市列表
-    if (column === 0) {
-      const cities = this.getCities(provinces[index].value);
-      this.setData({ cities });
-    }
-  },
-
-  showPicker(e) {
-    const { mode } = e.currentTarget.dataset;
-    this.setData({
-      [`${mode}Visible`]: true,
-    });
-    if (mode === 'address') {
-      const cities = this.getCities(this.data.personInfo.address[0]);
-      this.setData({ cities });
-    }
-  },
-
-  hidePicker(e) {
-    const { mode } = e.currentTarget.dataset;
-    this.setData({
-      [`${mode}Visible`]: false,
-    });
-  },
-
-  onPickerChange(e) {
-    const { value, label } = e.detail;
-    const { mode } = e.currentTarget.dataset;
-
-    this.setData({
-      [`personInfo.${mode}`]: value,
-    });
-    if (mode === 'address') {
-      this.setData({
-        addressText: label.join(' '),
-      });
-    }
-  },
-
-  personInfoFieldChange(field, e) {
-    const { value } = e.detail;
-    this.setData({
-      [`personInfo.${field}`]: value,
-    });
-  },
-
   onNameChange(e) {
-    this.personInfoFieldChange('name', e);
+    this.setData({ name: e.detail.value });
   },
-
-  onGenderChange(e) {
-    this.personInfoFieldChange('gender', e);
+  async chooseAvatar(e) {
+    try {
+      const image = await persistImage(e.detail.avatarUrl);
+      this.setData({ image });
+    } catch (error) {
+      wx.showToast({ title: '头像保存失败，请重试', icon: 'none' });
+    }
   },
-
-  onIntroductionChange(e) {
-    this.personInfoFieldChange('introduction', e);
-  },
-
-  onPhotosRemove(e) {
-    const { index } = e.detail;
-    const { photos } = this.data.personInfo;
-
-    photos.splice(index, 1);
-    this.setData({
-      'personInfo.photos': photos,
-    });
-  },
-
-  onPhotosSuccess(e) {
-    const { files } = e.detail;
-    this.setData({
-      'personInfo.photos': files,
-    });
-  },
-
-  onPhotosDrop(e) {
-    const { files } = e.detail;
-    this.setData({
-      'personInfo.photos': files,
-    });
-  },
-
-  onSaveInfo() {
-    // console.log(this.data.personInfo);
+  async onSaveInfo() {
+    if (this.data.saving) return;
+    if (!this.data.name.trim()) {
+      wx.showToast({ title: '请填写昵称', icon: 'none' });
+      return;
+    }
+    this.setData({ saving: true });
+    try {
+      let avatarUrl = this.data.image;
+      if (avatarUrl && !/^https?:\/\//.test(avatarUrl)) avatarUrl = await uploadImage(avatarUrl);
+      const user = await login({ nickName: this.data.name.trim(), avatarUrl });
+      saveStore({ parent: user });
+      wx.showToast({ title: '资料已保存' });
+      wx.navigateBack();
+    } catch (error) {
+      wx.showToast({ title: errorText(error), icon: 'none' });
+    } finally {
+      this.setData({ saving: false });
+    }
   },
 });

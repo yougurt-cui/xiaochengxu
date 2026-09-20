@@ -1,0 +1,78 @@
+@import '../../styles/tokens.less';
+.recognition-card {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 24rpx;
+  margin: 0 0 16rpx;
+  background: @colors-primarySoft;
+  border-radius: @radius-medium;
+  text-align: left;
+  line-height: 1.5;
+}
+.recognition-photo,
+.recognition-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  flex-shrink: 0;
+}
+.recognition-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: @colors-surface;
+}
+.recognition-copy {
+  flex: 1;
+  min-width: 0;
+}
+.recognition-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 28rpx;
+  font-weight: @weight-semibold;
+  margin-bottom: 6rpx;
+}
+.mock-badge {
+  font-size: 18rpx;
+  background: @colors-accent;
+  color: @colors-accentText;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+}
+.recognition-note {
+  display: block;
+  line-height: 1.6;
+}
+.mock-notice {
+  padding: 20rpx;
+  background: @colors-food;
+  color: @colors-accentText;
+  font-size: 24rpx;
+  line-height: 1.7;
+  border-radius: @radius-small;
+  margin: 16rpx 0;
+}
+.field-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24rpx;
+}
+.pet-form {
+  margin: 32rpx 0;
+}
+.pet-form .form-field {
+  margin: 0 0 24rpx;
+}
+.pet-form input,
+.pet-form .form-value {
+  background: @colors-surface;
+  margin-top: 10rpx;
+  height: 88rpx;
+  line-height: 40rpx;
+}
+.page {
+  padding-bottom: 40rpx;
+}

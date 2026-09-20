@@ -1,5 +1,7 @@
+import { accountKey } from '../../utils/pet-store';
 import config from '../../config';
 import request from '../../api/request';
+import theme from '../../config/theme';
 
 const FOODS = {
   current: [
@@ -81,7 +83,8 @@ function mapMaterialRoles(evidence, fallbackGroups = []) {
     const family = String(item.ingredient_family || '');
     const name = item.raw_name || item.standard_name;
     if (item.is_protein || role.includes('蛋白')) add('protein', name);
-    if (role.includes('碳水') || family.includes('淀粉') || family.includes('谷物') || family.includes('根茎')) add('starch', name);
+    if (role.includes('碳水') || family.includes('淀粉') || family.includes('谷物') || family.includes('根茎'))
+      add('starch', name);
     if (role.includes('脂肪') || family.includes('油脂')) add('fat', name);
     if (role.includes('纤维') || role.includes('益生元') || family.includes('纤维')) add('fiber', name);
     if (role.includes('抗氧化') || role.includes('微量') || role.includes('皮肤')) add('protection', name);
@@ -103,6 +106,10 @@ function mapMaterialRoles(evidence, fallbackGroups = []) {
 Page({
   data: {
     statusBarHeight: 20,
+    chatMessages: [],
+    keyboardHeight: 0,
+    historyVisible: false,
+    conversations: [],
     currentFood: FOODS.current[0],
     targetFood: FOODS.target[0],
     symptomText: '软便敏感 / 偶尔黑下巴',
@@ -142,17 +149,34 @@ Page({
 
   onLoad() {
     const { statusBarHeight = 20 } = wx.getWindowInfo();
-    const savedDraft = wx.getStorageSync('food_change_draft') || {};
+    const savedDraft = wx.getStorageSync(accountKey('food_change_draft')) || {};
     this.setData({
       statusBarHeight,
       savedDraft,
       savedMode: !!savedDraft.savedAt,
+      chatMessages: [],
     });
   },
 
   onShow() {
+    const account = accountKey('assistant');
+    if (this._account && this._account !== account) {
+      if (this.data.sending) {
+        this._sendVersion = (this._sendVersion || 0) + 1;
+        if (this._sendRequest) this._sendRequest.abort();
+      }
+      this.setData({
+        sending: false,
+        chatMessages: [],
+        recognized: false,
+        tested: false,
+        savedMode: false,
+        userMessage: '',
+      });
+    }
+    this._account = account;
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ value: 'assistant' });
+      this.getTabBar().setData({ value: 'assistant', hidden: false });
     }
   },
 
@@ -163,7 +187,7 @@ Page({
     }
     if (this.data.userMessage || this.data.recognized) {
       this.setData({ showExitModal: true });
-      wx.hideTabBar({ animation: true });
+      this.setTabHidden(true);
       return;
     }
     if (getCurrentPages().length > 1) {
@@ -180,6 +204,7 @@ Page({
       symptomText: this.data.symptomText,
       selectedSymptoms: this.data.selectedSymptoms,
       userMessage: this.data.userMessage,
+      chatMessages: this.data.chatMessages,
       assistantMessage: this.data.assistantMessage,
       currentIngredientGroups: this.data.currentIngredientGroups,
       targetIngredientGroups: this.data.targetIngredientGroups,
@@ -187,8 +212,8 @@ Page({
       targetFoodMatched: this.data.targetFoodMatched,
       savedAt: Date.now(),
     };
-    wx.setStorageSync('food_change_draft', savedDraft);
-    wx.showTabBar({ animation: true });
+    wx.setStorageSync(accountKey('food_change_draft'), savedDraft);
+    this.setTabHidden(false);
     this.setData({
       showExitModal: false,
       savedMode: true,
@@ -198,6 +223,7 @@ Page({
       testing: false,
       inputMessage: '',
       userMessage: '',
+      chatMessages: [],
       assistantMessage: '',
       currentIngredientGroups: [],
       targetIngredientGroups: [],
@@ -209,7 +235,7 @@ Page({
   continueConversation(event) {
     if (this.data.showExitModal) {
       this.setData({ showExitModal: false });
-      wx.showTabBar({ animation: true });
+      this.setTabHidden(false);
       return;
     }
     if (!event || event.currentTarget.dataset.action !== 'resume') return;
@@ -222,6 +248,7 @@ Page({
       selectedSymptoms: draft.selectedSymptoms || [],
       symptomOptions: SYMPTOMS.map((label) => ({ label, selected: (draft.selectedSymptoms || []).includes(label) })),
       userMessage: draft.userMessage || '',
+      chatMessages: draft.chatMessages || [],
       assistantMessage: draft.assistantMessage || '',
       currentIngredientGroups: draft.currentIngredientGroups || [],
       targetIngredientGroups: draft.targetIngredientGroups || [],
@@ -235,8 +262,8 @@ Page({
   },
 
   deleteSavedConversation() {
-    wx.removeStorageSync('food_change_draft');
-    wx.removeStorageSync('food_change_session_id');
+    wx.removeStorageSync(accountKey('food_change_draft'));
+    wx.removeStorageSync(accountKey('food_change_session_id'));
     this.setData({
       savedMode: false,
       savedDraft: {},
@@ -247,6 +274,7 @@ Page({
       symptomOptions: SYMPTOMS.map((label) => ({ label, selected: false })),
       inputMessage: '',
       userMessage: '',
+      chatMessages: [],
       assistantMessage: '',
       recognized: false,
       tested: false,
@@ -270,13 +298,16 @@ Page({
     wx.showToast({ title: '已为你换一组表达示例', icon: 'none' });
   },
 
+  blurComposer() {
+    this.setData({ composerFocused: false });
+  },
   focusComposer() {
-    this.setData({ tested: false });
+    this.setData({ tested: false, composerFocused: true });
     wx.pageScrollTo({ scrollTop: 0, duration: 300 });
   },
 
   async openFoodSheet(event) {
-    wx.hideTabBar({ animation: true });
+    this.setTabHidden(true);
     const foodType = event.currentTarget.dataset.type;
     const selectedFood = this.data[`${foodType}Food`];
     this.setData({
@@ -287,7 +318,9 @@ Page({
       loadingFoods: true,
     });
     try {
-      const response = await request(`${config.apiBaseUrl}/api/miniprogram/products?brand=${encodeURIComponent(selectedFood.brand)}&limit=50`);
+      const response = await request(
+        `${config.apiBaseUrl}/api/miniprogram/products?brand=${encodeURIComponent(selectedFood.brand)}&limit=50`,
+      );
       const items = (response.data && response.data.items) || [];
       this.setData({
         loadingFoods: false,
@@ -311,9 +344,11 @@ Page({
     if (!food) return;
     const foodType = this.data.foodType;
     this.setData({ [`${foodType}Food`]: food, showFoodSheet: false, tested: false });
-    wx.showTabBar({ animation: true });
+    this.setTabHidden(false);
     try {
-      const response = await request(`${config.apiBaseUrl}/api/miniprogram/products/ingredients`, 'POST', { catalog_key: food.id });
+      const response = await request(`${config.apiBaseUrl}/api/miniprogram/products/ingredients`, 'POST', {
+        catalog_key: food.id,
+      });
       const groups = mapIngredientGroups(response.data && response.data.ingredient_analysis);
       const groupKey = foodType === 'current' ? 'currentIngredientGroups' : 'targetIngredientGroups';
       const matchedKey = foodType === 'current' ? 'currentFoodMatched' : 'targetFoodMatched';
@@ -330,12 +365,12 @@ Page({
   },
 
   openSymptoms() {
-    wx.hideTabBar({ animation: true });
+    this.setTabHidden(true);
     this.setData({ showSymptomSheet: true });
   },
   closeSheet() {
     this.setData({ showFoodSheet: false, showSymptomSheet: false });
-    wx.showTabBar({ animation: true });
+    this.setTabHidden(false);
   },
 
   toggleSymptom(event) {
@@ -360,7 +395,7 @@ Page({
       return;
     }
     this.setData({ symptomText: this.data.selectedSymptoms.join(' / '), showSymptomSheet: false });
-    wx.showTabBar({ animation: true });
+    this.setTabHidden(false);
   },
 
   onMessageInput(event) {
@@ -370,6 +405,12 @@ Page({
   async sendMessage() {
     const message = this.data.inputMessage.trim();
     if (!message || this.data.sending) return;
+    const version = (this._sendVersion || 0) + 1;
+    this._sendVersion = version;
+    this._lastPrompt = message;
+    this.setData({
+      chatMessages: [...this.data.chatMessages, { id: `user-${Date.now()}`, role: 'user', text: message }],
+    });
     this.setData({
       sending: true,
       inputMessage: '',
@@ -379,14 +420,18 @@ Page({
       tested: false,
     });
     try {
-      const userInfo = wx.getStorageSync('userInfo') || {};
-      const sessionId = wx.getStorageSync('food_change_session_id') || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      wx.setStorageSync('food_change_session_id', sessionId);
-      const response = await request(`${config.apiBaseUrl}/api/miniprogram/food-change/intent`, 'POST', {
+      const userInfo = wx.getStorageSync('miniprogram_user') || {};
+      const sessionId =
+        wx.getStorageSync(accountKey('food_change_session_id')) ||
+        `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      wx.setStorageSync(accountKey('food_change_session_id'), sessionId);
+      this._sendRequest = request(`${config.apiBaseUrl}/api/miniprogram/food-change/intent`, 'POST', {
         user_id: userInfo.openid || userInfo.id || '',
         session_id: sessionId,
         message,
       });
+      const response = await this._sendRequest;
+      if (version !== this._sendVersion) return;
       const data = response.data || {};
       const intent = data.intent || {};
       const current = intent.current_food || {};
@@ -417,25 +462,143 @@ Page({
         selectedSymptoms: symptoms,
         symptomText: symptoms.length ? symptoms.join(' / ') : '暂无明显状态',
         assistantMessage: intent.is_food_change_intent
-          ? (missingProductNames.length ? `已识别品牌，请补充${missingProductNames.join('和')}的具体产品或系列。` : '已识别换粮信息，请确认后开始检测。')
+          ? missingProductNames.length
+            ? `已识别品牌，请补充${missingProductNames.join('和')}的具体产品或系列。`
+            : '已识别换粮信息，请确认后开始检测。'
           : '暂未识别到明确的换粮意图，请补充当前粮、目标粮和猫咪状态。',
         recognized: !!intent.is_food_change_intent,
         activeFoodTab: 'current',
         currentIngredientGroups,
         targetIngredientGroups,
         ingredientGroups: currentIngredientGroups,
-        activeFoodTitle: `${currentMatch.brand || current.brand || intent.brand || '未识别'} ${currentMatch.product_name || current.product_name || intent.product_name || '未识别'}`,
+        activeFoodTitle: `${currentMatch.brand || current.brand || intent.brand || '未识别'} ${
+          currentMatch.product_name || current.product_name || intent.product_name || '未识别'
+        }`,
         activeFoodMatched: !!data.ingredient_analysis,
         currentFoodMatched: !!data.ingredient_analysis,
         targetFoodMatched: !!data.target_ingredient_analysis,
         sending: false,
       });
+      this.appendAssistant(this.data.assistantMessage);
     } catch (error) {
+      if (version !== this._sendVersion) return;
       const apiError = error && error.data && error.data.error;
       const networkError = error && error.errMsg;
       const messageText = apiError || networkError || '接口连接失败，请确认后端服务已启动。';
       this.setData({ assistantMessage: messageText, sending: false });
+      this.appendAssistant('暂时连接不上，请稍后重试。你的问题已保留。', true);
     }
+  },
+
+  setTabHidden(hidden) {
+    if (this.getTabBar()) this.getTabBar().setData({ hidden });
+  },
+  onKeyboardChange(e) {
+    const keyboardHeight = e.detail.height || 0;
+    this.setData({ keyboardHeight });
+    this.setTabHidden(keyboardHeight > 0);
+  },
+  scrollChat() {
+    wx.pageScrollTo({ scrollTop: 100000, duration: 200 });
+  },
+  appendAssistant(text, error = false) {
+    this.setData({
+      chatMessages: [...this.data.chatMessages, { id: `assistant-${Date.now()}`, role: 'assistant', text, error }],
+    });
+    this.saveConversation();
+    this.scrollChat();
+  },
+  stopSending() {
+    this._sendVersion = (this._sendVersion || 0) + 1;
+    if (this._sendRequest && this._sendRequest.abort) this._sendRequest.abort();
+    this.setData({ sending: false });
+    this.appendAssistant('已停止生成。你可以补充信息后继续。');
+  },
+  retryMessage() {
+    this.setData({ inputMessage: this._lastPrompt || this.data.userMessage });
+    this.sendMessage();
+  },
+  saveConversation() {
+    if (!this.data.chatMessages.length) return;
+    const id = wx.getStorageSync(accountKey('food_change_session_id')) || `chat-${Date.now()}`;
+    wx.setStorageSync(accountKey('food_change_session_id'), id);
+    const entry = {
+      id,
+      title: this.data.chatMessages.find((m) => m.role === 'user').text.slice(0, 40),
+      messages: this.data.chatMessages,
+      state: {
+        currentFood: this.data.currentFood,
+        targetFood: this.data.targetFood,
+        recognized: this.data.recognized,
+        selectedSymptoms: this.data.selectedSymptoms,
+        symptomText: this.data.symptomText,
+        userMessage: this.data.userMessage,
+        assistantMessage: this.data.assistantMessage,
+        currentIngredientGroups: this.data.currentIngredientGroups,
+        targetIngredientGroups: this.data.targetIngredientGroups,
+        currentFoodMatched: this.data.currentFoodMatched,
+        targetFoodMatched: this.data.targetFoodMatched,
+      },
+    };
+    try {
+      const list = wx.getStorageSync(accountKey('assistant_conversations_v1')) || [];
+      wx.setStorageSync(
+        accountKey('assistant_conversations_v1'),
+        [entry, ...list.filter((v) => v.id !== id)].slice(0, 30),
+      );
+    } catch (e) {
+      wx.showToast({ title: '对话未能保存到本机', icon: 'none' });
+    }
+  },
+  openConversationHistory() {
+    this.saveConversation();
+    this.setData({
+      historyVisible: true,
+      conversations: wx.getStorageSync(accountKey('assistant_conversations_v1')) || [],
+    });
+    this.setTabHidden(true);
+  },
+  closeHistory() {
+    this.setData({ historyVisible: false });
+    this.setTabHidden(false);
+  },
+  newConversation() {
+    if (this.data.sending) this.stopSending();
+    this.saveConversation();
+    wx.removeStorageSync(accountKey('food_change_session_id'));
+    this.setData({
+      chatMessages: [],
+      inputMessage: '',
+      userMessage: '',
+      assistantMessage: '',
+      recognized: false,
+      tested: false,
+      savedMode: false,
+    });
+    this.closeHistory();
+  },
+  restoreConversation(e) {
+    if (this.data.sending) this.stopSending();
+    const entry = this.data.conversations.find((v) => v.id === e.currentTarget.dataset.id);
+    if (!entry) return;
+    wx.setStorageSync(accountKey('food_change_session_id'), entry.id);
+    this.setData({ ...entry.state, chatMessages: entry.messages, tested: false, sending: false, savedMode: false });
+    this.closeHistory();
+  },
+  onHide() {
+    if (this.data.sending) this.stopSending();
+    this.saveConversation();
+    this.setData({
+      keyboardHeight: 0,
+      showFoodSheet: false,
+      showSymptomSheet: false,
+      showExitModal: false,
+      historyVisible: false,
+    });
+  },
+  onUnload() {
+    this._sendVersion = (this._sendVersion || 0) + 1;
+    if (this._sendRequest && this._sendRequest.abort) this._sendRequest.abort();
   },
 
   async startTest() {
@@ -458,21 +621,27 @@ Page({
       const currentResult = comparison.current_food || {};
       const targetResult = comparison.target_food || {};
       const radarMetrics = mapRadarMetrics(currentResult.profile, targetResult.profile);
-      const currentRoleGroups = mapMaterialRoles(currentResult.material_role_evidence, this.data.currentIngredientGroups);
+      const currentRoleGroups = mapMaterialRoles(
+        currentResult.material_role_evidence,
+        this.data.currentIngredientGroups,
+      );
       const targetRoleGroups = mapMaterialRoles(targetResult.material_role_evidence, this.data.targetIngredientGroups);
-      this.setData({
-        testing: false,
-        tested: true,
-        activeFoodTab: 'target',
-        ingredientGroups: this.data.targetIngredientGroups,
-        radarMetrics,
-        currentRoleGroups,
-        targetRoleGroups,
-        roleGroups: targetRoleGroups,
-      }, () => {
-        wx.pageScrollTo({ scrollTop: 0, duration: 0 });
-        this.drawRadar();
-      });
+      this.setData(
+        {
+          testing: false,
+          tested: true,
+          activeFoodTab: 'target',
+          ingredientGroups: this.data.targetIngredientGroups,
+          radarMetrics,
+          currentRoleGroups,
+          targetRoleGroups,
+          roleGroups: targetRoleGroups,
+        },
+        () => {
+          wx.pageScrollTo({ scrollTop: 0, duration: 0 });
+          this.drawRadar();
+        },
+      );
     } catch (error) {
       const message = (error.data && error.data.error) || error.errMsg || '营养对比数据加载失败';
       this.setData({ testing: false });
@@ -482,77 +651,85 @@ Page({
 
   drawRadar() {
     const query = wx.createSelectorQuery().in(this);
-    query.select('#nutritionRadar').fields({ node: true, size: true }).exec((result) => {
-      const item = result && result[0];
-      if (!item || !item.node) return;
-      const canvas = item.node;
-      const ctx = canvas.getContext('2d');
-      const dpr = wx.getWindowInfo().pixelRatio || 1;
-      const width = item.width;
-      const height = item.height;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      ctx.scale(dpr, dpr);
+    query
+      .select('#nutritionRadar')
+      .fields({ node: true, size: true })
+      .exec((result) => {
+        const item = result && result[0];
+        if (!item || !item.node) return;
+        const canvas = item.node;
+        const ctx = canvas.getContext('2d');
+        const dpr = wx.getWindowInfo().pixelRatio || 1;
+        const width = item.width;
+        const height = item.height;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
 
-      const centerX = width / 2;
-      const centerY = height / 2 + 6;
-      const radius = Math.min(width, height) * 0.34;
-      const angles = [-Math.PI / 2, -Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
-      const point = (angle, scale) => ({ x: centerX + Math.cos(angle) * radius * scale, y: centerY + Math.sin(angle) * radius * scale });
-      const polygon = (scale) => angles.map((angle) => point(angle, scale));
-      const drawPath = (points, close = true) => {
-        ctx.beginPath();
-        points.forEach((p, index) => index ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-        if (close) ctx.closePath();
-      };
-
-      ctx.lineWidth = 1;
-      [1, 0.75, 0.5, 0.25].forEach((scale) => {
-        drawPath(polygon(scale));
-        ctx.strokeStyle = '#ece8e3';
-        ctx.stroke();
-      });
-      angles.forEach((angle) => {
-        const end = point(angle, 1);
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.lineTo(end.x, end.y);
-        ctx.strokeStyle = '#eeeae6';
-        ctx.stroke();
-      });
-
-      const drawSeries = (values, stroke, fill) => {
-        const points = values.map((value, index) => point(angles[index], value / 100));
-        drawPath(points);
-        ctx.fillStyle = fill;
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = stroke;
-        ctx.stroke();
-        points.forEach((p) => {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-          ctx.fillStyle = stroke;
-          ctx.fill();
+        const centerX = width / 2;
+        const centerY = height / 2 + 6;
+        const radius = Math.min(width, height) * 0.34;
+        const angles = [-Math.PI / 2, -Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
+        const point = (angle, scale) => ({
+          x: centerX + Math.cos(angle) * radius * scale,
+          y: centerY + Math.sin(angle) * radius * scale,
         });
-      };
+        const polygon = (scale) => angles.map((angle) => point(angle, scale));
+        const drawPath = (points, close = true) => {
+          ctx.beginPath();
+          points.forEach((p, index) => (index ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+          if (close) ctx.closePath();
+        };
 
-      const currentValues = this.data.radarMetrics.map((metric) => metric.current);
-      const targetValues = this.data.radarMetrics.map((metric) => metric.target);
-      drawSeries(targetValues, '#68a346', 'rgba(104,163,70,.08)');
-      drawSeries(currentValues, '#ff5d4f', 'rgba(255,93,79,.09)');
-    });
+        ctx.lineWidth = 1;
+        [1, 0.75, 0.5, 0.25].forEach((scale) => {
+          drawPath(polygon(scale));
+          ctx.strokeStyle = theme.colors.line;
+          ctx.stroke();
+        });
+        angles.forEach((angle) => {
+          const end = point(angle, 1);
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(end.x, end.y);
+          ctx.strokeStyle = theme.colors.line;
+          ctx.stroke();
+        });
+
+        const drawSeries = (values, stroke, fill) => {
+          const points = values.map((value, index) => point(angles[index], value / 100));
+          drawPath(points);
+          ctx.fillStyle = fill;
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = stroke;
+          ctx.stroke();
+          points.forEach((p) => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = stroke;
+            ctx.fill();
+          });
+        };
+
+        const currentValues = this.data.radarMetrics.map((metric) => metric.current);
+        const targetValues = this.data.radarMetrics.map((metric) => metric.target);
+        drawSeries(targetValues, theme.colors.success, theme.colors.success + '18');
+        drawSeries(currentValues, theme.colors.primary, theme.colors.primary + '18');
+      });
   },
 
   switchFoodTab(event) {
     const activeFoodTab = event.currentTarget.dataset.tab;
     this.setData({
       activeFoodTab,
-      activeFoodTitle: activeFoodTab === 'current'
-        ? `${this.data.currentFood.brand} ${this.data.currentFood.name}`
-        : `${this.data.targetFood.brand} ${this.data.targetFood.name}`,
+      activeFoodTitle:
+        activeFoodTab === 'current'
+          ? `${this.data.currentFood.brand} ${this.data.currentFood.name}`
+          : `${this.data.targetFood.brand} ${this.data.targetFood.name}`,
       activeFoodMatched: activeFoodTab === 'current' ? this.data.currentFoodMatched : this.data.targetFoodMatched,
-      ingredientGroups: activeFoodTab === 'current' ? this.data.currentIngredientGroups : this.data.targetIngredientGroups,
+      ingredientGroups:
+        activeFoodTab === 'current' ? this.data.currentIngredientGroups : this.data.targetIngredientGroups,
       roleGroups: activeFoodTab === 'current' ? this.data.currentRoleGroups : this.data.targetRoleGroups,
       activeTooltip: '',
     });
@@ -567,5 +744,7 @@ Page({
     if (this.data.activeTooltip) this.setData({ activeTooltip: '' });
   },
 
-  comingSoon() { wx.showToast({ title: '下一阶段开放', icon: 'none' }); },
+  comingSoon() {
+    wx.showToast({ title: '下一阶段开放', icon: 'none' });
+  },
 });

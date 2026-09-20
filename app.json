@@ -1,80 +1,112 @@
 {
-  "pages": ["pages/home/index", "pages/history/index", "pages/assistant/index", "pages/message/index", "pages/surrounding/index", "pages/my/index"],
+  "pages": [
+    "pages/home/index",
+    "pages/history/index",
+    "pages/assistant/index",
+    "pages/message/index",
+    "pages/surrounding/index",
+    "pages/my/index"
+  ],
   "usingComponents": {
-    "t-toast": "tdesign-miniprogram/toast/toast"
+    "t-toast": "tdesign-miniprogram/toast/toast",
+    "p-icon": "/components/p-icon",
+    "page-header": "/components/page-header",
+    "post-feed": "/components/post-feed"
   },
   "subpackages": [
     {
       "root": "pages/search",
       "name": "search",
-      "pages": ["index"]
+      "pages": [
+        "index"
+      ]
     },
     {
       "root": "pages/my/info-edit",
       "name": "edit",
-      "pages": ["index"]
+      "pages": [
+        "index"
+      ]
     },
     {
       "root": "pages/chat",
       "name": "chat",
-      "pages": ["index"]
+      "pages": [
+        "index"
+      ]
     },
     {
       "root": "pages/login",
       "name": "login",
-      "pages": ["login"]
+      "pages": [
+        "login"
+      ]
     },
     {
       "root": "pages/loginCode",
       "name": "loginCode",
-      "pages": ["loginCode"]
+      "pages": [
+        "loginCode"
+      ]
     },
     {
       "root": "pages/dataCenter",
       "name": "dataCenter",
-      "pages": ["index"]
+      "pages": [
+        "index"
+      ]
     },
     {
       "root": "pages/setting",
       "name": "setting",
-      "pages": ["index"]
+      "pages": [
+        "index"
+      ]
     },
     {
       "root": "pages/release",
       "name": "release",
-      "pages": ["index"]
+      "pages": [
+        "index"
+      ]
+    },
+    {
+      "root": "pages/pet-space",
+      "name": "pet-space",
+      "pages": [
+        "library",
+        "supplies",
+        "pet-edit",
+        "post-detail"
+      ]
     }
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "Weixin",
-    "navigationBarTextStyle": "black"
+    "navigationBarBackgroundColor": "#f8f8fb",
+    "navigationBarTitleText": "宠析",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f8f8fb"
   },
   "tabBar": {
     "custom": true,
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/message/index",
-        "text": "瞬间墙"
+        "text": "状态"
       },
       {
         "pagePath": "pages/assistant/index",
-        "text": "AI助手"
-      },
-      {
-        "pagePath": "pages/surrounding/index",
-        "text": "周边"
+        "text": "管家"
       },
       {
         "pagePath": "pages/my/index",
-        "text": "我的"
+        "text": "宠物"
       }
-    ]
+    ],
+    "color": "#9290a4",
+    "selectedColor": "#6253d8",
+    "backgroundColor": "#ffffff"
   },
   "resolveAlias": {
     "~/*": "/*"

@@ -1,5 +1,7 @@
 export default {
-  isMock: true,
+  isMock: false,
   baseUrl: '',
-  apiBaseUrl: 'http://127.0.0.1:8000',
+  // Existing deployed backend, already registered in the mini-program domain allowlist.
+  // For local backend development, change this value to your development origin.
+  apiBaseUrl: 'https://chongxi.cloud',
 };

@@ -1,38 +1,7 @@
-<view class="page">
-  <view style="height: {{statusBarHeight}}px"></view>
-
-  <view class="navbar">
-    <view class="brand-cat">🐱</view>
-    <view class="nav-title">
-      <text class="title">宠析</text>
-      <text class="subtitle">记录猫咪的每一天</text>
-    </view>
-    <view class="nav-spacer"></view>
-  </view>
-
-  <view class="welcome">
-    <view>
-      <text class="welcome-title">今日状态</text>
-      <text class="update">{{refreshedAt}} 更新</text>
-    </view>
-    <view class="normal history-entry" bindtap="goHistory"><text>◷</text>历史数据<text class="entry-arrow">›</text></view>
-  </view>
-
-  <view class="dashboard-photo" bindtap="refresh">
-    <image src="/static/home/cat-health-dashboard.png" mode="widthFix" />
-    <view class="photo-badge"><text>♥</text> 今日健康记录</view>
-  </view>
-
-  <view class="actions">
-    <view class="action-card water-action" bindtap="comingSoon">
-      <view class="action-icon">💧</view>
-      <view><text class="action-title">记录饮水</text><text class="action-desc">补充今日饮水量</text></view>
-      <text class="arrow">›</text>
-    </view>
-    <view class="action-card diary-action" bindtap="goHistory">
-      <view class="action-icon">📔</view>
-      <view><text class="action-title">健康日记</text><text class="action-desc">查看历史变化</text></view>
-      <text class="arrow">›</text>
-    </view>
-  </view>
-</view>
+<view class="page tab-page"><page-header title="状态" /><view class="screen-body">
+  <view class="daily-card"><view class="daily-head"><text>{{updated}}</text><button class="text-button" bindtap="goHistory">历史<p-icon name="arrow" tone="muted" size="24" /></button></view><view class="daily-metrics"><button wx:for="{{metrics}}" wx:key="key" class="metric" bindtap="openRecord"><view class="metric-label"><p-icon name="{{item.key}}" size="28" tone="primary" /><text>{{item.label}}</text></view><view class="metric-number">{{item.value}}<text>{{item.unit}}</text></view></button></view><view class="daily-foot"><button class="text-button" bindtap="openDevices"><p-icon name="device" size="30" />连接设备<view class="device-dot"></view></button><button class="record-button" bindtap="openRecord"><p-icon name="plus" size="26" />记一笔</button></view></view>
+  <view class="section-heading"><text>大家都在聊</text><text>真实经历，相互陪伴</text></view><view class="search-box"><p-icon name="search" tone="muted" size="32" /><input placeholder="搜一搜，宠物遇到的小问题" value="{{query}}" bindinput="onSearch" /></view><view class="category-tabs"><button wx:for="{{categories}}" wx:key="id" class="category-tab {{category === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectCategory">{{item.label}}</button></view><view wx:if="{{loading}}" class="empty-state">正在加载大家的分享…</view><view wx:if="{{feedError}}" class="empty-state">{{feedError}}<button class="text-button" bindtap="loadFeed">重新加载</button></view><post-feed posts="{{posts}}" bind:open="openPost" bind:save="toggleSave" /><view wx:if="{{!posts.length && !loading && !feedError}}" class="empty-state">没有找到相关帖子，试试其他关键词。</view>
+</view><button class="floating-publish" bindtap="goRelease" aria-label="发个帖子"><view class="publish-disc"><p-icon name="edit" tone="inverse" size="40" /></view></button></view>
+<view wx:if="{{showRecord || showDevices}}" class="sheet-mask" bindtap="closeSheet"></view>
+<view wx:if="{{showRecord}}" class="bottom-sheet"><view class="sheet-heading"><text>记录今日状态</text><button bindtap="closeSheet" aria-label="关闭"><p-icon name="close" /></button></view><text class="caption">填写今日累计值，保存在当前设备。</text><view wx:for="{{metrics}}" wx:key="key" class="form-field"><text>{{item.label}}（{{item.unit}}）</text><input type="digit" data-key="{{item.key}}" value="{{form[item.key]}}" placeholder="填写今日累计值" bindinput="onRecordInput" /></view><button class="primary-button" bindtap="saveRecord">保存记录</button></view>
+<view wx:if="{{showDevices}}" class="bottom-sheet"><view class="sheet-heading"><text>我的设备</text><button bindtap="closeSheet" aria-label="关闭"><p-icon name="close" /></button></view><view class="device-intro"><p-icon name="device" size="76" /><text>让陪伴，多一点了解</text><text class="caption">硬件接入准备中，可先手动记录日常。</text></view><view wx:for="{{metrics}}" wx:key="key" class="menu-row"><p-icon name="{{item.key}}" /><view class="row-copy">{{item.key === 'water' ? '智能饮水机' : item.key === 'food' ? '智能喂食器' : '智能猫砂盆'}}</view><text class="caption">待接入</text></view></view>

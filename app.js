@@ -28,8 +28,10 @@ App({
       });
     });
 
-    this.getUnreadNum();
-    this.connect();
+    if (config.isMock) {
+      this.getUnreadNum();
+      this.connect();
+    }
   },
   globalData: {
     userInfo: null,

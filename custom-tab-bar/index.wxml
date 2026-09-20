@@ -1,7 +1,1 @@
-<t-tab-bar value="{{ value }}" theme="tag" split="{{ false }}" bind:change="handleChange">
-  <t-tab-bar-item icon="home" value="home">首页</t-tab-bar-item>
-  <t-tab-bar-item icon="chat" value="message">瞬间墙</t-tab-bar-item>
-  <t-tab-bar-item icon="service" value="assistant">AI助手</t-tab-bar-item>
-  <t-tab-bar-item icon="shop" value="surrounding">周边</t-tab-bar-item>
-  <t-tab-bar-item icon="user" value="my">我的</t-tab-bar-item>
-</t-tab-bar>
+<view wx:if="{{!hidden}}" class="tab-bar"><button wx:for="{{list}}" wx:key="value" class="tab-item {{value === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="handleChange" aria-label="{{item.label}}" aria-current="{{value === item.value ? 'page' : ''}}"><p-icon name="{{item.icon}}" tone="{{value === item.value ? 'primary' : 'muted'}}" size="44" /><text>{{item.label}}</text></button></view>

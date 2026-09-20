@@ -1,0 +1,299 @@
+@import './tokens.less';
+page {
+  background: @colors-page;
+  color: @colors-text;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+  font-size: @type-body;
+  --td-brand-color: @colors-primary;
+  --td-brand-color-light: @colors-primarySoft;
+  --td-bg-color-page: @colors-page;
+  --td-bg-color-container: @colors-surface;
+  --td-text-color-primary: @colors-text;
+  --td-text-color-secondary: @colors-secondary;
+  --td-navbar-bg-color: @colors-page;
+  --td-navbar-color: @colors-text;
+  --td-button-primary-bg-color: @colors-primary;
+  --td-button-primary-border-color: @colors-primary;
+  --td-tab-bar-active-color: @colors-primary;
+  --td-radius-large: @radius-large;
+}
+button {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+button::after {
+  border: 0;
+}
+.page {
+  min-height: 100vh;
+  height: auto;
+  background: @colors-page;
+  box-sizing: border-box;
+}
+.tab-page {
+  padding-bottom: calc(@layout-tabHeight + 32rpx + env(safe-area-inset-bottom));
+}
+.screen-body {
+  padding: 24rpx @layout-gutter;
+}
+.muted {
+  color: @colors-secondary;
+}
+.caption {
+  font-size: @type-caption;
+  color: @colors-muted;
+}
+.primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: @layout-touch;
+  padding: 20rpx 32rpx;
+  margin: 24rpx 0 0;
+  background: @colors-primary;
+  color: @colors-inverse;
+  border-radius: @radius-medium;
+  font-size: @type-body;
+}
+.primary-button[disabled] {
+  opacity: 0.45;
+  background: @colors-primary;
+  color: @colors-inverse;
+}
+.text-button {
+  margin: 0;
+  padding: 0 16rpx;
+  min-height: @layout-touch;
+  background: transparent;
+  font-size: @type-small;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  color: @colors-primaryText;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 40rpx 0 24rpx;
+  font-size: @type-title;
+  font-weight: @weight-semibold;
+}
+.section-heading text + text {
+  font-weight: @weight-regular;
+  font-size: @type-caption;
+  color: @colors-muted;
+}
+.empty-state {
+  text-align: center;
+  padding: 64rpx 24rpx;
+  color: @colors-secondary;
+  font-size: @type-small;
+  line-height: 1.8;
+}
+.empty-state text {
+  display: block;
+}
+.empty-title {
+  font-size: @type-title;
+  color: @colors-text;
+  font-weight: @weight-semibold;
+  margin: 20rpx 0 12rpx;
+}
+.sheet-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: @colors-overlay;
+}
+.bottom-sheet {
+  position: fixed;
+  z-index: 101;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 32rpx @layout-gutter calc(32rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  border-radius: @radius-large @radius-large 0 0;
+  background: @colors-page;
+}
+.sheet-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  font-size: @type-title;
+  font-weight: @weight-semibold;
+}
+.sheet-heading button {
+  margin: 0;
+  width: @layout-touch;
+  height: @layout-touch;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.form-field {
+  display: block;
+  margin: 24rpx 0;
+  color: @colors-text;
+  font-size: @type-small;
+}
+.form-field input,
+.form-field textarea,
+.form-value {
+  box-sizing: border-box;
+  margin-top: 14rpx;
+  border-radius: @radius-medium;
+  padding: 24rpx;
+  background: @colors-surfaceMuted;
+  width: 100%;
+  font-size: @type-body;
+  min-height: @layout-touch;
+}
+.form-field textarea {
+  height: 200rpx;
+}
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  min-height: 108rpx;
+  padding: 12rpx 8rpx;
+  box-sizing: border-box;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  margin: 0;
+}
+.menu-row .row-copy {
+  flex: 1;
+  min-width: 0;
+}
+.menu-row text {
+  display: block;
+}
+.menu-row .caption {
+  margin-top: 8rpx;
+}
+.menu-row .row-end {
+  margin-left: auto;
+  font-size: @type-caption;
+  color: @colors-muted;
+}
+.tag {
+  display: inline-block;
+  padding: 8rpx 16rpx;
+  background: @colors-primarySoft;
+  color: @colors-primaryText;
+  border-radius: @radius-small;
+  font-size: @type-caption;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background: @colors-surfaceMuted;
+  border-radius: @radius-medium;
+  padding: 0 24rpx;
+  height: 84rpx;
+}
+.search-box input {
+  flex: 1;
+  min-width: 0;
+  font-size: @type-small;
+}
+.category-tabs {
+  display: flex;
+  justify-content: space-between;
+  gap: 8rpx;
+  margin: 14rpx 0 24rpx;
+}
+.category-tab {
+  position: relative;
+  padding: 0 12rpx 12rpx;
+  margin: 0;
+  min-height: @layout-touch;
+  background: transparent;
+  color: @colors-secondary;
+  font-size: @type-small;
+  line-height: 76rpx;
+}
+.category-tab.active {
+  color: @colors-primary;
+  font-weight: @weight-semibold;
+}
+.category-tab.active::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 36rpx;
+  height: 6rpx;
+  transform: translateX(-50%);
+  border-radius: 8rpx;
+  background: @colors-primary;
+}
+.page button.floating-publish {
+  position: fixed;
+  right: 16rpx;
+  bottom: calc(@layout-tabHeight + 48rpx + env(safe-area-inset-bottom));
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;
+  min-width: 96rpx;
+  height: 96rpx;
+  box-sizing: border-box;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  background: @colors-primary;
+  color: @colors-inverse;
+  border-radius: 50%;
+  box-shadow: 0 10rpx 30rpx fade(@colors-primary, 22%);
+}
+
+.secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: @layout-touch;
+  padding: 20rpx 32rpx;
+  margin: 24rpx 0 0;
+  background: @colors-primarySoft;
+  color: @colors-primary;
+  border-radius: @radius-medium;
+  font-size: @type-body;
+}
+
+/* Type hierarchy: page/section titles > card labels > body > supporting copy. */
+page {
+  font-weight: @weight-regular;
+}
+.section-heading,
+.sheet-heading {
+  font-size: @type-title;
+  font-weight: @weight-semibold;
+  line-height: 1.4;
+}
+.menu-row .row-copy {
+  font-size: @type-body;
+  font-weight: @weight-medium;
+}
+.menu-row .caption {
+  font-weight: @weight-regular;
+}
+.primary-button,
+.secondary-button {
+  font-weight: @weight-semibold;
+}
+.form-field > text {
+  font-weight: @weight-medium;
+}

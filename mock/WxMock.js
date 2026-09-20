@@ -4,8 +4,7 @@ var Mock = require('./mock.js');
 Object.defineProperty(wx, 'request', { writable: true });
 wx.request = function (config) {
   if (typeof Mock._mocked[config.url] == 'undefined') {
-    __request(config);
-    return;
+    return __request(config);
   }
   var resTemplate = Mock._mocked[config.url].template;
   var response = Mock.mock(resTemplate);

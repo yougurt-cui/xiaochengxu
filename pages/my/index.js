@@ -1,75 +1,71 @@
-import request from '~/api/request';
-import useToastBehavior from '~/behaviors/useToast';
+import { api, hasSession, mapPet, errorText } from '../../api/miniprogram';
+import { loadStore, saveStore } from '../../utils/pet-store';
 
 Page({
-  behaviors: [useToastBehavior],
-
   data: {
-    isLoad: false,
-    personalInfo: {},
-    gridList: [
-      {
-        name: '全部发布',
-        icon: 'root-list',
-        type: 'all',
-        url: '',
-      },
-      {
-        name: '审核中',
-        icon: 'search',
-        type: 'progress',
-        url: '',
-      },
-      {
-        name: '已发布',
-        icon: 'upload',
-        type: 'published',
-        url: '',
-      },
-      {
-        name: '草稿箱',
-        icon: 'file-copy',
-        type: 'draft',
-        url: '',
-      },
-    ],
-
-    settingList: [
-      { name: '联系客服', icon: 'service', type: 'service' },
-      { name: '设置', icon: 'setting', type: 'setting', url: '/pages/setting/index' },
-    ],
+    pet: null,
+    parent: {},
+    favoriteCount: 0,
+    postCount: 0,
+    toysCount: 0,
+    foodCount: 0,
   },
-
-  async onShow() {
-    const Token = wx.getStorageSync('access_token');
-    const personalInfo = await this.getPersonalInfo();
-
-    if (Token) {
-      this.setData({
-        isLoad: true,
-        personalInfo,
-      });
+  onShow() {
+    if (this.getTabBar()) this.getTabBar().setData({ value: 'my', hidden: false });
+    this.refreshData();
+    if (hasSession()) this.syncProfile();
+  },
+  async syncProfile(strict = false) {
+    try {
+      const res = await api('/cat-profiles');
+      const p = res.items.find((v) => v.is_default) || res.items[0];
+      saveStore({ pet: p ? mapPet(p) : null, parent: wx.getStorageSync('miniprogram_user') });
+      this.refreshData();
+    } catch (e) {
+      if (strict) throw e;
+      wx.showToast({ title: errorText(e), icon: 'none' });
     }
   },
-
-  async getPersonalInfo() {
-    const info = await request('/api/genPersonalInfo').then((res) => res.data.data);
-    return info;
-  },
-
-  onLogin(e) {
-    wx.navigateTo({
-      url: '/pages/login/login',
+  refreshData() {
+    const s = loadStore();
+    const parent = s.parent || wx.getStorageSync('miniprogram_user') || {};
+    this.setData({
+      pet: s.pet,
+      parent: {
+        ...parent,
+        name: parent.name || parent.nickName || '添加家长资料',
+        image: parent.image || parent.avatarUrl || '',
+      },
+      favoriteCount: s.favorites.length,
+      postCount: s.posts.length,
+      toysCount: s.supplies.toys.length,
+      foodCount: s.supplies.food.length,
     });
   },
-
-  onNavigateTo() {
-    wx.navigateTo({ url: `/pages/my/info-edit/index` });
+  editPet() {
+    wx.navigateTo({ url: '/pages/pet-space/pet-edit' });
   },
-
-  onEleClick(e) {
-    const { name, url } = e.currentTarget.dataset.data;
-    if (url) return;
-    this.onShowToast('#t-toast', name);
+  editParent() {
+    wx.navigateTo({ url: '/pages/my/info-edit/index' });
+  },
+  openSupplies(e) {
+    wx.navigateTo({ url: `/pages/pet-space/supplies?kind=${e.currentTarget.dataset.kind}` });
+  },
+  openFavorites() {
+    wx.navigateTo({ url: '/pages/pet-space/library?mode=favorites' });
+  },
+  openPosts() {
+    wx.navigateTo({ url: '/pages/pet-space/library?mode=posts' });
+  },
+  goSettings() {
+    wx.navigateTo({ url: '/pages/setting/index' });
+  },
+  goHelp() {
+    wx.showModal({
+      title: '帮助与反馈',
+      content:
+        '宠物档案和社区帖子由服务器保存。收藏、草稿、食物、玩具、聊天历史和日常记录保存在当前设备。硬件接入准备中。',
+      showCancel: false,
+    });
   },
 });

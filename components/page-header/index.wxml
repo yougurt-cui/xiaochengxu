@@ -1,0 +1,1 @@
+<view style="height:{{top}}px"></view><view class="header" style="height:{{height}}px;padding-right:{{right}}px"><button wx:if="{{back}}" class="back" bindtap="goBack" aria-label="返回"><p-icon name="back" tone="text" size="38" /></button><text>{{title}}</text></view>

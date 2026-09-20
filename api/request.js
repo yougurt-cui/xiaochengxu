@@ -8,13 +8,15 @@ function request(url, method = 'GET', data = {}) {
     // 有其他content-type需求加点逻辑判断处理即可
   };
   // 获取token，有就丢进请求头
-  const tokenString = wx.getStorageSync('access_token');
+  const tokenString = wx.getStorageSync('miniprogram_token');
   if (tokenString) {
     header.Authorization = `Bearer ${tokenString}`;
   }
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: baseUrl + url,
+  let task;
+  const promise = new Promise((resolve, reject) => {
+    task = wx.request({
+      url: /^https?:\/\//.test(url) ? url : baseUrl + url,
+      timeout: 30000,
       method,
       data,
       dataType: 'json', // 微信官方文档中介绍会对数据进行一次JSON.parse
@@ -38,6 +40,10 @@ function request(url, method = 'GET', data = {}) {
       },
     });
   });
+  promise.abort = () => {
+    if (task) task.abort();
+  };
+  return promise;
 }
 
 // 导出请求和服务地址
