@@ -1,1 +1,47 @@
-<view class="page"><page-header title="设置" back /><view class="screen-body"><view class="settings-card"><button class="menu-row" bindtap="storage"><p-icon name="save" /><view class="row-copy">数据与隐私</view><p-icon name="arrow" tone="muted" /></button><button class="menu-row" bindtap="about"><p-icon name="cat" /><view class="row-copy">关于宠析</view><p-icon name="arrow" tone="muted" /></button></view><button wx:if="{{signedIn}}" class="secondary-button" bindtap="logout">退出登录</button></view></view>
+<view class="page">
+  <page-header title="设置" back />
+  <view class="screen-body">
+    <view class="settings-card">
+      <button class="menu-row" bindtap="storage">
+        <p-icon name="save" />
+        <view class="row-copy">数据与隐私</view>
+        <p-icon name="arrow" tone="muted" />
+      </button>
+      <button class="menu-row" bindtap="about">
+        <p-icon name="cat" />
+        <view class="row-copy">关于宠析</view>
+        <p-icon name="arrow" tone="muted" />
+      </button>
+    </view>
+
+    <view class="settings-card">
+      <button class="menu-row" bindtap="openFeedback">
+        <p-icon name="edit" />
+        <view class="row-copy">帮助与反馈</view>
+        <p-icon name="arrow" tone="muted" />
+      </button>
+    </view>
+
+    <button wx:if="{{signedIn}}" class="secondary-button" bindtap="logout">退出登录</button>
+  </view>
+
+  <view wx:if="{{feedbackVisible}}" class="feedback-mask" bindtap="closeFeedback"></view>
+  <view wx:if="{{feedbackVisible}}" class="feedback-dialog">
+    <text class="feedback-title">意见反馈</text>
+    <textarea
+      class="feedback-input"
+      value="{{feedbackText}}"
+      maxlength="500"
+      placeholder="请描述你遇到的问题或建议"
+      placeholder-class="feedback-placeholder"
+      focus="{{feedbackFocused}}"
+      bindinput="onFeedbackInput"
+      show-confirm-bar="{{false}}"
+      adjust-position="{{true}}"
+    />
+    <view class="feedback-actions">
+      <button class="feedback-cancel" bindtap="closeFeedback">取消</button>
+      <button class="feedback-submit" loading="{{feedbackSubmitting}}" disabled="{{feedbackSubmitting}}" bindtap="submitFeedback">提交</button>
+    </view>
+  </view>
+</view>

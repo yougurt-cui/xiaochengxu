@@ -1,0 +1,42 @@
+<view class="page">
+  <page-header title="营养成分解析" back />
+  <view class="report-page">
+    <scroll-view scroll-y class="report-scroll" show-scrollbar="{{false}}">
+      <view class="radar-card">
+        <view class="radar-legend">
+          <view><text class="legend-dot current-dot"></text>{{currentFood.brand}} {{currentFood.name}}</view>
+          <view><text class="legend-dot target-dot"></text>{{targetFood.brand}} {{targetFood.name}}</view>
+        </view>
+        <view class="radar-wrap">
+          <canvas type="2d" id="nutritionRadar" class="radar-canvas"></canvas>
+        </view>
+      </view>
+
+      <view class="formula-card">
+        <text class="formula-title">配方结构对比</text>
+        <view class="food-tabs">
+          <view class="food-tab {{activeFoodTab === 'current' ? 'active' : ''}}" data-tab="current" bindtap="switchFoodTab">
+            当前粮（{{currentFood.brand}} {{currentFood.name}}）
+          </view>
+          <view class="food-tab {{activeFoodTab === 'target' ? 'active' : ''}}" data-tab="target" bindtap="switchFoodTab">
+            目标粮（{{targetFood.brand}} {{targetFood.name}}）
+          </view>
+        </view>
+        <view class="formula-list">
+          <view wx:for="{{roleGroups}}" wx:key="key" class="formula-row" bindtap="comingSoon">
+            <view class="formula-icon tone-{{item.tone}}">{{item.icon}}</view>
+            <text class="formula-name">{{item.title}}</text>
+            <view class="formula-tags"><text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text></view>
+            <text class="formula-arrow">›</text>
+          </view>
+          <view wx:if="{{!roleGroups.length}}" class="formula-empty">暂无原材料营养角色分类数据</view>
+        </view>
+        <view class="formula-tip">ⓘ　点击右侧箭头可查看该项的原材料明细</view>
+      </view>
+    </scroll-view>
+    <view class="report-footer">
+      <button class="report-button" bindtap="comingSoon">▧　生成换粮报告</button>
+      <view class="report-note">生成完整换粮分析与建议，包括风险提醒、换粮方案等</view>
+    </view>
+  </view>
+</view>

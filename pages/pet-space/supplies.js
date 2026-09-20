@@ -1,17 +1,17 @@
 import { api, mediaUrl, errorText } from '../../api/miniprogram';
-import { loadStore, saveStore } from '../../utils/pet-store';
+import { loadStore, saveStore, persistImage } from '../../utils/pet-store';
 const covers = [
   {
     id: 'play',
     title: '把快乐，留给每一天',
     subtitle: '发现创意玩具，记录它的心头好',
-    image: '/static/moments/cat-3.webp',
+    image: '/pages/pet-space/static/cat-3.webp',
   },
   {
     id: 'company',
     title: '一起玩，就是好时光',
     subtitle: '从一件小玩具开始，认识它的偏好',
-    image: '/static/moments/cat-1.webp',
+    image: '/pages/pet-space/static/cat-1.webp',
   },
 ];
 Page({
@@ -28,8 +28,9 @@ Page({
     query: '',
     selected: null,
     editing: false,
-    form: { name: '', note: '' },
+    form: { name: '', note: '', images: [] },
     editingId: '',
+    editorMode: 'form',
   },
   onLoad(q) {
     const kind = q.kind === 'food' ? 'food' : 'toys';
@@ -43,13 +44,13 @@ Page({
                 id: 'meal',
                 title: '每一餐，都值得认真对待',
                 subtitle: '查看食品目录，记录正在吃的粮',
-                image: '/static/moments/cat-4.webp',
+                image: '/pages/pet-space/static/cat-4.webp',
               },
               {
                 id: 'taste',
                 title: '记住它喜欢的味道',
                 subtitle: '品牌、口味与食用感受，一起收好',
-                image: '/static/moments/cat-2.webp',
+                image: '/pages/pet-space/static/cat-2.webp',
               },
             ]
           : covers,
@@ -145,28 +146,106 @@ Page({
   },
   editMine(e) {
     const item = this.data.mine.find((i) => i.id === e.currentTarget.dataset.id);
-    this.setData({ editing: true, editingId: item ? item.id : '', form: item ? { ...item } : { name: '', note: '' } });
+    this.setData({
+      editing: true,
+      editingId: item ? item.id : '',
+      form: item
+        ? { name: item.name || '', note: item.note || '', images: item.images || [] }
+        : { name: '', note: '', images: [] },
+      editorMode: 'form',
+    });
   },
   closeEditor() {
-    this.setData({ editing: false });
+    this.setData({ editing: false, editorMode: 'form' });
   },
   input(e) {
     this.setData({ [`form.${e.currentTarget.dataset.key}`]: e.detail.value });
   },
-  saveMine() {
+  openIngredientSheet() {
+    if (this.data.kind !== 'food') return;
+    this.setData({ editorMode: 'ingredient' });
+  },
+  closeIngredientSheet() {
+    this.setData({ editorMode: 'form' });
+  },
+  previewIngredientExample() {
+    wx.previewImage({
+      current: '/pages/pet-space/static/ingredient-example.jpg',
+      urls: ['/pages/pet-space/static/ingredient-example.jpg'],
+    });
+  },
+  onIngredientFound() {
+    wx.showActionSheet({
+      itemList: ['拍照', '从相册选择'],
+      success: (res) => {
+        const sourceType = res.tapIndex === 0 ? ['camera'] : ['album'];
+        this.pickIngredientImages(sourceType);
+      },
+    });
+  },
+  pickIngredientImages(sourceType) {
+    const remain = 3 - (this.data.form.images || []).length;
+    if (remain <= 0) {
+      wx.showToast({ title: '最多上传 3 张图片', icon: 'none' });
+      return;
+    }
+    wx.chooseMedia({
+      count: remain,
+      mediaType: ['image'],
+      sourceType,
+      sizeType: ['compressed'],
+      success: (res) => {
+        const files = (res.tempFiles || []).filter((file) => {
+          if (file.size > 10 * 1024 * 1024) {
+            wx.showToast({ title: '单张图片不能超过 10MB', icon: 'none' });
+            return false;
+          }
+          return true;
+        });
+        if (!files.length) return;
+        const next = [...(this.data.form.images || []), ...files.map((file) => file.tempFilePath)].slice(0, 3);
+        this.setData({
+          editorMode: 'form',
+          'form.images': next,
+          'form.note': this.data.form.note || '已上传配料表，待补充食用感受',
+        });
+      },
+    });
+  },
+  previewFormImage(e) {
+    const current = e.currentTarget.dataset.current;
+    const urls = this.data.form.images || [];
+    if (!current || !urls.length) return;
+    wx.previewImage({ current, urls });
+  },
+  removeFormImage(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    this.setData({
+      'form.images': (this.data.form.images || []).filter((_, i) => i !== index),
+    });
+  },
+  async saveMine() {
     if (!this.data.form.name.trim()) {
       wx.showToast({ title: '请填写名称', icon: 'none' });
       return;
     }
     try {
+      const images = [];
+      for (const path of this.data.form.images || []) {
+        if (!path) continue;
+        const needPersist = /tmp/i.test(path) || (!/^wxfile:\/\//.test(path) && !/^https?:\/\//.test(path));
+        images.push(needPersist ? await persistImage(path) : path);
+      }
       const supplies = loadStore().supplies;
       const item = {
         ...this.data.form,
         name: this.data.form.name.trim(),
+        note: (this.data.form.note || '').trim(),
+        images,
         id: this.data.editingId || `item-${Date.now()}`,
       };
       supplies[this.data.kind] = this.data.editingId
-        ? supplies[this.data.kind].map((p) => (p.id === item.id ? item : p))
+        ? supplies[this.data.kind].map((p) => (p.id === item.id ? { ...p, ...item } : p))
         : [item, ...supplies[this.data.kind]];
       saveStore({ supplies });
       this.refreshMine();

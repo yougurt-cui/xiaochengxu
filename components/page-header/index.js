@@ -1,5 +1,9 @@
 Component({
-  properties: { title: String, back: Boolean },
+  properties: {
+    title: String,
+    back: Boolean,
+    customBack: Boolean,
+  },
   data: { top: 20, height: 44, right: 100 },
   lifetimes: {
     attached() {
@@ -15,6 +19,10 @@ Component({
   },
   methods: {
     goBack() {
+      if (this.properties.customBack) {
+        this.triggerEvent('back');
+        return;
+      }
       if (getCurrentPages().length > 1) wx.navigateBack();
       else wx.switchTab({ url: '/pages/home/index' });
     },

@@ -1,7 +1,15 @@
+import { api, login, hasSession, errorText } from '../../api/miniprogram';
+
 Page({
-  data: { signedIn: false },
+  data: {
+    signedIn: false,
+    feedbackVisible: false,
+    feedbackFocused: false,
+    feedbackText: '',
+    feedbackSubmitting: false,
+  },
   onShow() {
-    this.setData({ signedIn: Boolean(wx.getStorageSync('miniprogram_token')) });
+    this.setData({ signedIn: hasSession() });
   },
   about() {
     wx.showModal({
@@ -17,6 +25,40 @@ Page({
         '猫咪档案和已发布帖子保存在服务器。收藏、草稿、玩具、食物、状态记录与聊天历史保存在当前设备。清除小程序数据会移除本地记录。',
       showCancel: false,
     });
+  },
+  openFeedback() {
+    this.setData({ feedbackVisible: true, feedbackFocused: true });
+  },
+  closeFeedback() {
+    if (this.data.feedbackSubmitting) return;
+    this.setData({ feedbackVisible: false, feedbackFocused: false, feedbackText: '' });
+  },
+  onFeedbackInput(event) {
+    this.setData({ feedbackText: event.detail.value });
+  },
+  async submitFeedback() {
+    const content = this.data.feedbackText.trim();
+    if (!content) {
+      wx.showToast({ title: '请描述你遇到的问题或建议', icon: 'none' });
+      return;
+    }
+    if (this.data.feedbackSubmitting) return;
+    this.setData({ feedbackSubmitting: true });
+    try {
+      if (!hasSession()) await login();
+      await api('/feedback', 'POST', { content });
+      this.setData({
+        feedbackVisible: false,
+        feedbackFocused: false,
+        feedbackText: '',
+        feedbackSubmitting: false,
+        signedIn: hasSession(),
+      });
+      wx.showToast({ title: '已提交，感谢反馈' });
+    } catch (error) {
+      this.setData({ feedbackSubmitting: false });
+      wx.showToast({ title: errorText(error), icon: 'none' });
+    }
   },
   logout() {
     wx.showModal({

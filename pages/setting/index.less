@@ -1,7 +1,87 @@
 @import '../../styles/tokens.less';
+
 .settings-card {
   border-radius: @radius-large;
   background: @colors-surface;
   padding: 0 24rpx;
   margin-bottom: 32rpx;
+}
+
+.feedback-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: @colors-overlay;
+}
+
+.feedback-dialog {
+  position: fixed;
+  z-index: 101;
+  left: 50%;
+  top: 42%;
+  width: 620rpx;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  padding: 40rpx 36rpx 0;
+  border-radius: @radius-large;
+  background: @colors-surface;
+  overflow: hidden;
+}
+
+.feedback-title {
+  display: block;
+  text-align: center;
+  font-size: @type-title;
+  font-weight: @weight-semibold;
+  color: @colors-text;
+  margin-bottom: 28rpx;
+}
+
+.feedback-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 180rpx;
+  padding: 24rpx;
+  border-radius: @radius-medium;
+  background: @colors-surfaceMuted;
+  font-size: @type-body;
+  color: @colors-text;
+  line-height: 1.6;
+}
+
+.feedback-placeholder {
+  color: @colors-muted;
+}
+
+.feedback-actions {
+  display: flex;
+  margin-top: 32rpx;
+  border-top: 2rpx solid @colors-line;
+}
+
+.feedback-actions button {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  min-height: 96rpx;
+  line-height: 96rpx;
+  background: transparent;
+  font-size: @type-body;
+}
+
+.feedback-cancel {
+  color: @colors-text;
+  border-right: 2rpx solid @colors-line;
+  border-radius: 0;
+}
+
+.feedback-submit {
+  color: @colors-primary;
+  font-weight: @weight-medium;
+  border-radius: 0;
+}
+
+.feedback-submit[disabled] {
+  opacity: 0.45;
+  color: @colors-primary;
 }

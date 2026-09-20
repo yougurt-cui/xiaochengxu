@@ -1,4 +1,4 @@
-import { categories, getPosts, fetchPosts } from '../../utils/community';
+import { categories, getFeedPosts, fetchPosts } from '../../utils/community';
 import { errorText } from '../../api/miniprogram';
 import { loadStore, saveStore, dayKey } from '../../utils/pet-store';
 
@@ -16,20 +16,30 @@ Page({
     showDevices: false,
     form: { water: '', food: '', litter: '' },
   },
-  onShow() {
-    if (this.getTabBar()) this.getTabBar().setData({ value: 'home', hidden: false });
-    this.refreshData();
+  onLoad() {
     this.loadFeed();
   },
+  onShow() {
+    if (this.getTabBar()) this.getTabBar().setData({ value: 'home' });
+    this.refreshData();
+    // 从发帖返回时刷新；热更新/空列表时补拉，避免样式区空白
+    if (this._reloadFeedOnShow || (!this.data.posts.length && !this.data.loading)) {
+      this._reloadFeedOnShow = false;
+      this.loadFeed();
+    }
+  },
   async loadFeed() {
-    this.setData({ loading: true, feedError: '' });
+    const silent = this.data.posts.length > 0;
+    if (!silent) this.setData({ loading: true, feedError: '' });
     try {
       await fetchPosts();
       this.filterPosts();
+      this.setData({ feedError: '' });
     } catch (e) {
-      this.setData({ feedError: errorText(e) });
+      if (!silent) this.setData({ feedError: errorText(e) });
+      else wx.showToast({ title: errorText(e), icon: 'none' });
     } finally {
-      this.setData({ loading: false });
+      if (!silent) this.setData({ loading: false });
     }
   },
   refreshData() {
@@ -46,12 +56,10 @@ Page({
   },
   filterPosts() {
     const { category, query } = this.data;
+    const q = query.trim();
     this.setData({
-      posts: getPosts().filter(
-        (p) =>
-          (loadStore().feedIds || []).includes(p.id) &&
-          (category === 'all' || p.category === category) &&
-          (!query.trim() || `${p.title}${p.body}`.includes(query.trim())),
+      posts: getFeedPosts().filter(
+        (p) => (category === 'all' || p.category === category) && (!q || `${p.title}${p.body}`.includes(q)),
       ),
     });
   },
@@ -73,6 +81,7 @@ Page({
     this.filterPosts();
   },
   goRelease() {
+    this._reloadFeedOnShow = true;
     wx.navigateTo({ url: '/pages/release/index' });
   },
   goHistory() {
@@ -80,7 +89,6 @@ Page({
   },
   openDevices() {
     this.setData({ showDevices: true });
-    this.hideNavigation(true);
   },
   openRecord() {
     const record = loadStore().records.find((r) => r.day === dayKey());
@@ -90,7 +98,6 @@ Page({
         ? { water: record.water, food: record.food, litter: record.litter }
         : { water: '', food: '', litter: '' },
     });
-    this.hideNavigation(true);
   },
   onRecordInput(e) {
     this.setData({ [`form.${e.currentTarget.dataset.key}`]: e.detail.value });
@@ -125,10 +132,6 @@ Page({
   },
   closeSheet() {
     this.setData({ showRecord: false, showDevices: false });
-    this.hideNavigation(false);
-  },
-  hideNavigation(hidden) {
-    if (this.getTabBar()) this.getTabBar().setData({ hidden });
   },
   onHide() {
     this.closeSheet();

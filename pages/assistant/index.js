@@ -1,7 +1,6 @@
 import { accountKey } from '../../utils/pet-store';
 import config from '../../config';
 import request from '../../api/request';
-import theme from '../../config/theme';
 
 const FOODS = {
   current: [
@@ -122,7 +121,6 @@ Page({
     loadingFoods: false,
     showSymptomSheet: false,
     testing: false,
-    tested: false,
     recognized: false,
     inputMessage: '',
     userMessage: '',
@@ -136,13 +134,10 @@ Page({
     ingredientGroups: [],
     currentIngredientGroups: [],
     targetIngredientGroups: [],
-    activeTooltip: '',
     compareLoading: false,
-    radarMetrics: mapRadarMetrics([], []),
-    currentRoleGroups: [],
-    targetRoleGroups: [],
-    roleGroups: [],
     showExitModal: false,
+    showIngredientSheet: false,
+    composerImages: [],
     savedMode: false,
     savedDraft: {},
   },
@@ -169,25 +164,19 @@ Page({
         sending: false,
         chatMessages: [],
         recognized: false,
-        tested: false,
         savedMode: false,
         userMessage: '',
       });
     }
     this._account = account;
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ value: 'assistant', hidden: false });
+      this.getTabBar().setData({ value: 'assistant' });
     }
   },
 
   goBack() {
-    if (this.data.tested) {
-      this.setData({ tested: false });
-      return;
-    }
     if (this.data.userMessage || this.data.recognized) {
       this.setData({ showExitModal: true });
-      this.setTabHidden(true);
       return;
     }
     if (getCurrentPages().length > 1) {
@@ -213,14 +202,12 @@ Page({
       savedAt: Date.now(),
     };
     wx.setStorageSync(accountKey('food_change_draft'), savedDraft);
-    this.setTabHidden(false);
     this.setData({
       showExitModal: false,
       savedMode: true,
       savedDraft,
       recognized: false,
-      tested: false,
-      testing: false,
+            testing: false,
       inputMessage: '',
       userMessage: '',
       chatMessages: [],
@@ -235,7 +222,6 @@ Page({
   continueConversation(event) {
     if (this.data.showExitModal) {
       this.setData({ showExitModal: false });
-      this.setTabHidden(false);
       return;
     }
     if (!event || event.currentTarget.dataset.action !== 'resume') return;
@@ -277,9 +263,10 @@ Page({
       chatMessages: [],
       assistantMessage: '',
       recognized: false,
-      tested: false,
-      testing: false,
+            testing: false,
       sending: false,
+      composerImages: [],
+      showIngredientSheet: false,
       currentIngredientGroups: [],
       targetIngredientGroups: [],
       ingredientGroups: [],
@@ -294,6 +281,72 @@ Page({
     this.setData({ inputMessage: message }, () => this.sendMessage());
   },
 
+  openIngredientSheet() {
+    this.setData({ showIngredientSheet: true, keyboardHeight: 0 });
+  },
+
+  previewIngredientExample() {
+    wx.previewImage({
+      current: '/static/assistant/ingredient-example.jpg',
+      urls: ['/static/assistant/ingredient-example.jpg'],
+    });
+  },
+
+  onIngredientFound() {
+    wx.showActionSheet({
+      itemList: ['拍照', '从相册选择'],
+      success: (res) => {
+        const sourceType = res.tapIndex === 0 ? ['camera'] : ['album'];
+        this.pickIngredientImages(sourceType);
+      },
+    });
+  },
+
+  pickIngredientImages(sourceType) {
+    const remain = 3 - this.data.composerImages.length;
+    if (remain <= 0) {
+      wx.showToast({ title: '最多上传 3 张图片', icon: 'none' });
+      return;
+    }
+    wx.chooseMedia({
+      count: remain,
+      mediaType: ['image'],
+      sourceType,
+      sizeType: ['compressed'],
+      success: (res) => {
+        const files = (res.tempFiles || []).filter((file) => {
+          if (file.size > 10 * 1024 * 1024) {
+            wx.showToast({ title: '单张图片不能超过 10MB', icon: 'none' });
+            return false;
+          }
+          return true;
+        });
+        if (!files.length) return;
+        const next = [...this.data.composerImages, ...files.map((file) => file.tempFilePath)].slice(0, 3);
+        this.setData({
+          showIngredientSheet: false,
+          composerImages: next,
+          inputMessage: this.data.inputMessage || '请帮我分析配料表',
+        });
+      },
+    });
+  },
+
+  previewComposerImage(event) {
+    const current = event.currentTarget.dataset.current;
+    if (!current) return;
+    const fromMessage = this.data.chatMessages.find((item) => (item.images || []).includes(current));
+    const urls = (fromMessage && fromMessage.images) || this.data.composerImages;
+    wx.previewImage({ current, urls: urls.length ? urls : [current] });
+  },
+
+  removeComposerImage(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    this.setData({
+      composerImages: this.data.composerImages.filter((_, i) => i !== index),
+    });
+  },
+
   cyclePrompts() {
     wx.showToast({ title: '已为你换一组表达示例', icon: 'none' });
   },
@@ -302,12 +355,11 @@ Page({
     this.setData({ composerFocused: false });
   },
   focusComposer() {
-    this.setData({ tested: false, composerFocused: true });
+    this.setData({ composerFocused: true });
     wx.pageScrollTo({ scrollTop: 0, duration: 300 });
   },
 
   async openFoodSheet(event) {
-    this.setTabHidden(true);
     const foodType = event.currentTarget.dataset.type;
     const selectedFood = this.data[`${foodType}Food`];
     this.setData({
@@ -343,8 +395,7 @@ Page({
     const food = this.data.foodOptions.find((item) => item.id === event.currentTarget.dataset.id);
     if (!food) return;
     const foodType = this.data.foodType;
-    this.setData({ [`${foodType}Food`]: food, showFoodSheet: false, tested: false });
-    this.setTabHidden(false);
+    this.setData({ [`${foodType}Food`]: food, showFoodSheet: false });
     try {
       const response = await request(`${config.apiBaseUrl}/api/miniprogram/products/ingredients`, 'POST', {
         catalog_key: food.id,
@@ -365,12 +416,10 @@ Page({
   },
 
   openSymptoms() {
-    this.setTabHidden(true);
     this.setData({ showSymptomSheet: true });
   },
   closeSheet() {
-    this.setData({ showFoodSheet: false, showSymptomSheet: false });
-    this.setTabHidden(false);
+    this.setData({ showFoodSheet: false, showSymptomSheet: false, showIngredientSheet: false });
   },
 
   toggleSymptom(event) {
@@ -385,8 +434,7 @@ Page({
     this.setData({
       selectedSymptoms: selected,
       symptomOptions: SYMPTOMS.map((item) => ({ label: item, selected: selected.includes(item) })),
-      tested: false,
-    });
+          });
   },
 
   confirmSymptoms() {
@@ -395,7 +443,6 @@ Page({
       return;
     }
     this.setData({ symptomText: this.data.selectedSymptoms.join(' / '), showSymptomSheet: false });
-    this.setTabHidden(false);
   },
 
   onMessageInput(event) {
@@ -403,22 +450,26 @@ Page({
   },
 
   async sendMessage() {
-    const message = this.data.inputMessage.trim();
-    if (!message || this.data.sending) return;
+    const images = [...this.data.composerImages];
+    const message = this.data.inputMessage.trim() || (images.length ? '请帮我分析配料表' : '');
+    if ((!message && !images.length) || this.data.sending) return;
     const version = (this._sendVersion || 0) + 1;
     this._sendVersion = version;
     this._lastPrompt = message;
     this.setData({
-      chatMessages: [...this.data.chatMessages, { id: `user-${Date.now()}`, role: 'user', text: message }],
+      chatMessages: [
+        ...this.data.chatMessages,
+        { id: `user-${Date.now()}`, role: 'user', text: message, images },
+      ],
     });
     this.setData({
       sending: true,
       inputMessage: '',
+      composerImages: [],
       userMessage: message,
       assistantMessage: '正在识别换粮意图和猫咪状态…',
       recognized: false,
-      tested: false,
-    });
+          });
     try {
       const userInfo = wx.getStorageSync('miniprogram_user') || {};
       const sessionId =
@@ -489,14 +540,9 @@ Page({
       this.appendAssistant('暂时连接不上，请稍后重试。你的问题已保留。', true);
     }
   },
-
-  setTabHidden(hidden) {
-    if (this.getTabBar()) this.getTabBar().setData({ hidden });
-  },
   onKeyboardChange(e) {
     const keyboardHeight = e.detail.height || 0;
     this.setData({ keyboardHeight });
-    this.setTabHidden(keyboardHeight > 0);
   },
   scrollChat() {
     wx.pageScrollTo({ scrollTop: 100000, duration: 200 });
@@ -556,11 +602,9 @@ Page({
       historyVisible: true,
       conversations: wx.getStorageSync(accountKey('assistant_conversations_v1')) || [],
     });
-    this.setTabHidden(true);
   },
   closeHistory() {
     this.setData({ historyVisible: false });
-    this.setTabHidden(false);
   },
   newConversation() {
     if (this.data.sending) this.stopSending();
@@ -569,11 +613,11 @@ Page({
     this.setData({
       chatMessages: [],
       inputMessage: '',
+      composerImages: [],
       userMessage: '',
       assistantMessage: '',
       recognized: false,
-      tested: false,
-      savedMode: false,
+            savedMode: false,
     });
     this.closeHistory();
   },
@@ -582,7 +626,7 @@ Page({
     const entry = this.data.conversations.find((v) => v.id === e.currentTarget.dataset.id);
     if (!entry) return;
     wx.setStorageSync(accountKey('food_change_session_id'), entry.id);
-    this.setData({ ...entry.state, chatMessages: entry.messages, tested: false, sending: false, savedMode: false });
+    this.setData({ ...entry.state, chatMessages: entry.messages, sending: false, savedMode: false });
     this.closeHistory();
   },
   onHide() {
@@ -592,6 +636,7 @@ Page({
       keyboardHeight: 0,
       showFoodSheet: false,
       showSymptomSheet: false,
+      showIngredientSheet: false,
       showExitModal: false,
       historyVisible: false,
     });
@@ -603,7 +648,7 @@ Page({
 
   async startTest() {
     if (this.data.testing) return;
-    this.setData({ testing: true, tested: false });
+    this.setData({ testing: true });
     try {
       const currentFood = this.data.currentFood;
       const targetFood = this.data.targetFood;
@@ -626,125 +671,21 @@ Page({
         this.data.currentIngredientGroups,
       );
       const targetRoleGroups = mapMaterialRoles(targetResult.material_role_evidence, this.data.targetIngredientGroups);
-      this.setData(
-        {
-          testing: false,
-          tested: true,
-          activeFoodTab: 'target',
-          ingredientGroups: this.data.targetIngredientGroups,
-          radarMetrics,
-          currentRoleGroups,
-          targetRoleGroups,
-          roleGroups: targetRoleGroups,
-        },
-        () => {
-          wx.pageScrollTo({ scrollTop: 0, duration: 0 });
-          this.drawRadar();
-        },
-      );
+      wx.setStorageSync('food_change_analysis_result', {
+        currentFood,
+        targetFood,
+        radarMetrics,
+        currentRoleGroups,
+        targetRoleGroups,
+        roleGroups: targetRoleGroups,
+        activeFoodTab: 'target',
+      });
+      this.setData({ testing: false });
+      wx.navigateTo({ url: '/pages/analysis/index' });
     } catch (error) {
       const message = (error.data && error.data.error) || error.errMsg || '营养对比数据加载失败';
       this.setData({ testing: false });
       wx.showToast({ title: message, icon: 'none', duration: 3000 });
     }
-  },
-
-  drawRadar() {
-    const query = wx.createSelectorQuery().in(this);
-    query
-      .select('#nutritionRadar')
-      .fields({ node: true, size: true })
-      .exec((result) => {
-        const item = result && result[0];
-        if (!item || !item.node) return;
-        const canvas = item.node;
-        const ctx = canvas.getContext('2d');
-        const dpr = wx.getWindowInfo().pixelRatio || 1;
-        const width = item.width;
-        const height = item.height;
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
-        ctx.scale(dpr, dpr);
-
-        const centerX = width / 2;
-        const centerY = height / 2 + 6;
-        const radius = Math.min(width, height) * 0.34;
-        const angles = [-Math.PI / 2, -Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
-        const point = (angle, scale) => ({
-          x: centerX + Math.cos(angle) * radius * scale,
-          y: centerY + Math.sin(angle) * radius * scale,
-        });
-        const polygon = (scale) => angles.map((angle) => point(angle, scale));
-        const drawPath = (points, close = true) => {
-          ctx.beginPath();
-          points.forEach((p, index) => (index ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
-          if (close) ctx.closePath();
-        };
-
-        ctx.lineWidth = 1;
-        [1, 0.75, 0.5, 0.25].forEach((scale) => {
-          drawPath(polygon(scale));
-          ctx.strokeStyle = theme.colors.line;
-          ctx.stroke();
-        });
-        angles.forEach((angle) => {
-          const end = point(angle, 1);
-          ctx.beginPath();
-          ctx.moveTo(centerX, centerY);
-          ctx.lineTo(end.x, end.y);
-          ctx.strokeStyle = theme.colors.line;
-          ctx.stroke();
-        });
-
-        const drawSeries = (values, stroke, fill) => {
-          const points = values.map((value, index) => point(angles[index], value / 100));
-          drawPath(points);
-          ctx.fillStyle = fill;
-          ctx.fill();
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = stroke;
-          ctx.stroke();
-          points.forEach((p) => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-            ctx.fillStyle = stroke;
-            ctx.fill();
-          });
-        };
-
-        const currentValues = this.data.radarMetrics.map((metric) => metric.current);
-        const targetValues = this.data.radarMetrics.map((metric) => metric.target);
-        drawSeries(targetValues, theme.colors.success, theme.colors.success + '18');
-        drawSeries(currentValues, theme.colors.primary, theme.colors.primary + '18');
-      });
-  },
-
-  switchFoodTab(event) {
-    const activeFoodTab = event.currentTarget.dataset.tab;
-    this.setData({
-      activeFoodTab,
-      activeFoodTitle:
-        activeFoodTab === 'current'
-          ? `${this.data.currentFood.brand} ${this.data.currentFood.name}`
-          : `${this.data.targetFood.brand} ${this.data.targetFood.name}`,
-      activeFoodMatched: activeFoodTab === 'current' ? this.data.currentFoodMatched : this.data.targetFoodMatched,
-      ingredientGroups:
-        activeFoodTab === 'current' ? this.data.currentIngredientGroups : this.data.targetIngredientGroups,
-      roleGroups: activeFoodTab === 'current' ? this.data.currentRoleGroups : this.data.targetRoleGroups,
-      activeTooltip: '',
-    });
-  },
-
-  toggleTooltip(event) {
-    const id = event.currentTarget.dataset.id;
-    this.setData({ activeTooltip: this.data.activeTooltip === id ? '' : id });
-  },
-
-  clearTooltip() {
-    if (this.data.activeTooltip) this.setData({ activeTooltip: '' });
-  },
-
-  comingSoon() {
-    wx.showToast({ title: '下一阶段开放', icon: 'none' });
   },
 });

@@ -28,13 +28,21 @@ export async function fetchPosts(mine = false) {
   const res = await api(`/moments?limit=100${mine ? '&include_private=true' : ''}`);
   const posts = res.items.map(mapPost);
   const s = loadStore();
-  const cache = new Map((s.postCache || []).map((p) => [p.id, p]));
-  posts.forEach((p) => cache.set(p.id, p));
+  if (mine) {
+    const byId = new Map((s.postCache || []).map((p) => [p.id, p]));
+    posts.forEach((p) => byId.set(p.id, p));
+    saveStore({
+      posts: [...s.posts.filter((p) => p.status === 'draft'), ...posts],
+      postCache: Array.from(byId.values()),
+    });
+    return posts;
+  }
+  const incoming = new Set(posts.map((p) => p.id));
+  const favoritesOnly = (s.postCache || []).filter((p) => s.favorites.includes(p.id) && !incoming.has(p.id));
   saveStore({
-    postCache: Array.from(cache.values()).filter((p) => posts.some((v) => v.id === p.id) || s.favorites.includes(p.id)),
-    ...(mine
-      ? { posts: [...s.posts.filter((p) => p.status === 'draft'), ...posts] }
-      : { feedIds: posts.map((p) => p.id) }),
+    // Keep feed order aligned with the API response; append favorite-only snapshots after.
+    postCache: [...posts, ...favoritesOnly],
+    feedIds: posts.map((p) => p.id),
   });
   return posts;
 }
@@ -45,4 +53,9 @@ export function getPosts() {
     saved: s.favorites.includes(p.id),
     editedText: formatEdited(p.editedAt),
   }));
+}
+export function getFeedPosts() {
+  const s = loadStore();
+  const byId = new Map(getPosts().map((p) => [p.id, p]));
+  return (s.feedIds || []).map((id) => byId.get(id)).filter(Boolean);
 }

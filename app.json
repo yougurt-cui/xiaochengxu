@@ -1,19 +1,36 @@
 {
   "pages": [
     "pages/home/index",
-    "pages/history/index",
     "pages/assistant/index",
-    "pages/message/index",
-    "pages/surrounding/index",
     "pages/my/index"
   ],
   "usingComponents": {
-    "t-toast": "tdesign-miniprogram/toast/toast",
     "p-icon": "/components/p-icon",
     "page-header": "/components/page-header",
     "post-feed": "/components/post-feed"
   },
   "subpackages": [
+    {
+      "root": "pages/history",
+      "name": "history",
+      "pages": [
+        "index"
+      ]
+    },
+    {
+      "root": "pages/message",
+      "name": "message",
+      "pages": [
+        "index"
+      ]
+    },
+    {
+      "root": "pages/surrounding",
+      "name": "surrounding",
+      "pages": [
+        "index"
+      ]
+    },
     {
       "root": "pages/search",
       "name": "search",
@@ -78,6 +95,13 @@
         "supplies",
         "pet-edit",
         "post-detail"
+      ]
+    },
+    {
+      "root": "pages/analysis",
+      "name": "analysis",
+      "pages": [
+        "index"
       ]
     }
   ],

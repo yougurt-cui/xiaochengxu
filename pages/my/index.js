@@ -11,7 +11,7 @@ Page({
     foodCount: 0,
   },
   onShow() {
-    if (this.getTabBar()) this.getTabBar().setData({ value: 'my', hidden: false });
+    if (this.getTabBar()) this.getTabBar().setData({ value: 'my' });
     this.refreshData();
     if (hasSession()) this.syncProfile();
   },
@@ -59,13 +59,5 @@ Page({
   },
   goSettings() {
     wx.navigateTo({ url: '/pages/setting/index' });
-  },
-  goHelp() {
-    wx.showModal({
-      title: '帮助与反馈',
-      content:
-        '宠物档案和社区帖子由服务器保存。收藏、草稿、食物、玩具、聊天历史和日常记录保存在当前设备。硬件接入准备中。',
-      showCancel: false,
-    });
   },
 });

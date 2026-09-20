@@ -1,7 +1,6 @@
 Component({
   data: {
     value: 'home',
-    hidden: false,
     list: [
       { value: 'home', label: '状态', icon: 'activity' },
       { value: 'assistant', label: '管家', icon: 'ai-search' },

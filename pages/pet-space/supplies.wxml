@@ -1,2 +1,46 @@
 <view class="page"><page-header title="{{title}}" back /><view class="screen-body"><swiper class="hero-swiper" current="{{slide}}" bindchange="changeSlide" circular indicator-dots indicator-color="rgba(255,255,255,.4)" indicator-active-color="#ffffff"><swiper-item wx:for="{{slides}}" wx:key="id"><view class="hero-slide"><p-image image-class="hero-image" src="{{item.image}}" mode="aspectFill" /><view class="hero-shade"></view><view class="hero-copy"><text class="hero-kicker">{{kind === 'toys' ? 'PLAY & LOVE' : 'EAT & LOVE'}}</text><text class="hero-title">{{item.title}}</text><text class="hero-subtitle">{{item.subtitle}}</text></view></view></swiper-item></swiper><view class="section-heading"><text>我的清单 <text class="count">{{mine.length}}</text></text><button class="text-button" bindtap="editMine"><p-icon name="plus" size="26" />添加</button></view><view wx:if="{{!mine.length}}" class="local-empty">{{kind === 'toys' ? '它喜欢的玩具，在这里慢慢收集。' : '正在吃的粮和喜欢的口味，都记在这里。'}}</view><button wx:for="{{mine}}" wx:key="id" class="mine-card" data-id="{{item.id}}" bindtap="editMine"><view class="mine-icon"><p-icon name="{{kind === 'toys' ? 'toy' : 'food'}}" /></view><view class="mine-copy"><text class="card-title">{{item.name}}</text><text class="card-note">{{item.note || '轻点补充使用记录'}}</text></view><p-icon name="arrow" size="26" tone="muted" /></button><text class="caption">清单保存在当前设备</text><view class="section-heading"><text>{{kind === 'toys' ? '创意好物' : '食品目录'}}</text><text>{{kind === 'toys' ? '来自周边创意' : '按品牌查找'}}</text></view><view wx:if="{{kind === 'food'}}" class="catalog-search"><input value="{{brand}}" data-key="brand" bindinput="inputSearch" placeholder="品牌，如皇家" confirm-type="search" bindconfirm="loadCatalog" /><input value="{{query}}" data-key="query" bindinput="inputSearch" placeholder="系列 / 产品（选填）" confirm-type="search" bindconfirm="loadCatalog" /><button bindtap="loadCatalog">查询</button></view><view wx:if="{{loading}}" class="empty-state">正在加载{{kind === 'toys' ? '创意好物' : '食品目录'}}…</view><view wx:if="{{error}}" class="empty-state">{{error}}<button class="text-button" bindtap="loadCatalog">重新加载</button></view><view class="catalog-grid"><button wx:for="{{items}}" wx:key="id" class="catalog-card" data-id="{{item.id}}" bindtap="openItem"><p-image wx:if="{{item.image}}" image-class="catalog-image" src="{{item.image}}" mode="aspectFill" /><view wx:else class="catalog-placeholder {{kind}}"><p-icon name="{{kind === 'toys' ? 'toy' : 'food'}}" size="80" tone="{{kind === 'food' ? 'accentText' : 'primary'}}" /></view><view class="catalog-copy"><text class="card-tag">{{item.tag}}</text><text class="card-title">{{item.name}}</text><text class="card-note">{{item.note}}</text><text class="card-action">查看详情 ↗</text></view></button></view><view wx:if="{{!loading && !error && !items.length}}" class="empty-state">{{kind === 'toys' ? '更多创意正在准备中，也可以先添加自己的玩具。' : '没有找到相关食品，试试其他品牌或关键词。'}}</view></view></view>
-<view wx:if="{{selected || editing}}" class="sheet-mask" bindtap="{{editing ? 'closeEditor' : 'closeDetail'}}"></view><view wx:if="{{selected}}" class="bottom-sheet"><view class="sheet-heading"><text>好物详情</text><button bindtap="closeDetail" aria-label="关闭"><p-icon name="close" /></button></view><p-image wx:if="{{selected.image}}" image-class="detail-image" src="{{selected.image}}" mode="widthFix" /><text class="tag">{{selected.tag}}</text><view class="section-heading">{{selected.name}}</view><text class="detail-note">{{selected.note}}</text><button class="primary-button" bindtap="addToMine">加入{{title}}</button></view><view wx:if="{{editing}}" class="bottom-sheet"><view class="sheet-heading"><text>{{editingId ? '编辑记录' : '添加记录'}}</text><button bindtap="closeEditor" aria-label="关闭"><p-icon name="close" /></button></view><view class="form-field"><text>名称</text><input value="{{form.name}}" data-key="name" bindinput="input" maxlength="100" placeholder="填写玩具或食品名称" /></view><view class="form-field"><text>使用记录</text><textarea value="{{form.note}}" data-key="note" bindinput="input" maxlength="300" placeholder="记录它的喜好、口味或使用感受…" /></view><button class="primary-button" bindtap="saveMine">保存记录</button></view>
+<view wx:if="{{selected || editing}}" class="sheet-mask" bindtap="{{editing ? 'closeEditor' : 'closeDetail'}}"></view>
+<view wx:if="{{selected}}" class="bottom-sheet">
+  <view class="sheet-heading"><text>好物详情</text><button bindtap="closeDetail" aria-label="关闭"><p-icon name="close" /></button></view>
+  <p-image wx:if="{{selected.image}}" image-class="detail-image" src="{{selected.image}}" mode="widthFix" />
+  <text class="tag">{{selected.tag}}</text>
+  <view class="section-heading">{{selected.name}}</view>
+  <text class="detail-note">{{selected.note}}</text>
+  <button class="primary-button" bindtap="addToMine">加入{{title}}</button>
+</view>
+<view wx:if="{{editing}}" class="bottom-sheet">
+  <block wx:if="{{editorMode === 'ingredient'}}">
+    <view class="sheet-heading">
+      <text>拍摄示例</text>
+      <button bindtap="closeIngredientSheet" aria-label="返回"><p-icon name="close" /></button>
+    </view>
+    <view class="ingredient-sheet">
+      <view class="ingredient-sample" bindtap="previewIngredientExample">
+        <image class="ingredient-sample-image" src="/pages/pet-space/static/ingredient-example.jpg" mode="aspectFill" />
+        <text class="ingredient-sample-tip">必须同时包含完整配料表和营养成分保证值；若在不同包装面，请分别拍摄并一起上传。</text>
+      </view>
+      <text class="ingredient-format-hint">支持 1~3 张 JPG、PNG、WEBP，单张不超过 10MB</text>
+      <button class="ingredient-found-button" bindtap="onIngredientFound">选择或拍照</button>
+    </view>
+  </block>
+  <block wx:else>
+    <view class="sheet-heading"><text>{{editingId ? '编辑记录' : '添加记录'}}</text><button bindtap="closeEditor" aria-label="关闭"><p-icon name="close" /></button></view>
+    <view wx:if="{{kind === 'food'}}" class="ingredient-entry" bindtap="openIngredientSheet">
+      <view class="ingredient-entry-icon"><p-icon name="image" size="36" /></view>
+      <view class="ingredient-entry-copy">
+        <text class="ingredient-entry-title">分析配料表</text>
+        <text class="caption">拍照或上传配料表，辅助添加食物记录</text>
+      </view>
+      <text class="ingredient-entry-arrow">↗</text>
+    </view>
+    <view wx:if="{{kind === 'food' && form.images.length}}" class="form-images">
+      <view wx:for="{{form.images}}" wx:key="*this" class="form-image" data-current="{{item}}" bindtap="previewFormImage">
+        <image src="{{item}}" mode="aspectFill" />
+        <button class="form-image-remove" data-index="{{index}}" catchtap="removeFormImage" aria-label="移除图片"><p-icon name="close" tone="inverse" size="20" /></button>
+      </view>
+    </view>
+    <view class="form-field"><text>名称</text><input value="{{form.name}}" data-key="name" bindinput="input" maxlength="100" placeholder="{{kind === 'food' ? '填写食品名称' : '填写玩具或食品名称'}}" /></view>
+    <view class="form-field"><text>使用记录</text><textarea value="{{form.note}}" data-key="note" bindinput="input" maxlength="300" placeholder="记录它的喜好、口味或使用感受…" /></view>
+    <button class="primary-button" bindtap="saveMine">保存记录</button>
+  </block>
+</view>

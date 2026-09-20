@@ -1,4 +1,5 @@
 import { loadStore } from '../../utils/pet-store';
+
 Page({
   data: { records: [] },
   onShow() {

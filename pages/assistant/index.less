@@ -182,7 +182,7 @@ button::after {
 .mask {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 100;
   background: @colors-overlay;
 }
 .sheet {
@@ -190,12 +190,13 @@ button::after {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 21;
-  padding: 28rpx 28rpx calc(30rpx + env(safe-area-inset-bottom));
+  z-index: 101;
+  padding: 28rpx 28rpx calc(24rpx + @layout-tabHeight + env(safe-area-inset-bottom));
   border-radius: 30rpx 30rpx 0 0;
   background: @colors-surface;
   transform: translateY(110%);
   transition: transform 0.25s;
+  box-sizing: border-box;
 }
 .sheet.open {
   transform: translateY(0);
@@ -285,223 +286,11 @@ button::after {
   border-radius: 25rpx;
   background: @colors-page;
 }
-.food-tabs {
-  height: 62rpx;
-  padding: 4rpx;
-  display: flex;
-  border-radius: 34rpx;
-  background: @colors-primarySoft;
-}
-.food-tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 30rpx;
-  font-size: 23rpx;
-  font-weight: @weight-semibold;
-}
-.food-tab.active {
-  background: @colors-primary;
-  color: @colors-surface;
-}
-
-/* Analysis result */
-.ingredient-result {
-  margin: 0;
-  padding: 0 0 calc(190rpx + env(safe-area-inset-bottom));
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-sizing: border-box;
-}
-.radar-card {
-  padding: 24rpx 18rpx 18rpx;
-  border: 2rpx solid @colors-primarySoft;
-  border-radius: 26rpx;
-  background: @colors-surface;
-}
-.radar-legend {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 110rpx;
-  font-size: 24rpx;
-}
-.radar-legend view {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-}
-.legend-dot {
-  width: 20rpx;
-  height: 20rpx;
-  margin-right: 16rpx;
-  display: inline-block;
-  border-radius: 4rpx;
-}
-.current-dot {
-  background: @colors-primary;
-}
-.target-dot {
-  background: @colors-success;
-}
-.radar-wrap {
-  position: relative;
-  height: 500rpx;
-  margin-top: 8rpx;
-}
-.radar-canvas {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 480rpx;
-  height: 430rpx;
-  transform: translate(-50%, -48%);
-}
-.metric-label {
-  position: absolute;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 21rpx;
-  line-height: 1.55;
-  white-space: nowrap;
-}
-.metric-label text:nth-child(2) {
-  color: @colors-text;
-  font-size: 24rpx;
-}
-.metric-label .target-score {
-  color: @colors-success;
-  font-size: 23rpx;
-}
-
-.formula-card {
-  margin-top: 20rpx;
-  padding: 23rpx 18rpx 18rpx;
-  border: 2rpx solid @colors-primarySoft;
-  border-radius: 26rpx;
-  background: @colors-surface;
-}
-.formula-title {
-  display: block;
-  margin-bottom: 18rpx;
-  font-size: 28rpx;
-  font-weight: @weight-bold;
-}
-.formula-card .food-tabs {
-  height: 60rpx;
-  padding: 0;
-  background: @colors-primarySoft;
-}
-.formula-card .food-tab {
-  color: @colors-text;
-  font-size: 21rpx;
-}
-.formula-card .food-tab.active {
-  background: @colors-primary;
-  color: @colors-surface;
-  box-shadow: none;
-}
-.formula-list {
-  margin-top: 14rpx;
-  overflow: hidden;
-  border: 2rpx solid @colors-primarySoft;
-  border-radius: 20rpx;
-}
-.formula-row {
-  min-height: 72rpx;
-  padding: 12rpx 16rpx;
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-  border-bottom: 2rpx solid @colors-primarySoft;
-  box-sizing: border-box;
-}
-.formula-row:last-child {
-  border-bottom: 0;
-}
-.formula-icon {
-  width: 42rpx;
-  height: 42rpx;
-  flex: 0 0 42rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 23rpx;
-}
-.formula-icon.tone-blue {
-  background: @colors-page;
-}
-.formula-icon.tone-orange {
-  background: @colors-primarySoft;
-}
-.formula-icon.tone-yellow {
-  background: @colors-primarySoft;
-}
-.formula-icon.tone-purple {
-  background: @colors-page;
-}
-.formula-name {
-  flex: 1;
-  font-size: 23rpx;
-}
-.formula-tags {
-  max-width: 250rpx;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6rpx;
-}
-.formula-tags text {
-  padding: 4rpx 8rpx;
-  border-radius: 12rpx;
-  background: @colors-page;
-  color: @colors-success;
-  font-size: 16rpx;
-  line-height: 1.2;
-}
-.formula-arrow {
-  color: @colors-secondary;
-  font-size: 40rpx;
-  font-weight: 200;
-}
-.formula-empty {
-  padding: 38rpx 20rpx;
-  color: @colors-secondary;
-  text-align: center;
-  font-size: 21rpx;
-}
-.formula-tip {
-  padding: 18rpx 8rpx 0;
-  color: @colors-secondary;
-  font-size: 19rpx;
-}
-.report-button {
-  width: 100%;
-  height: 80rpx;
-  margin: 20rpx 0 0;
-  border-radius: 42rpx;
-  background: @colors-primary;
-  color: @colors-surface;
-  font-size: 28rpx;
-  line-height: 80rpx;
-}
-.report-note {
-  padding: 16rpx 0 30rpx;
-  color: @colors-secondary;
-  text-align: center;
-  font-size: 19rpx;
-}
-
 /* Exit confirmation */
 .exit-mask {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 100;
   background: @colors-overlay;
 }
 .exit-modal {
@@ -509,13 +298,14 @@ button::after {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 41;
-  padding: 34rpx 46rpx calc(34rpx + env(safe-area-inset-bottom));
+  z-index: 101;
+  padding: 34rpx 46rpx calc(34rpx + @layout-tabHeight + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
   border-radius: 30rpx 30rpx 0 0;
   background: @colors-page;
+  box-sizing: border-box;
 }
 .exit-title {
   margin-top: 14rpx;
@@ -744,6 +534,106 @@ button::after {
   margin-left: auto;
   color: @colors-primary;
 }
+.ai-reply-note {
+  display: block;
+  margin-top: 20rpx;
+  text-align: left;
+  font-size: 22rpx;
+  line-height: 1.4;
+  color: @colors-primary;
+}
+.ingredient-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.ingredient-sample {
+  display: flex;
+  align-items: stretch;
+  gap: 20rpx;
+  padding: 20rpx;
+  border: 2rpx dashed fade(@colors-danger, 45%);
+  border-radius: @radius-medium;
+  background: fade(@colors-danger, 4%);
+}
+.ingredient-sample-image {
+  width: 200rpx;
+  height: 240rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+  background: @colors-surfaceMuted;
+}
+.ingredient-sample-tip {
+  flex: 1;
+  min-width: 0;
+  font-size: 24rpx;
+  line-height: 1.65;
+  color: @colors-secondary;
+  padding-top: 8rpx;
+}
+.ingredient-format-hint {
+  align-self: flex-end;
+  font-size: 20rpx;
+  line-height: 1.4;
+  color: @colors-muted;
+  margin-top: -4rpx;
+}
+.ingredient-found-button {
+  margin: 8rpx 0 0;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: @radius-pill;
+  background: @colors-primary;
+  color: @colors-inverse;
+  font-size: 30rpx;
+  font-weight: @weight-semibold;
+  flex-shrink: 0;
+}
+.composer-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+.composer-image {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: @colors-surfaceMuted;
+}
+.composer-image image {
+  width: 100%;
+  height: 100%;
+}
+.composer-image-remove {
+  position: absolute;
+  top: 6rpx;
+  right: 6rpx;
+  margin: 0;
+  padding: 0;
+  width: 36rpx;
+  min-width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: fade(@colors-text, 55%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.message-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+.message-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  background: @colors-surface;
+}
 .conversation-thread {
   display: flex;
   flex-direction: column;
@@ -865,19 +755,15 @@ button::after {
   color: @colors-muted;
 }
 .confirm-card,
-.radar-card,
-.formula-card,
 .saved-card {
   background: @colors-surface;
   border: 0;
   border-radius: @radius-medium;
 }
-.info-list,
-.formula-list {
+.info-list {
   border: 0;
 }
-.info-row,
-.formula-row {
+.info-row {
   border-color: @colors-line;
 }
 .pink,
@@ -893,21 +779,10 @@ button::after {
   max-height: 75vh;
   overflow-y: auto;
 }
-.current-dot {
-  background: @colors-primary;
-}
-.target-dot {
-  background: @colors-success;
-}
-.food-tab.active,
-.formula-card .food-tab.active {
-  background: @colors-primary;
-}
 .ingredient-result {
-  padding-bottom: 60rpx;
+  padding-bottom: 0;
 }
 .primary-action,
-.report-button,
 .confirm {
   min-height: @layout-touch;
 }

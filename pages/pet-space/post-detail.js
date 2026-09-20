@@ -25,10 +25,14 @@ Page({
         post: { ...post, displayBody: displayPostBody(post.title, post.body), editedText: formatEdited(post.editedAt) },
         saved: loadStore().favorites.includes(post.id),
       });
-      // Keep the latest snapshot for locally saved favorites.
+      // Keep the latest snapshot for locally saved favorites without changing feed order.
       try {
         const s = loadStore();
-        saveStore({ postCache: [...(s.postCache || []).filter((p) => p.id !== post.id), post] });
+        const list = [...(s.postCache || [])];
+        const index = list.findIndex((p) => p.id === post.id);
+        if (index >= 0) list[index] = { ...list[index], ...post };
+        else list.push(post);
+        saveStore({ postCache: list });
       } catch (e) {
         /* Reading a post remains available if local storage is full. */
       }
@@ -49,7 +53,13 @@ Page({
       const saved = !s.favorites.includes(this.postId);
       saveStore({
         favorites: saved ? [...s.favorites, this.postId] : s.favorites.filter((id) => id !== this.postId),
-        postCache: [...(s.postCache || []).filter((p) => p.id !== this.postId), this.data.post],
+        postCache: (() => {
+          const list = [...(s.postCache || [])];
+          const index = list.findIndex((p) => p.id === this.postId);
+          if (index >= 0) list[index] = { ...list[index], ...this.data.post };
+          else list.push(this.data.post);
+          return list;
+        })(),
       });
       this.setData({ saved });
       wx.showToast({ title: saved ? '已收藏' : '已取消收藏', icon: 'none' });

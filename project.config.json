@@ -1,7 +1,37 @@
 {
   "description": "项目配置文件，详见文档：https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "node_modules" },
+      { "type": "folder", "value": "mock" },
+      { "type": "folder", "value": "docs" },
+      { "type": "folder", "value": "scripts" },
+      { "type": "folder", "value": "theme" },
+      { "type": "folder", "value": ".github" },
+      { "type": "folder", "value": "static/home" },
+      { "type": "folder", "value": "static/moments" },
+      { "type": "folder", "value": "static/chat" },
+      { "type": "file", "value": "static/cat-moments-grid.webp" },
+      { "type": "file", "value": "static/home-dashboard.webp" },
+      { "type": "file", "value": "static/img_td.png" },
+      { "type": "file", "value": "static/image1.png" },
+      { "type": "file", "value": "static/image2.png" },
+      { "type": "file", "value": "static/bg_navbar.png" },
+      { "type": "file", "value": "static/bg_navbar2.png" },
+      { "type": "file", "value": "static/avatar1.png" },
+      { "type": "file", "value": "static/icon_td.png" },
+      { "type": "file", "value": "static/icon_wx.png" },
+      { "type": "file", "value": "static/icon_qq.png" },
+      { "type": "file", "value": "static/icon_doc.png" },
+      { "type": "file", "value": "static/icon_map.png" },
+      { "type": "file", "value": "static/assistant/ingredient-example.webp" },
+      { "type": "file", "value": "package-lock.json" },
+      { "type": "file", "value": "README.md" },
+      { "type": "file", "value": "LICENSE" },
+      { "type": "file", "value": "variable.less" },
+      { "type": "suffix", "value": ".md" },
+      { "type": "suffix", "value": ".map" }
+    ],
     "include": [
       {
         "type": "suffix",

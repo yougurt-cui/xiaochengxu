@@ -1,0 +1,226 @@
+@import '../../styles/tokens.less';
+
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: @colors-page;
+}
+
+.report-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 @layout-gutter;
+  box-sizing: border-box;
+}
+
+.report-scroll {
+  flex: 1;
+  height: 0;
+  box-sizing: border-box;
+}
+
+.report-footer {
+  flex-shrink: 0;
+  padding: 12rpx 0 calc(8rpx + env(safe-area-inset-bottom));
+  background: @colors-page;
+}
+
+.radar-card {
+  padding: 24rpx 18rpx 24rpx;
+  border: 2rpx solid @colors-primarySoft;
+  border-radius: 26rpx;
+  background: @colors-surface;
+}
+
+.radar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 110rpx;
+  font-size: 24rpx;
+}
+
+.radar-legend view {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.legend-dot {
+  width: 20rpx;
+  height: 20rpx;
+  margin-right: 16rpx;
+  display: inline-block;
+  border-radius: 4rpx;
+}
+
+.current-dot {
+  background: @colors-primary;
+}
+
+.target-dot {
+  background: @colors-success;
+}
+
+.radar-wrap {
+  position: relative;
+  height: 520rpx;
+  margin-top: 8rpx;
+}
+
+.radar-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.formula-card {
+  margin-top: 20rpx;
+  margin-bottom: 24rpx;
+  padding: 23rpx 18rpx 18rpx;
+  border: 2rpx solid @colors-primarySoft;
+  border-radius: 26rpx;
+  background: @colors-surface;
+}
+
+.formula-title {
+  display: block;
+  margin-bottom: 18rpx;
+  font-size: 28rpx;
+  font-weight: @weight-bold;
+}
+
+.food-tabs {
+  height: 60rpx;
+  padding: 0;
+  display: flex;
+  border-radius: 34rpx;
+  background: @colors-primarySoft;
+}
+
+.food-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 30rpx;
+  color: @colors-text;
+  font-size: 21rpx;
+  font-weight: @weight-semibold;
+}
+
+.food-tab.active {
+  background: @colors-primary;
+  color: @colors-surface;
+}
+
+.formula-list {
+  margin-top: 14rpx;
+  overflow: hidden;
+  border: 2rpx solid @colors-primarySoft;
+  border-radius: 20rpx;
+}
+
+.formula-row {
+  min-height: 72rpx;
+  padding: 12rpx 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  border-bottom: 2rpx solid @colors-primarySoft;
+  box-sizing: border-box;
+}
+
+.formula-row:last-child {
+  border-bottom: 0;
+}
+
+.formula-icon {
+  width: 42rpx;
+  height: 42rpx;
+  flex: 0 0 42rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 23rpx;
+}
+
+.formula-icon.tone-blue {
+  background: @colors-page;
+}
+
+.formula-icon.tone-orange,
+.formula-icon.tone-yellow {
+  background: @colors-primarySoft;
+}
+
+.formula-icon.tone-purple,
+.formula-icon.tone-green {
+  background: @colors-page;
+}
+
+.formula-name {
+  flex: 1;
+  font-size: 23rpx;
+}
+
+.formula-tags {
+  max-width: 250rpx;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6rpx;
+}
+
+.formula-tags text {
+  padding: 4rpx 8rpx;
+  border-radius: 12rpx;
+  background: @colors-page;
+  color: @colors-success;
+  font-size: 16rpx;
+  line-height: 1.2;
+}
+
+.formula-arrow {
+  color: @colors-secondary;
+  font-size: 40rpx;
+  font-weight: 200;
+}
+
+.formula-empty {
+  padding: 38rpx 20rpx;
+  color: @colors-secondary;
+  text-align: center;
+  font-size: 21rpx;
+}
+
+.formula-tip {
+  padding: 18rpx 8rpx 0;
+  color: @colors-secondary;
+  font-size: 19rpx;
+}
+
+.report-button {
+  width: 100%;
+  height: 80rpx;
+  margin: 0;
+  min-height: @layout-touch;
+  border-radius: 42rpx;
+  background: @colors-primary;
+  color: @colors-surface;
+  font-size: 28rpx;
+  line-height: 80rpx;
+}
+
+.report-note {
+  padding: 10rpx 0 0;
+  color: @colors-secondary;
+  text-align: center;
+  font-size: 19rpx;
+}
