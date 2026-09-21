@@ -14,6 +14,7 @@ fs.writeFileSync(
   `// Generated from theme/tokens.json\nexport default ${JSON.stringify(tokens, null, 2)};\n`,
 );
 const icons = {
+  'chat-new': '<path d="M20 11a8 8 0 0 1-8 8H4l-2 3V11a9 9 0 0 1 18 0Z"/><path d="M11 7v8m-4-4h8"/>',
   edit: '<path d="m15.5 4.5 4 4M4 20l4.5-1 12-12a2.83 2.83 0 0 0-4-4l-12 12L4 20Z"/>',
   'ai-search':
     '<path d="M4 6.3 3.8 1.7 8 3.5M12.8 3.5 17 1.7 16.8 6.3"/><circle cx="10.4" cy="11.2" r="8.1"/><path d="m16.2 17 5.6 5.6M6.2 14l2.2-5.5 2.2 5.5m-3.6-1.8h2.8M13.4 8.5V14"/>',

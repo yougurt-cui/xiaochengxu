@@ -1,0 +1,87 @@
+@import '../../styles/tokens.less';
+.history-page {
+  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
+}
+.history-body {
+  padding-top: 20rpx;
+}
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.history-list .history-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  width: 100%;
+  margin: 0;
+  padding: 24rpx;
+  box-sizing: border-box;
+  text-align: left;
+  background: @colors-surface;
+  border-radius: @radius-medium;
+  line-height: 1.45;
+}
+.history-icon {
+  width: 64rpx;
+  height: 64rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: @colors-primarySoft;
+  border-radius: @radius-small;
+}
+.history-copy {
+  flex: 1;
+  min-width: 0;
+}
+.history-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: @type-body;
+  font-weight: @weight-medium;
+  line-height: 1.45;
+  word-break: break-all;
+}
+.history-time {
+  display: block;
+  margin-top: 8rpx;
+  font-size: @type-caption;
+  line-height: 1.35;
+  color: @colors-muted;
+}
+.history-loading {
+  flex-shrink: 0;
+  font-size: @type-caption;
+  color: @colors-muted;
+}
+.history-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx @layout-gutter calc(24rpx + env(safe-area-inset-bottom));
+  background: @colors-page;
+}
+.history-footer .primary-button {
+  margin: 0;
+  gap: 12rpx;
+}
+.history-notice {
+  display: block;
+  margin-bottom: 20rpx;
+  font-size: @type-small;
+  line-height: 1.5;
+  color: @colors-secondary;
+}
+.history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  padding: 120rpx 0;
+}

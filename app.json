@@ -94,7 +94,8 @@
         "library",
         "supplies",
         "pet-edit",
-        "post-detail"
+        "post-detail",
+        "chat-history"
       ]
     },
     {

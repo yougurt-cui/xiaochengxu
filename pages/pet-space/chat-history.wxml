@@ -1,0 +1,17 @@
+<view class="page history-page">
+  <page-header title="对话记录" back />
+  <view class="screen-body history-body">
+    <view wx:if="{{error}}" class="history-notice"><text>{{error}}</text><button size="mini" class="text-button" bindtap="loadHistory">重新加载</button></view>
+    <text wx:if="{{openError}}" class="history-notice">{{openError}}</text>
+    <view wx:if="{{loading && !conversations.length}}" class="empty-state">正在加载对话记录…</view>
+    <view wx:elif="{{!loading && !error && !conversations.length}}" class="history-empty"><p-icon name="chat" size="64" /><text>还没有对话记录</text><text class="caption">从第一句开始，聊聊毛孩子的小日常。</text></view>
+    <view class="history-list">
+      <button wx:for="{{conversations}}" wx:key="key" class="history-row" data-key="{{item.key}}" bindtap="selectConversation" disabled="{{!!opening}}">
+        <view class="history-icon"><p-icon name="chat" size="32" /></view>
+        <view class="history-copy"><text class="history-title">{{item.title}}</text><text wx:if="{{item.timeText}}" class="history-time">{{item.timeText}}</text></view>
+        <text wx:if="{{opening === item.key}}" class="history-loading">加载中</text><p-icon wx:else name="arrow" tone="muted" size="26" />
+      </button>
+    </view>
+  </view>
+  <view class="history-footer"><button class="primary-button" bindtap="newConversation" disabled="{{!!opening}}"><p-icon name="plus" tone="inverse" size="30" />开启新对话</button></view>
+</view>

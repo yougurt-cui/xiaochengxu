@@ -1,3 +1,4 @@
+import { chatMethods } from '../../utils/assistant-chat';
 import { accountKey } from '../../utils/pet-store';
 import config from '../../config';
 import request from '../../api/request';
@@ -107,8 +108,6 @@ Page({
     statusBarHeight: 20,
     chatMessages: [],
     keyboardHeight: 0,
-    historyVisible: false,
-    conversations: [],
     currentFood: FOODS.current[0],
     targetFood: FOODS.target[0],
     symptomText: '软便敏感 / 偶尔黑下巴',
@@ -122,6 +121,8 @@ Page({
     showSymptomSheet: false,
     testing: false,
     recognized: false,
+    showPetGate: false,
+    boundPet: null,
     inputMessage: '',
     userMessage: '',
     assistantMessage: '',
@@ -156,6 +157,9 @@ Page({
   onShow() {
     const account = accountKey('assistant');
     if (this._account && this._account !== account) {
+      this._cloudConversationId = '';
+      this._cloudPetId = '';
+      if (!this._bindingPet) this.setData({ inputMessage: '', composerImages: [] });
       if (this.data.sending) {
         this._sendVersion = (this._sendVersion || 0) + 1;
         if (this._sendRequest) this._sendRequest.abort();
@@ -169,6 +173,8 @@ Page({
       });
     }
     this._account = account;
+    this._bindingPet = false;
+    this.refreshChatPet();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ value: 'assistant' });
     }
@@ -207,7 +213,7 @@ Page({
       savedMode: true,
       savedDraft,
       recognized: false,
-            testing: false,
+      testing: false,
       inputMessage: '',
       userMessage: '',
       chatMessages: [],
@@ -263,7 +269,7 @@ Page({
       chatMessages: [],
       assistantMessage: '',
       recognized: false,
-            testing: false,
+      testing: false,
       sending: false,
       composerImages: [],
       showIngredientSheet: false,
@@ -434,7 +440,7 @@ Page({
     this.setData({
       selectedSymptoms: selected,
       symptomOptions: SYMPTOMS.map((item) => ({ label: item, selected: selected.includes(item) })),
-          });
+    });
   },
 
   confirmSymptoms() {
@@ -449,7 +455,7 @@ Page({
     this.setData({ inputMessage: event.detail.value });
   },
 
-  async sendMessage() {
+  async sendLegacyMessage() {
     const images = [...this.data.composerImages];
     const message = this.data.inputMessage.trim() || (images.length ? '请帮我分析配料表' : '');
     if ((!message && !images.length) || this.data.sending) return;
@@ -457,10 +463,7 @@ Page({
     this._sendVersion = version;
     this._lastPrompt = message;
     this.setData({
-      chatMessages: [
-        ...this.data.chatMessages,
-        { id: `user-${Date.now()}`, role: 'user', text: message, images },
-      ],
+      chatMessages: [...this.data.chatMessages, { id: `user-${Date.now()}`, role: 'user', text: message, images }],
     });
     this.setData({
       sending: true,
@@ -469,7 +472,7 @@ Page({
       userMessage: message,
       assistantMessage: '正在识别换粮意图和猫咪状态…',
       recognized: false,
-          });
+    });
     try {
       const userInfo = wx.getStorageSync('miniprogram_user') || {};
       const sessionId =
@@ -565,7 +568,7 @@ Page({
     this.sendMessage();
   },
   saveConversation() {
-    if (!this.data.chatMessages.length) return;
+    if (this._cloudConversationId || !this.data.chatMessages.some((m) => m.role === 'user')) return;
     const id = wx.getStorageSync(accountKey('food_change_session_id')) || `chat-${Date.now()}`;
     wx.setStorageSync(accountKey('food_change_session_id'), id);
     const entry = {
@@ -596,19 +599,12 @@ Page({
       wx.showToast({ title: '对话未能保存到本机', icon: 'none' });
     }
   },
-  openConversationHistory() {
-    this.saveConversation();
-    this.setData({
-      historyVisible: true,
-      conversations: wx.getStorageSync(accountKey('assistant_conversations_v1')) || [],
-    });
-  },
-  closeHistory() {
-    this.setData({ historyVisible: false });
-  },
   newConversation() {
     if (this.data.sending) this.stopSending();
     this.saveConversation();
+    this._cloudConversationId = '';
+    this._cloudPetId = '';
+    this._lastCloudPayload = null;
     wx.removeStorageSync(accountKey('food_change_session_id'));
     this.setData({
       chatMessages: [],
@@ -617,19 +613,11 @@ Page({
       userMessage: '',
       assistantMessage: '',
       recognized: false,
-            savedMode: false,
+      savedMode: false,
     });
-    this.closeHistory();
-  },
-  restoreConversation(e) {
-    if (this.data.sending) this.stopSending();
-    const entry = this.data.conversations.find((v) => v.id === e.currentTarget.dataset.id);
-    if (!entry) return;
-    wx.setStorageSync(accountKey('food_change_session_id'), entry.id);
-    this.setData({ ...entry.state, chatMessages: entry.messages, sending: false, savedMode: false });
-    this.closeHistory();
   },
   onHide() {
+    if (this.data.showPetGate) this.resolvePetGate();
     if (this.data.sending) this.stopSending();
     this.saveConversation();
     this.setData({
@@ -638,10 +626,10 @@ Page({
       showSymptomSheet: false,
       showIngredientSheet: false,
       showExitModal: false,
-      historyVisible: false,
     });
   },
   onUnload() {
+    if (this._resolvePetGate) this.resolvePetGate();
     this._sendVersion = (this._sendVersion || 0) + 1;
     if (this._sendRequest && this._sendRequest.abort) this._sendRequest.abort();
   },
@@ -688,4 +676,5 @@ Page({
       wx.showToast({ title: message, icon: 'none', duration: 3000 });
     }
   },
+  ...chatMethods,
 });
