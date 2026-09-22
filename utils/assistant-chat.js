@@ -76,13 +76,46 @@ export const chatMethods = {
         return;
       }
       if (this.data.composerImages.length) {
-        wx.showToast({ title: '图片识别接口暂未接通，请先移除图片后发送文字', icon: 'none', duration: 3500 });
+        this.openFoodSubmission();
         return;
       }
       return this.sendCloudMessage({ message: this.data.inputMessage.trim() }, this.data.inputMessage.trim());
     } finally {
       this._checkingPet = false;
     }
+  },
+  async openFoodSubmission() {
+    if (this._openingFoodSubmission) return;
+    this._openingFoodSubmission = true;
+    await this.refreshChatPet();
+    if (!this.data.boundPet) {
+      this._openingFoodSubmission = false;
+      this.addChatPet();
+      return;
+    }
+    const account = accountKey('assistant');
+    wx.navigateTo({
+      url: '/pages/pet-space/food-submissions?create=1&chat=1',
+      success: (r) => r.eventChannel.emit('prefill', { images: [...this.data.composerImages] }),
+      events: {
+        foodSelected: async (item) => {
+          if (account !== accountKey('assistant')) return;
+          await this.refreshChatPet();
+          if (!this.data.boundPet) {
+            this.addChatPet();
+            return;
+          }
+          this.setData({ composerImages: [] });
+          this.sendCloudMessage(
+            { attachments: [{ type: 'food_submission', submission_id: item.id }] },
+            `看看这款粮/零食怎么样：${item.title || item.claimed_product_name}`,
+          );
+        },
+      },
+      complete: () => {
+        this._openingFoodSubmission = false;
+      },
+    });
   },
   async sendCloudMessage(payload, displayText) {
     if (this.data.sending) return;

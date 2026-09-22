@@ -8,7 +8,7 @@
     </view>
     <button class="pet-card" bindtap="editPet">
       <view class="pet-circle {{pet ? 'has-pet' : ''}}">
-        <p-icon name="{{pet ? (pet.type === '狗狗' ? 'dog' : 'cat') : 'plus'}}" tone="inverse" size="{{pet ? 64 : 42}}" />
+        <p-image wx:if="{{pet.image}}" src="{{pet.image}}" image-class="pet-avatar-photo" /><p-icon wx:else name="{{pet ? (pet.type === '狗狗' ? 'dog' : 'cat') : 'plus'}}" tone="inverse" size="{{pet ? 64 : 42}}" />
         <view class="pet-badge"><p-icon name="{{pet.type === '狗狗' ? 'dog' : 'cat'}}" tone="accentText" size="30" /></view>
       </view>
       <view class="pet-copy">

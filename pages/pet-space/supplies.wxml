@@ -38,7 +38,7 @@
       </view>
       <p-icon name="arrow" size="26" tone="muted" />
     </button>
-    <text class="caption">清单保存在当前设备</text>
+    <text class="caption">清单保存在当前设备</text><button wx:if="{{kind === 'food'}}" class="text-button" bindtap="viewSubmissions">我的食品投稿 <p-icon name="arrow" size="24" /></button>
 
     <view class="section-heading">
       <text>{{kind === 'toys' ? '创意好物' : '食品目录'}}</text>
@@ -172,7 +172,7 @@
       <view class="ingredient-entry-icon"><p-icon name="image" size="36" /></view>
       <view class="ingredient-entry-copy">
         <text class="ingredient-entry-title">上传图片分析配方</text>
-        <text class="caption">暂无解析接口，图片会先保存在本机目录</text>
+        <text class="caption">上传包装照片，识别配料与营养信息</text>
       </view>
       <text class="ingredient-entry-arrow">↗</text>
     </view>

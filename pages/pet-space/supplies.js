@@ -252,19 +252,19 @@ Page({
     }
   },
 
-  openCatalogAdd() {
-    if (this.data.kind !== 'food') return;
-    this.setData({
-      catalogAdding: true,
-      catalogEditorMode: 'form',
-      catalogForm: {
-        brand: this.data.brand.trim() || '',
-        series: this.data.query.trim() || '',
-        images: [],
-      },
+  openFoodSubmissions(create = false, form = {}) {
+    wx.navigateTo({
+      url: `/pages/pet-space/food-submissions${create ? '?create=1' : ''}`,
+      success: (r) => r.eventChannel.emit('prefill', form),
     });
   },
-
+  viewSubmissions() {
+    this.openFoodSubmissions();
+  },
+  openCatalogAdd() {
+    if (this.data.kind !== 'food') return;
+    this.openFoodSubmissions(true, { brand: this.data.brand.trim(), product: this.data.query.trim() });
+  },
   closeCatalogAdd() {
     this.setData({ catalogAdding: false, catalogEditorMode: 'form' });
   },
@@ -334,48 +334,13 @@ Page({
     });
   },
 
-  async saveCatalogFood() {
-    const brand = (this.data.catalogForm.brand || '').trim();
-    const series = (this.data.catalogForm.series || '').trim();
-    if (!brand) {
-      wx.showToast({ title: '请填写品牌', icon: 'none' });
-      return;
-    }
-    if (!series) {
-      wx.showToast({ title: '请填写系列', icon: 'none' });
-      return;
-    }
-    try {
-      const images = [];
-      for (const path of this.data.catalogForm.images || []) {
-        if (!path) continue;
-        const needPersist = /tmp/i.test(path) || (!/^wxfile:\/\//.test(path) && !/^https?:\/\//.test(path));
-        images.push(needPersist ? await persistImage(path) : path);
-      }
-      const entry = {
-        id: `local-${Date.now()}`,
-        brand,
-        name: series,
-        series,
-        displayText: images.length ? '已上传配料表图片，待接口解析配方' : '',
-        originType: '用户补充',
-        image: images[0] || '',
-        images,
-        source: 'local',
-        createdAt: Date.now(),
-      };
-      const catalogFood = [entry, ...(loadStore().catalogFood || [])];
-      saveStore({ catalogFood });
-      const mapped = mapLocalFood(entry);
-      this.setData({
-        items: [mapped, ...this.data.items.filter((item) => item.id !== mapped.id)],
-        catalogAdding: false,
-        catalogEditorMode: 'form',
-      });
-      wx.showToast({ title: '已加入食品目录', icon: 'success' });
-    } catch (e) {
-      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
-    }
+  saveCatalogFood() {
+    this.openFoodSubmissions(true, {
+      brand: this.data.catalogForm.brand,
+      product: this.data.catalogForm.series,
+      images: this.data.catalogForm.images,
+    });
+    this.closeCatalogAdd();
   },
 
   editMine(e) {
@@ -400,9 +365,8 @@ Page({
 
   openIngredientSheet() {
     if (this.data.kind !== 'food') return;
-    this.setData({ editorMode: 'ingredient' });
+    this.openFoodSubmissions(true, { product: this.data.form.name, images: [] });
   },
-
   closeIngredientSheet() {
     this.setData({ editorMode: 'form' });
   },

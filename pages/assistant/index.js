@@ -290,7 +290,7 @@ Page({
   },
 
   openIngredientSheet() {
-    setModalData(this, { showIngredientSheet: true, keyboardHeight: 0 });
+    this.openFoodSubmission();
   },
 
   previewIngredientExample() {

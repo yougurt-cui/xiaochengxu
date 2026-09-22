@@ -54,7 +54,7 @@ Page({
     const pets = items.map((pet) => ({
       ...pet,
       image: mediaUrl(pet.avatar_url || pet.image || ''),
-      icon: ['dog', '狗', '狗狗', '犬'].includes(pet.species || pet.type) ? 'dog' : 'cat',
+      icon: ['dog', '狗', '狗狗', '犬'].includes(pet.animal_type || pet.species || pet.type) ? 'dog' : 'cat',
     }));
     const selected = pets.find((pet) => pet.id === this.data.selectedPetId) || pets[0];
     this.setData({ pets, selectedPetId: selected ? selected.id : '' });

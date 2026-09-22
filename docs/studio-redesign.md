@@ -34,9 +34,9 @@
 - `pages/pet-space/library?mode=favorites|posts`：收藏与帖子共用二级页面，已发布和草稿分开查看。
 - `pages/pet-space/supplies?kind=toys|food`：左右滑动头图、卡片目录、本地清单。玩具使用 `/ideas` 的周边创意，食品通过 `/products?brand=...&q=...` 查询。头图为展示内容，不表示营养推荐。
 - `pages/pet-space/pet-edit`：独立档案页。类型/品种、年龄/体重分别双列排列，品种同步到后端 `breed`。
-- AI 拍照识别明确标记 Mock，不调用识别接口，不上传照片；延迟模拟后填写固定示例信息，用户修改、点击保存后才写入真实档案。年龄和体重不由照片推断。
+- AI 拍照识别接入 POST /pet-images/recognize（image multipart，登录认证，10MB 上限）。只采用服务端建议，空估算保留空值，已有年龄体重不覆盖。识别失败仍可绑定上传照片并手填；确认保存时提交 animal_type 和 avatar_image_id。私有头像由 p-image 携带 Bearer 下载后展示，不在 URL 中暴露令牌。
 - 社区按图片实际比例分配到较短列；共享瀑布流也用于收藏和帖子列表。
-- `node scripts/check-pet-space.cjs` 验证模拟识别、人工修改、数值范围和档案保存字段；测试不会修改真实后端数据。
+- `node scripts/check-pet-space.cjs` 验证真实接口适配、识别失败、空估算、人工修改与头像绑定字段；测试不会修改真实后端数据。
 
 ## 图片与管家欢迎区
 
@@ -56,6 +56,14 @@
 
 管家文字聊天使用 `/chat/conversations` 和 `/chat/conversations/:id/messages`，沿用配置中的 HTTPS 域名与微信登录 token。使用前必须绑定服务端宠物档案；取消绑定弹窗不发消息也不清空草稿，进入档案页并返回时保留输入。新会话按服务端存储，历史抽屉兼容此前本机保存的换粮记录。
 
-`utils/assistant-chat.js` 负责聊天与档案检查，保留单选/多选选项值的字符串、数字、布尔类型，显示高危提醒和信息有限提示。主输入框可补充粮名或配料文本。相机照片尚不能直接作为聊天附件：此次接口文档只约定了 `food_submission` 引用，没有给出生成投稿 ID 的上传接口，因此照片保留在输入区并提示暂不可发送，不伪造识别结果。
+`utils/assistant-chat.js` 负责聊天与档案检查，保留单选/多选选项值的字符串、数字、布尔类型，显示高危提醒和信息有限提示。主输入框可补充粮名或配料文本。相机照片通过食品投稿接口识别，填写品牌及产品后生成 `food_submission` 引用供管家分析。
 
 验证：`node scripts/check-assistant-chat.cjs` 检查绑定拦截、草稿保留、会话创建、选项回传及图片边界；线上仅进行了未认证只读接口探测（返回预期 401），未创建真实会话或宠物数据。服务端完整回答需使用已绑定账号联调。
+
+## 食品投稿与档案补充接口
+
+- `pages/pet-space/food-submissions` 共用二级页承接我的食物「打猎 / 我的食品投稿」和管家配料照片入口；POST `/food-submissions` 使用单次 multipart 请求携带 1～3 张 `images`，不会逐张创建重复投稿。
+- GET 投稿列表、详情显示状态和配料/保证值；识别中每 5 秒刷新，隐藏/退出页面停止刷新。DELETE 撤销由用户确认，服务端 409 原样显示。图片复用带登录认证的私有图片加载。
+- 管家选择识别成功的投稿后发送 `{type: 'food_submission', submission_id}` 附件，不把本地图片路径发给聊天接口。
+- 宠物档案读取详情接口，保存当前口粮品牌、产品和备注。玩具、个人清单仍为本地记录，文档没有对应云端接口。
+- `node scripts/check-food-submissions.cjs` 检查多图 multipart、UTF-8、原始图片字节、大小限制、认证及失败响应；测试不向服务端创建投稿。

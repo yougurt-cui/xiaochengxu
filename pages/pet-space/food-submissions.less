@@ -1,0 +1,87 @@
+@import '../../styles/tokens.less';
+.page {
+  padding-bottom: 48rpx;
+}
+.form-card,
+.submission {
+  background: @colors-surface;
+  border-radius: @radius-medium;
+  padding: 28rpx;
+  margin: 20rpx 0;
+}
+.submission {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  text-align: left;
+  line-height: 1.5;
+}
+.submission > view {
+  flex: 1;
+  min-width: 0;
+}
+.section-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  margin: 16rpx 0;
+}
+.status {
+  display: block;
+  color: @colors-primary;
+  font-size: 24rpx;
+}
+.body-copy {
+  display: block;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  margin: 24rpx 0;
+  font-size: 28rpx;
+}
+.photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin: 24rpx 0;
+}
+.photo,
+.add-photo,
+.photo-wrap {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 20rpx;
+}
+.photo-wrap {
+  position: relative;
+}
+.add-photo {
+  border: 2rpx dashed @colors-muted;
+  background: @colors-primarySoft;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 22rpx;
+  padding: 0;
+  margin: 0;
+}
+.remove {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  padding: 0;
+  border-radius: 50%;
+  background: @colors-primary;
+  color: white;
+}
+.notice {
+  background: @colors-primarySoft;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+}

@@ -72,9 +72,61 @@ export async function uploadImage(path) {
 export function mapPet(p) {
   return {
     ...p,
-    type: '猫咪',
+    type: p.animal_type === 'dog' ? '狗狗' : p.animal_type === 'unknown' ? '未知' : '猫咪',
     age: p.age_months == null ? p.age_text : Math.round((p.age_months / 12) * 10) / 10,
     weight: p.weight_kg || '',
     image: mediaUrl(p.avatar_url),
   };
+}
+
+// Pet photos are private resources: never put the token in the image URL.
+export const isPrivatePetImage = (url) => {
+  const prefix = `${origin}/api/miniprogram/pet-images/`;
+  const full = mediaUrl(url);
+  return (
+    (full.startsWith(prefix) && /^[a-zA-Z0-9_-]+$/.test(full.slice(prefix.length))) ||
+    (full.startsWith(`${origin}/api/miniprogram/food-submissions/`) &&
+      /^[a-zA-Z0-9_-]+\/images\/[a-zA-Z0-9_-]+$/.test(full.slice(`${origin}/api/miniprogram/food-submissions/`.length)))
+  );
+};
+export async function recognizePetImage(path) {
+  await login();
+  return new Promise((resolve, reject) =>
+    wx.uploadFile({
+      url: `${origin}/api/miniprogram/pet-images/recognize`,
+      filePath: path,
+      name: 'image',
+      timeout: 120000,
+      header: { Authorization: `Bearer ${wx.getStorageSync('miniprogram_token')}` },
+      success(res) {
+        if (res.statusCode === 401) wx.removeStorageSync('miniprogram_token');
+        let body;
+        try {
+          body = JSON.parse(res.data);
+        } catch (_) {
+          reject(new Error('识别服务返回异常，请重试'));
+          return;
+        }
+        if (res.statusCode >= 200 && res.statusCode < 300 && body.ok && body.image && body.image.id) resolve(body);
+        else reject(new Error(body.error || '照片识别失败，请重试'));
+      },
+      fail: () => reject(new Error('上传或识别超时，请检查网络后重试')),
+    }),
+  );
+}
+export function downloadPetImage(url) {
+  if (!isPrivatePetImage(url)) return Promise.resolve(url);
+  const token = wx.getStorageSync('miniprogram_token');
+  if (!token) return Promise.reject(new Error('请登录后查看宠物照片'));
+  return new Promise((resolve, reject) =>
+    wx.downloadFile({
+      url: mediaUrl(url),
+      header: { Authorization: `Bearer ${token}` },
+      success(res) {
+        if (res.statusCode === 200 && wx.getStorageSync('miniprogram_token') === token) resolve(res.tempFilePath);
+        else reject(new Error('宠物照片加载失败'));
+      },
+      fail: () => reject(new Error('宠物照片加载失败')),
+    }),
+  );
 }

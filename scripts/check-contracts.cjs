@@ -91,6 +91,25 @@ function load(file) {
   const pet = api.mapPet({ id: 'cat', name: '小满', age_months: 24, weight_kg: 4.6 });
   assert.equal(pet.age, 2);
   assert.equal(pet.weight, 4.6);
+  storage.set('miniprogram_token', 'photo-token');
+  let uploadReply = { statusCode: 201, data: JSON.stringify({ ok: true, image: { id: 'photo1' }, recognition_status: 'failed', suggestions: {} }) };
+  wx.uploadFile = (options) => { last = options; options.success(uploadReply); };
+  const recognized = await api.recognizePetImage('/tmp/cat.jpg');
+  assert.equal(recognized.recognition_status, 'failed');
+  assert.equal(last.name, 'image');
+  assert.match(last.url, /\/pet-images\/recognize$/);
+  assert.equal(last.header.Authorization, 'Bearer photo-token');
+  uploadReply = { statusCode: 400, data: JSON.stringify({ ok: false, error: '图片过大' }) };
+  await assert.rejects(api.recognizePetImage('/tmp/cat.jpg'), /图片过大/);
+  uploadReply = { statusCode: 401, data: 'invalid json' };
+  await assert.rejects(api.recognizePetImage('/tmp/cat.jpg'));
+  assert.equal(storage.has('miniprogram_token'), false);
+  storage.set('miniprogram_token', 'photo-token');
+  wx.downloadFile = (options) => { last = options; options.success({ statusCode: 200, tempFilePath: '/tmp/private.jpg' }); };
+  assert.equal(await api.downloadPetImage('/api/miniprogram/pet-images/photo1'), '/tmp/private.jpg');
+  assert.equal(last.header.Authorization, 'Bearer photo-token');
+  assert.equal(api.isPrivatePetImage('https://other.example/api/miniprogram/pet-images/photo1'), false);
+  assert.equal(api.mapPet({ animal_type: 'dog' }).type, '狗狗');
   console.log(
     'PASS: real auth headers, login, 401 expiry, server errors, account isolation, post mapping, UTC edit time, favorites, own-post query, cat schema',
   );
