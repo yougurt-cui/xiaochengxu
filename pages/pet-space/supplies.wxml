@@ -24,26 +24,36 @@
     </swiper>
 
     <view class="section-heading">
-      <text>我的清单 <text wx:if="{{mine.length > 0}}" class="count">{{mine.length}}</text></text>
+      <text>我的清单 <text wx:if="{{kind === 'toys' && mine.length > 0}}" class="count">{{mine.length}}</text></text>
       <button class="text-button" bindtap="editMine"><p-icon name="plus" size="26" />添加</button>
     </view>
-    <view wx:if="{{!mine.length}}" class="local-empty">
-      {{kind === 'toys' ? '它喜欢的玩具，在这里慢慢收集。' : '正在吃的粮和喜欢的口味，都记在这里。'}}
+    <view wx:if="{{mineLoading && !mine.length}}" class="local-empty">正在读取食品投稿…</view>
+    <view wx:if="{{mineError}}" class="local-empty">{{mineError}}<button class="text-button" bindtap="refreshMine">重新加载</button></view>
+    <view wx:if="{{!mineLoading && !mineError && !mine.length}}" class="local-empty">
+      {{kind === 'toys' ? '它喜欢的玩具，在这里慢慢收集。' : '还没有食品投稿，点击添加，上传包装照片开始识别。'}}
     </view>
-    <button wx:for="{{mine}}" wx:key="id" class="mine-card" data-id="{{item.id}}" bindtap="editMine">
-      <view class="mine-icon"><p-icon name="{{kind === 'toys' ? 'toy' : 'food'}}" /></view>
+    <view wx:if="{{kind === 'food'}}" class="food-mine-row" style="grid-template-columns: repeat({{mineLimit}}, minmax(0, 1fr)) 56px;">
+      <button wx:for="{{mine}}" wx:key="id" class="food-mine-card" data-id="{{item.id}}" bindtap="editMine">
+        <p-image wx:if="{{item.image}}" image-class="food-mine-photo" src="{{item.image}}" />
+        <view wx:else class="food-mine-placeholder"><p-icon name="food" size="44" /></view>
+        <text class="food-mine-name">{{item.name}}</text><text class="food-mine-status">{{item.note}}</text>
+      </button>
+      <button wx:if="{{!mineLoading && !mineError && mine.length > 0}}" class="food-mine-more" style="grid-column: {{mineLimit + 1}};" bindtap="moreFood">更多</button>
+    </view>
+    <block wx:else>    <button wx:for="{{mine}}" wx:key="id" class="mine-card" data-id="{{item.id}}" bindtap="editMine">
+      <p-image wx:if="{{kind === 'food' && item.image}}" image-class="mine-photo" src="{{item.image}}" /><view wx:else class="mine-icon"><p-icon name="{{kind === 'toys' ? 'toy' : 'food'}}" /></view>
       <view class="mine-copy">
         <text class="card-title">{{item.name}}</text>
         <text class="card-note">{{item.note || '轻点补充使用记录'}}</text>
       </view>
       <p-icon name="arrow" size="26" tone="muted" />
     </button>
-    <text class="caption">清单保存在当前设备</text><button wx:if="{{kind === 'food'}}" class="text-button" bindtap="viewSubmissions">我的食品投稿 <p-icon name="arrow" size="24" /></button>
+</block>
+    <text wx:if="{{kind === 'toys'}}" class="caption">清单保存在当前设备</text>
 
     <view class="section-heading">
       <text>{{kind === 'toys' ? '创意好物' : '食品目录'}}</text>
-      <button wx:if="{{kind === 'food'}}" class="text-button catalog-action" bindtap="openCatalogAdd">打猎</button>
-      <text wx:else>来自周边创意</text>
+<text wx:if="{{kind === 'toys'}}">来自周边创意</text>
     </view>
 
     <view wx:if="{{kind === 'food'}}" class="catalog-search">
@@ -125,7 +135,7 @@
   <view class="section-heading detail-title">{{selected.name}}</view>
   <text wx:if="{{kind === 'food' && selected.originType}}" class="detail-meta">{{selected.originType}}</text>
   <text class="detail-note">{{kind === 'food' ? selected.displayText : selected.note}}</text>
-  <button class="primary-button" bindtap="addToMine">加入{{title}}</button>
+  <button class="primary-button" bindtap="addToMine">{{kind === 'food' ? '添加食品投稿' : '加入我的玩具'}}</button>
 </view>
 
 <view wx:if="{{catalogAdding}}" class="bottom-sheet">

@@ -139,6 +139,10 @@ Page({
     compareLoading: false,
     showExitModal: false,
     showIngredientSheet: false,
+    chatPets: [],
+    composerPet: null,
+    showChatPetPicker: false,
+    petsLoading: false,
     composerImages: [],
     savedMode: false,
     savedDraft: {},
@@ -161,6 +165,8 @@ Page({
     if (this._account && this._account !== account) {
       this._cloudConversationId = '';
       this._cloudPetId = '';
+      this._selectedChatPetId = '';
+      this.setData({ composerPet: null, boundPet: null, chatPets: [] });
       if (!this._bindingPet) this.setData({ inputMessage: '', composerImages: [] });
       if (this.data.sending) {
         this._sendVersion = (this._sendVersion || 0) + 1;
@@ -628,6 +634,7 @@ Page({
       showSymptomSheet: false,
       showIngredientSheet: false,
       showExitModal: false,
+      showChatPetPicker: false,
     });
   },
   onUnload() {

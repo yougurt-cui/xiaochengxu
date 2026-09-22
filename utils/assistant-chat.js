@@ -1,5 +1,5 @@
 import { setModalData } from './modal-layout';
-import { api, login, hasSession, mapPet } from '../api/miniprogram';
+import { api, login, hasSession, mapPet, errorText } from '../api/miniprogram';
 import { loadStore, saveStore, accountKey } from './pet-store';
 import config from '../config';
 import request from '../api/request';
@@ -22,24 +22,75 @@ export function mapChatMessage(message) {
 }
 
 export const chatMethods = {
-  async refreshChatPet() {
-    this.setData({ boundPet: loadStore().pet });
-    if (!hasSession()) return;
+  async refreshChatPet(strict = false) {
+    if (!this.data.boundPet) this.setData({ boundPet: loadStore().pet });
+    if (!hasSession()) {
+      this.setData({ chatPets: [] });
+      if (strict) {
+        await login();
+      } else return;
+    }
     const account = accountKey('assistant');
     try {
       const response = await api('/cat-profiles');
       if (account !== accountKey('assistant')) return;
-      const pets = response.items || [];
-      const item = pets.find((p) => p.id === this._cloudPetId) || pets.find((p) => p.is_default) || pets[0];
-      const pet = item ? mapPet(item) : null;
+      const pets = (response.items || []).map(mapPet);
+      const item =
+        pets.find((p) => p.id === this._selectedChatPetId) ||
+        pets.find((p) => p.id === this._cloudPetId) ||
+        pets.find((p) => p.is_default) ||
+        pets[0];
+      const pet = item || null;
       saveStore({ pet });
-      this.setData({ boundPet: pet });
-    } catch (_) {
-      // Keep the last known profile when offline. The send endpoint validates ownership.
+      const attach = !!this.data.composerPet || this._attachPetOnReturn;
+      this.setData({ boundPet: pet, chatPets: pets, ...(attach ? { composerPet: pet } : {}) });
+      if (this._attachPetOnReturn && pet) {
+        this._selectedChatPetId = pet.id;
+        this._attachPetOnReturn = false;
+      }
+      if (!pet) this._selectedChatPetId = '';
+    } catch (e) {
+      if (strict) throw e;
+      // Preserve the last selected pet on transient network failures.
     }
+  },
+  async openChatPetPicker() {
+    if (this.data.sending || this.data.petsLoading) return;
+    this.setData({ petsLoading: true, composerFocused: false, keyboardHeight: 0 });
+    try {
+      await this.refreshChatPet(true);
+      if (!this.data.chatPets.length) {
+        this.addChatPet();
+        return;
+      }
+      setModalData(this, { showChatPetPicker: true });
+    } catch (e) {
+      wx.showToast({ title: errorText(e), icon: 'none' });
+    } finally {
+      this.setData({ petsLoading: false });
+    }
+  },
+  closeChatPetPicker() {
+    setModalData(this, { showChatPetPicker: false });
+  },
+  selectChatPet(e) {
+    if (this.data.sending) return;
+    const pet = this.data.chatPets.find((p) => p.id === e.currentTarget.dataset.id);
+    if (!pet) return;
+    if (this._cloudPetId && this._cloudPetId !== pet.id) {
+      this.saveConversation();
+      this._cloudConversationId = '';
+      this._cloudPetId = '';
+      this._lastCloudPayload = null;
+      this.setData({ chatMessages: [], userMessage: '', assistantMessage: '', recognized: false, savedMode: false });
+    }
+    this._selectedChatPetId = pet.id;
+    setModalData(this, { boundPet: pet, composerPet: pet, showChatPetPicker: false });
   },
   addChatPet() {
     this._bindingPet = true;
+    this._attachPetOnReturn = true;
+    setModalData(this, { showChatPetPicker: false });
     this.setData({ composerFocused: false, keyboardHeight: 0 });
     wx.navigateTo({
       url: '/pages/pet-space/pet-edit',
@@ -229,6 +280,10 @@ export const chatMethods = {
           this._lastCloudPayload = null;
           this._cloudConversationId = entry.cloud ? entry.id : '';
           this._cloudPetId = entry.cloud ? entry.pet_id : '';
+          this._selectedChatPetId = this._cloudPetId;
+          this.setData({ composerPet: null });
+          this._attachPetOnReturn = !!this._cloudPetId;
+          this.refreshChatPet();
           if (!entry.cloud) wx.setStorageSync(accountKey('food_change_session_id'), entry.id);
           this.setData({
             ...(entry.cloud ? { recognized: false } : entry.state || {}),

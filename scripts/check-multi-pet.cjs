@@ -1,0 +1,11 @@
+const fs = require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const storage=new Map([['miniprogram_user',{id:'u1'}]]);
+const context={wx:{getStorageSync:k=>storage.get(k),setStorageSync:(k,v)=>storage.set(k,v)}};
+vm.createContext(context);vm.runInContext(fs.readFileSync('utils/pet-store.js','utf8').replace(/export /g,'')+'\nthis.f={loadStore,saveStore,cachePetList,currentPet};',context);
+const {loadStore,saveStore,cachePetList,currentPet}=context.f;
+saveStore({pet:{id:'a'},records:[{day:'2026-09-22',water:30}]});
+cachePetList([{id:'a',is_default:true},{id:'b'}]);assert.equal(currentPet().id,'a');assert.equal(loadStore().records[0].petId,'a');
+saveStore({selectedPetId:'b',pet:{id:'b'}});cachePetList([{id:'a',is_default:true},{id:'b'}]);assert.equal(currentPet().id,'b');assert.equal(loadStore().records[0].petId,'a');
+cachePetList([{id:'a',is_default:true}]);assert.equal(currentPet().id,'a');
+cachePetList([]);assert.equal(currentPet(),null);
+console.log('PASS: multiple profiles, selected pet persists, default fallback and legacy record isolation');

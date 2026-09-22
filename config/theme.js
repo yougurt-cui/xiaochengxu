@@ -37,7 +37,10 @@ export default {
     "sm": "16rpx",
     "md": "24rpx",
     "lg": "32rpx",
-    "xl": "48rpx"
+    "xl": "48rpx",
+    "xxs": "4rpx",
+    "compact": "12rpx",
+    "roomy": "20rpx"
   },
   "type": {
     "caption": "22rpx",
@@ -63,5 +66,17 @@ export default {
     "medium": 500,
     "semibold": 600,
     "bold": 700
+  },
+  "control": {
+    "primaryHeight": "88rpx",
+    "compactHeight": "56rpx",
+    "inputHeight": "88rpx",
+    "compactInputHeight": "64rpx",
+    "iconSize": "56rpx"
+  },
+  "leading": {
+    "heading": 1.3,
+    "body": 1.6,
+    "compact": 1.4
   }
 };

@@ -1,9 +1,10 @@
 import { api, hasSession, mapPet, errorText } from '../../api/miniprogram';
-import { loadStore, saveStore } from '../../utils/pet-store';
+import { loadStore, saveStore, accountKey, cachePetList, currentPet } from '../../utils/pet-store';
 
 Page({
   data: {
     pet: null,
+    pets: [],
     parent: {},
     favoriteCount: 0,
     postCount: 0,
@@ -12,14 +13,30 @@ Page({
   },
   onShow() {
     if (this.getTabBar()) this.getTabBar().setData({ value: 'my', modalHidden: false });
+    this.setData({ foodCount: 0 });
     this.refreshData();
-    if (hasSession()) this.syncProfile();
+    if (hasSession()) {
+      this.syncProfile();
+      this.syncFoodCount();
+    }
+  },
+  async syncFoodCount() {
+    const account = accountKey('my');
+    try {
+      const r = await api('/food-submissions?limit=100');
+      if (account === accountKey('my'))
+        this.setData({ foodCount: (r.items || []).filter((item) => item.status !== 'cancelled').length });
+    } catch (_) {
+      /* Keep the entry usable when the server is unavailable. */
+    }
   },
   async syncProfile(strict = false) {
     try {
+      const account = accountKey('my');
       const res = await api('/cat-profiles');
-      const p = res.items.find((v) => v.is_default) || res.items[0];
-      saveStore({ pet: p ? mapPet(p) : null, parent: wx.getStorageSync('miniprogram_user') });
+      if (account !== accountKey('my')) return;
+      cachePetList((res.items || []).map(mapPet));
+      saveStore({ parent: wx.getStorageSync('miniprogram_user') });
       this.refreshData();
     } catch (e) {
       if (strict) throw e;
@@ -30,7 +47,17 @@ Page({
     const s = loadStore();
     const parent = s.parent || wx.getStorageSync('miniprogram_user') || {};
     this.setData({
-      pet: s.pet,
+      pet: currentPet(s),
+      pets: (s.pets || (s.pet ? [s.pet] : [])).map((p) => ({
+        ...p,
+        meta: [
+          p.breed || p.type,
+          p.age_text || (p.age !== '' && p.age != null ? p.age + ' 岁' : ''),
+          p.weight ? p.weight + ' kg' : '',
+        ]
+          .filter(Boolean)
+          .join(' · '),
+      })),
       parent: {
         ...parent,
         name: parent.name || parent.nickName || '添加家长资料',
@@ -39,11 +66,25 @@ Page({
       favoriteCount: s.favorites.length,
       postCount: s.posts.length,
       toysCount: s.supplies.toys.length,
-      foodCount: s.supplies.food.length,
     });
   },
   editPet() {
-    wx.navigateTo({ url: '/pages/pet-space/pet-edit' });
+    const pet = this.data.pet;
+    wx.navigateTo({
+      url: pet ? `/pages/pet-space/pet-edit?id=${encodeURIComponent(pet.id)}` : '/pages/pet-space/pet-edit?mode=create',
+    });
+  },
+  addPet() {
+    wx.navigateTo({ url: '/pages/pet-space/pet-edit?mode=create' });
+  },
+  selectPet(e) {
+    const pet = this.data.pets.find((p) => p.id === e.currentTarget.dataset.id);
+    if (!pet) return;
+    saveStore({ pet, selectedPetId: pet.id });
+    this.refreshData();
+  },
+  editPetCard(e) {
+    wx.navigateTo({ url: `/pages/pet-space/pet-edit?id=${encodeURIComponent(e.currentTarget.dataset.id)}` });
   },
   editParent() {
     wx.navigateTo({ url: '/pages/my/info-edit/index' });

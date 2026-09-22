@@ -3,6 +3,7 @@ const fs = require('fs');
 const vm = require('vm');
 const assert = require('node:assert/strict');
 let methods, mapper, pet, modalChoice, navigated, requests, calls, replies, hasSessionValue;
+let petList = null;
 const wx = {
   showModal: (options) => {
     assert.equal(options.confirmText, '去绑定宠物');
@@ -26,13 +27,14 @@ vm.runInNewContext(code + '\nexpose(chatMethods, mapChatMessage);', {
   config: { apiBaseUrl: 'https://example.test' },
   api: async (path, method, data) => {
     calls.push({ path, method, data });
-    if (path === '/cat-profiles') return { items: pet ? [pet] : [] };
+    if (path === '/cat-profiles') return { items: petList || (pet ? [pet] : []) };
     if (method === 'POST') return { conversation: { id: 'c1', pet_id: pet.id } };
     return replies;
   },
   login: async () => ({}),
   hasSession: () => hasSessionValue,
   mapPet: (p) => p,
+  errorText: e => e.message,
   loadStore: () => ({ pet }),
   saveStore: (patch) => {
     pet = patch.pet;
@@ -140,6 +142,26 @@ function page() {
   assert.equal(requests.length, 0);
   assert.ok(p.data.inputMessage);
   assert.equal(p.data.composerImages.length, 1);
+  p = page();
+  petList = [{ id: 'pet1', name: '豆豆' }, { id: 'pet2', name: '团团', image: '/photo.jpg' }];
+  await p.openChatPetPicker();
+  assert.equal(p.data.showChatPetPicker, true);
+  assert.equal(p.data.chatPets.length, 2);
+  p._cloudPetId = 'pet1'; p._cloudConversationId = 'old-conversation';
+  p.data.chatMessages = [{ role: 'user', text: '旧宠物问题' }];
+  const draft = p.data.inputMessage;
+  p.selectChatPet({ currentTarget: { dataset: { id: 'pet2' } } });
+  assert.equal(p.data.composerPet.name, '团团');
+  assert.equal(p.data.inputMessage, draft);
+  assert.equal(p._cloudConversationId, '');
+  assert.equal(p.data.chatMessages.length, 0);
+  assert.equal(p.data.showChatPetPicker, false);
+  await p.refreshChatPet();
+  assert.equal(p.data.boundPet.id, 'pet2');
+  petList = []; pet = null; p = page();
+  await p.openChatPetPicker();
+  assert.equal(navigated, '/pages/pet-space/pet-edit');
+  assert.ok(p.data.inputMessage);
   console.log(
     'PASS: mandatory pet gate, cancel/bind preserve draft, bound chat API, typed options, multi-select, risk mapping, unsupported image retention',
   );

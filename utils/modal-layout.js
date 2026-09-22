@@ -7,6 +7,7 @@ const modalKeys = [
   'showIngredientSheet',
   'showExitModal',
   'showPetGate',
+  'showChatPetPicker',
 ];
 export function hasOpenModal(data) {
   return modalKeys.some((key) => !!data[key]);

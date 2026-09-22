@@ -1,8 +1,14 @@
+import { birthdayAge, profileForm, profilePayload } from '../../utils/pet-profile-form';
 import { api, login, hasSession, mapPet, errorText, recognizePetImage } from '../../api/miniprogram';
-import { loadStore, saveStore } from '../../utils/pet-store';
+import { loadStore, saveStore, cachePetList } from '../../utils/pet-store';
 Page({
   data: {
-    form: { name: '', type: '猫咪', animal_type: 'cat', breed: '', age: '', weight: '' },
+    form: profileForm({}),
+    step: 0,
+    steps: ['生日', '体重', '是否过敏', '既往疾病', '当前症状', '健康状态', '当前口粮', '备注'],
+    sexes: ['未知', '公', '母'],
+    neuterOptions: ['未填写', '未绝育', '已绝育'],
+    today: '',
     loading: false,
     saving: false,
     recognizing: false,
@@ -13,19 +19,28 @@ Page({
   },
   onLoad(q = {}) {
     this._profileId = q.id || '';
+    this._creating = q.mode === 'create';
+    const now = new Date();
+    this.setData({
+      today: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(
+        2,
+        '0',
+      )}`,
+    });
     const pet = loadStore().pet;
-    if (pet) this.setData({ form: { ...pet } });
-    if (hasSession()) this.loadPet();
+    if (pet && !this._creating && (!this._profileId || pet.id === this._profileId))
+      this.setData({ form: profileForm(pet) });
+    if (hasSession() && !this._creating) this.loadPet();
   },
   async loadPet() {
     this.setData({ loading: true, error: '' });
     try {
       const r = await api('/cat-profiles');
-      const summary = r.items.find((v) => v.id === this._profileId) || r.items.find((v) => v.is_default) || r.items[0];
+      const summary = this._profileId ? { id: this._profileId } : r.items.find((v) => v.is_default) || r.items[0];
       const p = summary ? (await api(`/cat-profiles/${encodeURIComponent(summary.id)}`)).item : null;
       if (p) {
         saveStore({ pet: mapPet(p) });
-        this.setData({ form: mapPet(p) });
+        this.setData({ form: profileForm(mapPet(p)) });
       }
     } catch (e) {
       this.setData({ error: errorText(e) });
@@ -39,6 +54,42 @@ Page({
   changeType(e) {
     const index = Number(e.detail.value);
     this.setData({ 'form.animal_type': ['cat', 'dog', 'unknown'][index], 'form.type': this.data.animalTypes[index] });
+  },
+  changeSex(e) {
+    this.setData({ 'form.sex': ['unknown', 'male', 'female'][Number(e.detail.value)] });
+  },
+  changeNeutered(e) {
+    this.setData({ 'form.neutered': [null, false, true][Number(e.detail.value)] });
+  },
+  changeBirthday(e) {
+    try {
+      this.setData({
+        form: { ...this.data.form, birthday: e.detail.value, birthdayCleared: false, ...birthdayAge(e.detail.value) },
+      });
+    } catch (e) {
+      wx.showToast({ title: errorText(e), icon: 'none' });
+    }
+  },
+  clearBirthday() {
+    this.setData({
+      'form.birthday': '',
+      'form.age': '',
+      'form.age_text': '',
+      'form.age_months': null,
+      'form.birthdayCleared': true,
+    });
+  },
+  chooseAllergy(e) {
+    this.setData({ 'form.allergyChoice': e.currentTarget.dataset.value });
+  },
+  chooseStep(e) {
+    this.setData({ step: Number(e.currentTarget.dataset.index) });
+  },
+  previousStep() {
+    this.setData({ step: Math.max(0, this.data.step - 1) });
+  },
+  nextStep() {
+    this.setData({ step: Math.min(8, this.data.step + 1) });
   },
   recognize() {
     if (this.data.recognizing || this.data.saving || this.data.loading || this._choosing) return;
@@ -67,17 +118,7 @@ Page({
               form.type = { cat: '猫咪', dog: '狗狗', unknown: '未知' }[kind];
             }
             if (suggestions.breed && suggestions.breed.value) form.breed = suggestions.breed.value;
-            const age = suggestions.age && suggestions.age.estimated_years;
             const weight = suggestions.weight && suggestions.weight.estimated_kg;
-            // Preserve entered measurements; null suggestions must never become zero.
-            if (
-              (form.age === '' || form.age == null) &&
-              typeof age === 'number' &&
-              Number.isFinite(age) &&
-              age >= 0 &&
-              age <= 30
-            )
-              form.age = Math.round(age * 10) / 10;
             if (
               (form.weight === '' || form.weight == null) &&
               typeof weight === 'number' &&
@@ -92,7 +133,7 @@ Page({
             form,
             recognitionNote:
               result.recognition_status === 'success'
-                ? '已填入识别建议，请核对品种。年龄和体重仅为照片估算，请按实际情况修改后保存。'
+                ? '已填入识别建议，请核对品种。体重仅为照片估算，请核对；年龄将根据生日自动计算。'
                 : '照片已上传，可作为头像。暂未识别出档案信息，请手动填写，或点击上方更换照片重试。',
           });
         } catch (e) {
@@ -115,33 +156,23 @@ Page({
   async save() {
     if (this.data.saving || this.data.recognizing || this.data.loading) return;
     const f = this.data.form;
-    const age = Number(f.age),
-      weight = Number(f.weight);
-    if (
-      !f.name.trim() ||
-      !String(f.breed || '').trim() ||
-      f.age === '' ||
-      f.weight === '' ||
-      !Number.isFinite(age) ||
-      !Number.isFinite(weight) ||
-      age < 0 ||
-      age > 30 ||
-      weight < 0.1 ||
-      weight > 30
-    ) {
-      wx.showToast({ title: '请完善昵称、品种及有效年龄体重', icon: 'none' });
+    let payload;
+    try {
+      payload = profilePayload(f);
+    } catch (e) {
+      wx.showToast({ title: errorText(e), icon: 'none' });
       return;
     }
     this.setData({ saving: true });
     try {
       await login();
       let id = f.id;
-      if (!id) {
+      if (!id && !this._creating) {
         const r = await api('/cat-profiles');
         const p = r.items.find((v) => v.is_default) || r.items[0];
         if (p) {
           saveStore({ pet: mapPet(p) });
-          this.setData({ form: mapPet(p), photo: '', recognitionNote: '' });
+          this.setData({ form: profileForm(mapPet(p)), photo: '', recognitionNote: '' });
           wx.showModal({
             title: '已找到你的宠物档案',
             content: '已载入现有档案，请核对后再保存，避免覆盖已有信息。',
@@ -150,19 +181,12 @@ Page({
           return;
         }
       }
-      const result = await api(id ? `/cat-profiles/${id}` : '/cat-profiles', id ? 'PATCH' : 'POST', {
-        name: f.name.trim(),
-        animal_type: f.animal_type || 'cat',
-        ...(f.avatar_image_id ? { avatar_image_id: f.avatar_image_id } : {}),
-        breed: f.breed.trim(),
-        age_months: Math.round(age * 12),
-        weight_kg: weight,
-        food_brand: (f.food_brand || '').trim(),
-        food_product: (f.food_product || '').trim(),
-        notes: (f.notes || '').trim(),
-        is_default: true,
-      });
-      saveStore({ pet: mapPet(result.item) });
+      payload.is_default = id ? !!f.is_default : !loadStore().pet;
+      const result = await api(id ? `/cat-profiles/${id}` : '/cat-profiles', id ? 'PATCH' : 'POST', payload);
+      const saved = mapPet(result.item);
+      const store = loadStore();
+      cachePetList([...(store.pets || (store.pet ? [store.pet] : [])).filter((p) => p.id !== saved.id), saved]);
+      saveStore({ pet: saved, selectedPetId: saved.id });
       wx.showToast({ title: '档案已保存' });
       wx.navigateBack();
     } catch (e) {

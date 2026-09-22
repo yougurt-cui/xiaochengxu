@@ -32,10 +32,10 @@ button::after {
   box-sizing: border-box;
 }
 .tab-page {
-  padding-bottom: calc(@layout-tabHeight + 32rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(@layout-tabHeight + @space-lg + env(safe-area-inset-bottom));
 }
 .screen-body {
-  padding: 24rpx @layout-gutter;
+  padding: @space-md @layout-gutter;
 }
 .muted {
   color: @colors-secondary;
@@ -48,9 +48,9 @@ button::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: @layout-touch;
-  padding: 20rpx 32rpx;
-  margin: 24rpx 0 0;
+  min-height: @control-primaryHeight;
+  padding: @space-roomy @space-lg;
+  margin: @space-md 0 0;
   background: @colors-primary;
   color: @colors-inverse;
   border-radius: @radius-medium;
@@ -63,21 +63,21 @@ button::after {
 }
 .text-button {
   margin: 0;
-  padding: 0 16rpx;
+  padding: 0 @space-sm;
   min-height: @layout-touch;
   background: transparent;
   font-size: @type-small;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
+  gap: @space-xs;
   color: @colors-primaryText;
 }
 .section-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 40rpx 0 24rpx;
+  margin: 40rpx 0 @space-md;
   font-size: @type-title;
   font-weight: @weight-semibold;
 }
@@ -88,7 +88,7 @@ button::after {
 }
 .empty-state {
   text-align: center;
-  padding: 64rpx 24rpx;
+  padding: 64rpx @space-md;
   color: @colors-secondary;
   font-size: @type-small;
   line-height: 1.8;
@@ -100,7 +100,7 @@ button::after {
   font-size: @type-title;
   color: @colors-text;
   font-weight: @weight-semibold;
-  margin: 20rpx 0 12rpx;
+  margin: @space-roomy 0 @space-compact;
 }
 .sheet-mask {
   position: fixed;
@@ -117,7 +117,7 @@ button::after {
   max-height: 82vh;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 32rpx @layout-gutter calc(32rpx + env(safe-area-inset-bottom));
+  padding: @space-lg @layout-gutter calc(@space-lg + env(safe-area-inset-bottom));
   box-sizing: border-box;
   border-radius: @radius-large @radius-large 0 0;
   background: @colors-page;
@@ -126,7 +126,7 @@ button::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20rpx;
+  margin-bottom: @space-roomy;
   font-size: @type-title;
   font-weight: @weight-semibold;
 }
@@ -141,7 +141,7 @@ button::after {
 }
 .form-field {
   display: block;
-  margin: 24rpx 0;
+  margin: @space-md 0;
   color: @colors-text;
   font-size: @type-small;
 }
@@ -151,7 +151,7 @@ button::after {
   box-sizing: border-box;
   margin-top: 14rpx;
   border-radius: @radius-medium;
-  padding: 24rpx;
+  padding: @space-md;
   background: @colors-surfaceMuted;
   width: 100%;
   font-size: @type-body;
@@ -163,9 +163,9 @@ button::after {
 .menu-row {
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: @space-md;
   min-height: 108rpx;
-  padding: 12rpx 8rpx;
+  padding: @space-compact @space-xs;
   box-sizing: border-box;
   background: transparent;
   text-align: left;
@@ -180,7 +180,7 @@ button::after {
   display: block;
 }
 .menu-row .caption {
-  margin-top: 8rpx;
+  margin-top: @space-xs;
 }
 .menu-row .row-end {
   margin-left: auto;
@@ -189,7 +189,7 @@ button::after {
 }
 .tag {
   display: inline-block;
-  padding: 8rpx 16rpx;
+  padding: @space-xs @space-sm;
   background: @colors-primarySoft;
   color: @colors-primaryText;
   border-radius: @radius-small;
@@ -198,10 +198,10 @@ button::after {
 .search-box {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: @space-sm;
   background: @colors-surfaceMuted;
   border-radius: @radius-medium;
-  padding: 0 24rpx;
+  padding: 0 @space-md;
   height: 84rpx;
 }
 .search-box input {
@@ -212,12 +212,12 @@ button::after {
 .category-tabs {
   display: flex;
   justify-content: space-between;
-  gap: 8rpx;
-  margin: 14rpx 0 24rpx;
+  gap: @space-xs;
+  margin: 14rpx 0 @space-md;
 }
 .category-tab {
   position: relative;
-  padding: 0 12rpx 12rpx;
+  padding: 0 @space-compact @space-compact;
   margin: 0;
   min-height: @layout-touch;
   background: transparent;
@@ -266,8 +266,8 @@ button::after {
   align-items: center;
   justify-content: center;
   min-height: @layout-touch;
-  padding: 20rpx 32rpx;
-  margin: 24rpx 0 0;
+  padding: @space-roomy @space-lg;
+  margin: @space-md 0 0;
   background: @colors-primarySoft;
   color: @colors-primary;
   border-radius: @radius-medium;
@@ -297,4 +297,24 @@ page {
 }
 .form-field > text {
   font-weight: @weight-medium;
+}
+
+// Compact controls opt in; primary forms retain the regular 88rpx height.
+.ui-button-compact {
+  min-height: @control-compactHeight;
+  font-size: @type-small;
+  line-height: @leading-compact;
+  padding: 0 @space-md;
+}
+.ui-input-compact {
+  min-height: @control-compactInputHeight;
+  height: @control-compactInputHeight;
+  font-size: @type-body;
+  padding: 0 @space-sm;
+}
+.ui-meta {
+  font-size: @type-caption;
+  color: @colors-muted;
+  line-height: @leading-compact;
+  font-weight: @weight-regular;
 }

@@ -2,21 +2,23 @@
   <page-header title="宠物" />
   <view class="screen-body">
     <view class="pet-heading">
-      <text class="eyebrow">MY LITTLE WORLD</text>
-      <text class="hero-title">{{pet ? pet.name + '的小天地' : '它的小天地'}}</text>
+      <text class="eyebrow">{{pets.length > 1 ? 'OUR LITTLE WORLD' : 'MY LITTLE WORLD'}}</text>
+      <text class="hero-title">{{pets.length > 1 ? '我们的小天地' : pet ? pet.name + '的小天地' : '它的小天地'}}</text>
       <text class="caption">吃得开心，玩得尽兴，被好好爱着。</text>
     </view>
-    <button class="pet-card" bindtap="editPet">
+    <button wx:if="{{!pets.length}}" class="pet-card" bindtap="editPet">
       <view class="pet-circle {{pet ? 'has-pet' : ''}}">
         <p-image wx:if="{{pet.image}}" src="{{pet.image}}" image-class="pet-avatar-photo" /><p-icon wx:else name="{{pet ? (pet.type === '狗狗' ? 'dog' : 'cat') : 'plus'}}" tone="inverse" size="{{pet ? 64 : 42}}" />
         <view class="pet-badge"><p-icon name="{{pet.type === '狗狗' ? 'dog' : 'cat'}}" tone="accentText" size="30" /></view>
       </view>
       <view class="pet-copy">
         <text class="pet-name">{{pet ? pet.name : '添加你的第一只宠物'}}</text>
-        <text class="pet-meta">{{pet ? (pet.breed || pet.type) + ' · ' + pet.age + ' 岁 · ' + pet.weight + ' kg' : '从认识它开始，建立专属档案'}}</text>
+        <text class="pet-meta">{{pet ? (pet.breed || pet.type) + (pet.age_text ? ' · ' + pet.age_text : pet.age !== '' && pet.age != null ? ' · ' + pet.age + ' 岁' : '') + (pet.weight ? ' · ' + pet.weight + ' kg' : '') : '从认识它开始，建立专属档案'}}</text>
         <text class="pet-edit">{{pet ? '查看 / 编辑档案' : '添加宠物档案'}} ↗</text>
       </view>
     </button>
+    <view wx:if="{{pets.length}}" class="pet-family"><view class="family-heading"><text>家里的毛孩子</text><text class="caption">{{pets.length}} 位伙伴 · 轻点切换</text></view><view class="family-row"><view wx:for="{{pets}}" wx:key="id" class="family-card {{pet.id === item.id ? 'active' : ''}}"><button class="family-select" data-id="{{item.id}}" bindtap="selectPet" aria-label="{{'选择宠物：' + item.name}}"><view wx:if="{{pet.id === item.id}}" class="family-check"><p-icon name="check" tone="inverse" size="22" /></view><p-image wx:if="{{item.image}}" image-class="family-photo" src="{{item.image}}" /><view wx:else class="family-placeholder"><p-icon name="{{item.type === '狗狗' ? 'dog' : 'cat'}}" tone="accentText" size="48" /></view><text class="family-name">{{item.name}}</text><text class="family-meta">{{item.meta}}</text></button><button class="family-edit" size="mini" data-id="{{item.id}}" bindtap="editPetCard" aria-label="{{'编辑' + item.name + '的档案'}}"><p-icon name="edit" size="28" /></button></view><button wx:if="{{pets.length % 2 === 1}}" class="family-add-card" bindtap="addPet" aria-label="添加爱宠"><view class="family-add-icon"><p-icon name="plus" tone="inverse" size="36" /></view></button></view></view>
+    <button wx:if="{{pets.length > 0 && pets.length % 2 === 0}}" class="add-family-pet" bindtap="addPet" aria-label="添加爱宠"><p-icon name="plus" size="30" /></button>
     <view class="pet-shelves">
       <button data-kind="toys" bindtap="openSupplies">
         <view class="shelf-icon"><p-icon name="toy" size="48" /></view>

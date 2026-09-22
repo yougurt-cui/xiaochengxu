@@ -20,13 +20,13 @@ button::after {
   line-height: 80rpx;
 }
 .title {
-  font-size: 38rpx;
+  font-size: @type-pageTitle;
   font-weight: @weight-bold;
 }
 .subtitle {
-  margin-top: 8rpx;
+  margin-top: @space-xs;
   color: @colors-secondary;
-  font-size: 23rpx;
+  font-size: @type-small;
   white-space: nowrap;
 }
 .content {
@@ -48,7 +48,7 @@ button::after {
 .composer {
   margin: 18rpx 0 0 72rpx;
   height: 70rpx;
-  padding: 0 5rpx 0 20rpx;
+  padding: 0 5rpx 0 @space-roomy;
   display: flex;
   align-items: center;
   border: 2rpx solid @colors-muted;
@@ -63,7 +63,7 @@ button::after {
   border-radius: 50%;
   background: @colors-primary;
   color: @colors-surface;
-  font-size: 25rpx;
+  font-size: @type-small;
   line-height: 58rpx;
 }
 .send.disabled {
@@ -71,41 +71,41 @@ button::after {
 }
 
 .ready-block {
-  padding: 28rpx 0 20rpx;
+  padding: 28rpx 0 @space-roomy;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .ready-title {
   margin-top: 7rpx;
-  font-size: 30rpx;
+  font-size: @type-cardTitle;
   font-weight: @weight-bold;
 }
 .ready-subtitle {
-  margin-top: 8rpx;
+  margin-top: @space-xs;
   color: @colors-secondary;
-  font-size: 24rpx;
+  font-size: @type-small;
 }
 .confirm-card {
-  padding: 20rpx 18rpx 26rpx;
+  padding: @space-roomy 18rpx 26rpx;
   border: 2rpx solid @colors-muted;
   border-radius: 28rpx;
   background: @colors-surface;
 }
 .confirm-head {
   height: 54rpx;
-  padding: 0 12rpx;
+  padding: 0 @space-compact;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
 }
 .confirm-heading {
   color: @colors-secondary;
-  font-size: 21rpx;
+  font-size: @type-caption;
 }
 .modify {
   color: @colors-primary;
-  font-size: 23rpx;
+  font-size: @type-small;
 }
 .info-list {
   overflow: hidden;
@@ -134,7 +134,7 @@ button::after {
   justify-content: center;
   border-radius: 14rpx;
   color: @colors-surface;
-  font-size: 28rpx;
+  font-size: @type-body;
 }
 .pink {
   background: @colors-primary;
@@ -148,22 +148,22 @@ button::after {
 .label {
   width: 118rpx;
   flex: 0 0 118rpx;
-  font-size: 25rpx;
+  font-size: @type-small;
   font-weight: @weight-bold;
 }
 .value {
   flex: 1;
   min-width: 0;
   color: @colors-text;
-  font-size: 24rpx;
+  font-size: @type-small;
   line-height: 1.35;
 }
 .symptom {
-  font-size: 22rpx;
+  font-size: @type-caption;
 }
 .chevron {
   color: @colors-secondary;
-  font-size: 50rpx;
+  font-size: @type-metric;
   font-weight: 200;
 }
 .primary-action {
@@ -174,7 +174,7 @@ button::after {
   background: @colors-primary;
   box-shadow: none;
   color: @colors-surface;
-  font-size: 29rpx;
+  font-size: @type-body;
   font-weight: @weight-bold;
   line-height: 82rpx;
 }
@@ -191,7 +191,7 @@ button::after {
   right: 0;
   bottom: 0;
   z-index: 101;
-  padding: 28rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  padding: 28rpx 28rpx calc(@space-md + env(safe-area-inset-bottom));
   border-radius: 30rpx 30rpx 0 0;
   background: @colors-surface;
   transform: translateY(110%);
@@ -205,11 +205,11 @@ button::after {
   margin-bottom: 18rpx;
   display: flex;
   justify-content: space-between;
-  font-size: 29rpx;
+  font-size: @type-body;
   font-weight: @weight-semibold;
 }
 .sheet-head text:last-child {
-  font-size: 40rpx;
+  font-size: @type-pageTitle;
   font-weight: 300;
 }
 .food-option {
@@ -227,25 +227,25 @@ button::after {
   justify-content: center;
   border-radius: 15rpx;
   background: @colors-primarySoft;
-  font-size: 36rpx;
+  font-size: @type-pageTitle;
 }
 .option-brand,
 .option-name {
   display: block;
 }
 .option-brand {
-  font-size: 24rpx;
+  font-size: @type-small;
   font-weight: @weight-semibold;
 }
 .option-name {
-  margin-top: 4rpx;
+  margin-top: @space-xxs;
   color: @colors-secondary;
-  font-size: 20rpx;
+  font-size: @type-micro;
 }
 .check {
   margin-left: auto;
   color: @colors-primary;
-  font-size: 28rpx;
+  font-size: @type-body;
 }
 .symptom-grid {
   display: flex;
@@ -256,7 +256,7 @@ button::after {
   padding: 15rpx 22rpx;
   border: 2rpx solid @colors-primarySoft;
   border-radius: 28rpx;
-  font-size: 22rpx;
+  font-size: @type-caption;
 }
 .chip.selected {
   border-color: @colors-primary;
@@ -269,19 +269,19 @@ button::after {
   border-radius: 38rpx;
   background: @colors-primary;
   color: @colors-surface;
-  font-size: 26rpx;
+  font-size: @type-small;
   line-height: 74rpx;
 }
 .food-loading {
   padding: 44rpx 10rpx;
   color: @colors-secondary;
   text-align: center;
-  font-size: 22rpx;
+  font-size: @type-caption;
 }
 
 .ingredient-result {
-  margin: 24rpx 0;
-  padding: 20rpx 16rpx;
+  margin: @space-md 0;
+  padding: @space-roomy @space-sm;
   border: 2rpx solid @colors-muted;
   border-radius: 25rpx;
   background: @colors-page;
@@ -309,41 +309,41 @@ button::after {
 }
 .exit-title {
   margin-top: 14rpx;
-  font-size: 31rpx;
+  font-size: @type-title;
   font-weight: @weight-bold;
 }
 .exit-desc {
   margin-top: 15rpx;
   color: @colors-secondary;
   text-align: center;
-  font-size: 23rpx;
+  font-size: @type-small;
   line-height: 1.6;
   white-space: pre-line;
 }
 .exit-summary {
-  margin-top: 16rpx;
+  margin-top: @space-sm;
   padding: 10rpx 28rpx;
   border-radius: 28rpx;
   background: @colors-primarySoft;
   color: @colors-secondary;
-  font-size: 20rpx;
+  font-size: @type-micro;
 }
 .leave-button,
 .stay-button {
   width: 100%;
   height: 76rpx;
   border-radius: 40rpx;
-  font-size: 26rpx;
+  font-size: @type-small;
   font-weight: @weight-semibold;
   line-height: 76rpx;
 }
 .leave-button {
-  margin-top: 24rpx;
+  margin-top: @space-md;
   background: @colors-primary;
   color: @colors-surface;
 }
 .stay-button {
-  margin-top: 16rpx;
+  margin-top: @space-sm;
   border: 2rpx solid @colors-primary;
   background: @colors-surface;
   color: @colors-primary;
@@ -351,8 +351,8 @@ button::after {
 
 /* Saved unfinished conversation */
 .saved-card {
-  margin-bottom: 20rpx;
-  padding: 22rpx 22rpx 20rpx;
+  margin-bottom: @space-roomy;
+  padding: 22rpx 22rpx @space-roomy;
   border: 2rpx solid @colors-muted;
   border-radius: 27rpx;
   background: @colors-surface;
@@ -361,7 +361,7 @@ button::after {
   display: flex;
   align-items: center;
   gap: 13rpx;
-  font-size: 23rpx;
+  font-size: @type-small;
   font-weight: @weight-semibold;
 }
 .saved-icon {
@@ -380,45 +380,45 @@ button::after {
   border-radius: 18rpx;
   background: @colors-page;
   color: @colors-success;
-  font-size: 17rpx;
+  font-size: @type-micro;
   font-weight: @weight-regular;
 }
 .delete-saved {
-  margin-left: 4rpx;
-  padding: 8rpx 4rpx;
+  margin-left: @space-xxs;
+  padding: @space-xs @space-xxs;
   color: @colors-primary;
-  font-size: 18rpx;
+  font-size: @type-micro;
   font-weight: @weight-regular;
 }
 .saved-title {
-  margin-top: 20rpx;
+  margin-top: @space-roomy;
   display: flex;
   justify-content: space-between;
-  font-size: 27rpx;
+  font-size: @type-body;
   font-weight: @weight-bold;
 }
 .saved-title text {
   color: @colors-secondary;
-  font-size: 40rpx;
+  font-size: @type-pageTitle;
   font-weight: 200;
 }
 .saved-detail {
   margin-top: 5rpx;
-  font-size: 19rpx;
+  font-size: @type-micro;
   line-height: 1.5;
 }
 .saved-time {
   margin-top: 7rpx;
   color: @colors-secondary;
-  font-size: 17rpx;
+  font-size: @type-micro;
 }
 .continue-button {
   height: 62rpx;
-  margin-top: 16rpx;
+  margin-top: @space-sm;
   border-radius: 33rpx;
   background: @colors-primary;
   color: @colors-surface;
-  font-size: 23rpx;
+  font-size: @type-small;
   line-height: 62rpx;
 }
 
@@ -436,7 +436,7 @@ button::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12rpx;
+  gap: @space-compact;
 }
 .welcome-history {
   position: relative;
@@ -448,7 +448,7 @@ button::after {
   padding: 0;
   height: 45rpx;
   line-height: 1.4;
-  font-size: 20rpx;
+  font-size: @type-micro;
   color: @colors-primary;
   background: transparent;
   overflow: visible;
@@ -459,7 +459,7 @@ button::after {
   inset: -16rpx 0;
 }
 .chat-welcome {
-  padding: 8rpx 0 24rpx;
+  padding: @space-xs 0 @space-md;
 }
 .welcome-row {
   display: flex;
@@ -482,7 +482,7 @@ button::after {
 }
 .welcome-title {
   display: block;
-  font-size: 30rpx;
+  font-size: @type-cardTitle;
   font-weight: @weight-semibold;
   line-height: 1.5;
   color: @colors-text;
@@ -490,13 +490,13 @@ button::after {
 .welcome-subtitle {
   display: block;
   margin-top: 6rpx;
-  font-size: 25rpx;
+  font-size: @type-small;
   line-height: 1.4;
   color: @colors-primaryText;
 }
 .welcome-description {
   display: block;
-  margin-top: 24rpx;
+  margin-top: @space-md;
   font-size: @type-caption;
   line-height: 1.6;
   color: @colors-primaryText;
@@ -506,8 +506,8 @@ button::after {
   align-items: center;
   justify-content: space-between;
   color: @colors-primaryText;
-  font-size: 22rpx;
-  margin-bottom: 20rpx;
+  font-size: @type-caption;
+  margin-bottom: @space-roomy;
 }
 .active-chat-toolbar .text-button {
   min-height: 64rpx;
@@ -515,19 +515,19 @@ button::after {
 .quick-prompts {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-  margin-top: 12rpx;
+  gap: @space-sm;
+  margin-top: @space-compact;
 }
 .quick-prompts button {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: @space-sm;
   text-align: left;
   background: @colors-surface;
   border-radius: @radius-medium;
-  padding: 24rpx;
+  padding: @space-md;
   margin: 0;
-  font-size: 24rpx;
+  font-size: @type-small;
   color: @colors-text;
 }
 .quick-prompts text {
@@ -536,22 +536,22 @@ button::after {
 }
 .ai-reply-note {
   display: block;
-  margin-top: 20rpx;
+  margin-top: @space-roomy;
   text-align: left;
-  font-size: 22rpx;
+  font-size: @type-caption;
   line-height: 1.4;
   color: @colors-muted;
 }
 .ingredient-sheet {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: @space-sm;
 }
 .ingredient-sample {
   display: flex;
   align-items: stretch;
-  gap: 20rpx;
-  padding: 20rpx;
+  gap: @space-roomy;
+  padding: @space-roomy;
   border: 2rpx dashed fade(@colors-danger, 45%);
   border-radius: @radius-medium;
   background: fade(@colors-danger, 4%);
@@ -566,34 +566,34 @@ button::after {
 .ingredient-sample-tip {
   flex: 1;
   min-width: 0;
-  font-size: 24rpx;
+  font-size: @type-small;
   line-height: 1.65;
   color: @colors-secondary;
-  padding-top: 8rpx;
+  padding-top: @space-xs;
 }
 .ingredient-format-hint {
   align-self: flex-end;
-  font-size: 20rpx;
+  font-size: @type-micro;
   line-height: 1.4;
   color: @colors-muted;
   margin-top: -4rpx;
 }
 .ingredient-found-button {
-  margin: 8rpx 0 0;
+  margin: @space-xs 0 0;
   height: 88rpx;
   line-height: 88rpx;
   border-radius: @radius-pill;
   background: @colors-primary;
   color: @colors-inverse;
-  font-size: 30rpx;
+  font-size: @type-cardTitle;
   font-weight: @weight-semibold;
   flex-shrink: 0;
 }
 .composer-images {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
-  margin-bottom: 16rpx;
+  gap: @space-sm;
+  margin-bottom: @space-sm;
 }
 .composer-image {
   position: relative;
@@ -625,8 +625,8 @@ button::after {
 .message-images {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
-  margin-bottom: 12rpx;
+  gap: @space-compact;
+  margin-bottom: @space-compact;
 }
 .message-image {
   width: 160rpx;
@@ -640,7 +640,7 @@ button::after {
   gap: 28rpx;
 }
 .thread-message {
-  font-size: 28rpx;
+  font-size: @type-body;
   line-height: 1.75;
   white-space: pre-wrap;
   word-break: break-all;
@@ -653,32 +653,32 @@ button::after {
   padding: 22rpx 28rpx;
 }
 .thread-message.assistant {
-  padding: 8rpx 0;
+  padding: @space-xs 0;
 }
 .assistant-label {
   display: flex;
   align-items: center;
   gap: 10rpx;
   color: @colors-primary;
-  font-size: 22rpx;
+  font-size: @type-caption;
   margin-bottom: 14rpx;
 }
 .retry-button {
-  margin: 16rpx 0 0;
+  margin: @space-sm 0 0;
   width: 180rpx;
-  font-size: 24rpx;
+  font-size: @type-small;
   background: @colors-primarySoft;
   color: @colors-primary;
 }
 .loading-message {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: @space-xs;
   color: @colors-secondary;
-  font-size: 24rpx;
+  font-size: @type-small;
 }
 .loading-message text {
-  margin-left: 12rpx;
+  margin-left: @space-compact;
 }
 .typing-dot {
   width: 10rpx;
@@ -705,19 +705,19 @@ button::after {
   right: 0;
   bottom: calc(@layout-tabHeight + env(safe-area-inset-bottom));
   z-index: 15;
-  padding: 20rpx @layout-gutter @layout-footerBottomGap;
+  padding: @space-roomy @layout-gutter @layout-footerBottomGap;
   background: @colors-page;
 }
 .chat-input-box {
   background: @colors-surface;
   border-radius: @radius-medium;
-  padding: 20rpx 24rpx;
+  padding: @space-roomy @space-md;
   box-shadow: 0 8rpx 32rpx fade(@colors-text, 5%);
 }
 .chat-textarea {
   width: 100%;
   height: 70rpx;
-  font-size: 28rpx;
+  font-size: @type-body;
   line-height: 1.6;
 }
 .input-actions {
@@ -725,14 +725,14 @@ button::after {
   align-items: center;
   justify-content: space-between;
   color: @colors-muted;
-  font-size: 22rpx;
+  font-size: @type-caption;
 }
 .input-actions button.send-button {
   margin: 0;
   padding: 0;
-  width: 56rpx;
-  min-width: 56rpx;
-  height: 56rpx;
+  width: @control-iconSize;
+  min-width: @control-iconSize;
+  height: @control-iconSize;
   box-sizing: border-box;
   flex-shrink: 0;
   line-height: 1;
@@ -751,7 +751,7 @@ button::after {
   padding: @layout-footerTopGap 0 0;
   line-height: @layout-footerLineHeight;
   text-align: center;
-  font-size: 20rpx;
+  font-size: @type-micro;
   color: @colors-muted;
 }
 .confirm-card,
@@ -793,9 +793,9 @@ button::after {
     0 8rpx 24rpx fade(@colors-primary, 5%);
 }
 .input-actions {
-  margin-top: 12rpx;
+  margin-top: @space-compact;
   min-height: 56rpx;
-  gap: 16rpx;
+  gap: @space-sm;
 }
 .input-actions button.send-button {
   position: relative;
@@ -811,8 +811,8 @@ button::after {
   margin: 0;
 }
 .food-option {
-  padding: 20rpx 0;
-  gap: 16rpx;
+  padding: @space-roomy 0;
+  gap: @space-sm;
 }
 
 .reply-avatar {
@@ -828,7 +828,7 @@ button::after {
 .assistant-label {
   font-size: @type-small;
   font-weight: @weight-semibold;
-  gap: 12rpx;
+  gap: @space-compact;
 }
 .welcome-title {
   font-weight: @weight-bold;
@@ -848,13 +848,13 @@ button::after {
 .chat-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
-  margin-top: 20rpx;
+  gap: @space-compact;
+  margin-top: @space-roomy;
 }
 .chat-options .chat-option {
   flex: 0 0 auto;
   margin: 0;
-  padding: 10rpx 20rpx;
+  padding: 10rpx @space-roomy;
   line-height: 1.5;
   background: @colors-primarySoft;
   color: @colors-primary;
@@ -866,7 +866,7 @@ button::after {
   color: @colors-inverse;
 }
 .risk-message {
-  padding: 24rpx;
+  padding: @space-md;
   border-radius: @radius-medium;
   background: fade(@colors-danger, 8%);
   border-left: 6rpx solid @colors-danger;
@@ -874,7 +874,7 @@ button::after {
 .risk-reasons,
 .chat-limited {
   display: block;
-  margin-top: 16rpx;
+  margin-top: @space-sm;
   font-size: @type-small;
   color: @colors-secondary;
 }
@@ -890,7 +890,7 @@ button::after {
   align-items: center;
   justify-content: center;
   background: @colors-overlay;
-  padding: 48rpx;
+  padding: @space-xl;
 }
 .pet-gate-card {
   width: 100%;
@@ -902,7 +902,7 @@ button::after {
 .pet-gate-title {
   font-size: @type-title;
   font-weight: @weight-semibold;
-  margin-bottom: 20rpx;
+  margin-bottom: @space-roomy;
 }
 .pet-gate-description {
   font-size: @type-body;
@@ -911,13 +911,13 @@ button::after {
 }
 .pet-gate-actions {
   display: flex;
-  gap: 20rpx;
-  margin-top: 32rpx;
+  gap: @space-roomy;
+  margin-top: @space-lg;
 }
 .pet-gate-actions button {
   flex: 1;
   margin: 0;
-  padding: 0 12rpx;
+  padding: 0 @space-compact;
   font-size: @type-body;
 }
 
@@ -930,4 +930,95 @@ button::after {
 .pet-gate-card {
   max-height: 82vh;
   overflow-y: auto;
+}
+.pet-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72rpx;
+  height: 64rpx;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+.pet-picker-mark,
+.composer-pet-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: @colors-accent;
+  border-radius: 50%;
+  width: 48rpx;
+  height: 48rpx;
+}
+.composer-pet {
+  display: flex;
+  align-items: center;
+  gap: @space-compact;
+  width: fit-content;
+  max-width: 100%;
+  padding: 10rpx @space-sm 10rpx 10rpx;
+  margin: 0 0 @space-sm;
+  background: @colors-primarySoft;
+  border-radius: 20rpx;
+  font-size: @type-small;
+  line-height: 1.4;
+}
+.composer-pet > text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.composer-pet-photo {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.chat-pet-options {
+  margin-top: @space-md;
+}
+.chat-pet-option {
+  display: flex;
+  align-items: center;
+  gap: @space-roomy;
+  padding: @space-roomy;
+  margin: @space-compact 0;
+  background: @colors-surface;
+  border-radius: 20rpx;
+  text-align: left;
+  line-height: 1.5;
+}
+.chat-pet-option.selected {
+  background: @colors-primarySoft;
+}
+.chat-pet-photo,
+.chat-pet-placeholder {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.chat-pet-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: @colors-accent;
+}
+.chat-pet-copy {
+  flex: 1;
+  min-width: 0;
+  font-size: @type-body;
+  font-weight: @weight-semibold;
+}
+.chat-pet-copy text {
+  display: block;
+}
+.chat-pet-copy .caption {
+  margin-top: @space-xxs;
+  font-weight: @weight-regular;
+}
+
+.has-composer-pet .content {
+  padding-bottom: calc(470rpx + env(safe-area-inset-bottom));
 }

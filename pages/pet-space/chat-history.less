@@ -3,20 +3,20 @@
   padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
 }
 .history-body {
-  padding-top: 20rpx;
+  padding-top: @space-roomy;
 }
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: @space-sm;
 }
 .history-list .history-row {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: @space-roomy;
   width: 100%;
   margin: 0;
-  padding: 24rpx;
+  padding: @space-md;
   box-sizing: border-box;
   text-align: left;
   background: @colors-surface;
@@ -49,7 +49,7 @@
 }
 .history-time {
   display: block;
-  margin-top: 8rpx;
+  margin-top: @space-xs;
   font-size: @type-caption;
   line-height: 1.35;
   color: @colors-muted;
@@ -64,16 +64,16 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20rpx @layout-gutter calc(24rpx + env(safe-area-inset-bottom));
+  padding: @space-roomy @layout-gutter calc(@space-md + env(safe-area-inset-bottom));
   background: @colors-page;
 }
 .history-footer .primary-button {
   margin: 0;
-  gap: 12rpx;
+  gap: @space-compact;
 }
 .history-notice {
   display: block;
-  margin-bottom: 20rpx;
+  margin-bottom: @space-roomy;
   font-size: @type-small;
   line-height: 1.5;
   color: @colors-secondary;
@@ -82,6 +82,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20rpx;
+  gap: @space-roomy;
   padding: 120rpx 0;
 }

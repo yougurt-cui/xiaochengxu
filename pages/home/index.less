@@ -1,6 +1,6 @@
 @import '../../styles/tokens.less';
 .daily-card {
-  padding: 12rpx 24rpx 16rpx;
+  padding: @space-compact @space-md @space-sm;
   background: @colors-primarySoft;
   border-radius: @radius-large;
 }
@@ -10,27 +10,29 @@
   align-items: center;
   justify-content: space-between;
 }
-.daily-head > text {
-  font-size: 20rpx;
-  color: @colors-muted;
+.daily-pet-update > text {
+  font-size: @type-caption;
+  font-weight: @weight-regular;
+  color: @colors-primaryText;
+  line-height: @leading-compact;
 }
 .daily-head .text-button {
   min-height: 64rpx;
-  font-size: 22rpx;
+  font-size: @type-caption;
   padding-right: 0;
 }
 .daily-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12rpx;
-  margin: 12rpx 0 16rpx;
+  gap: @space-compact;
+  margin: @space-compact 0 @space-sm;
 }
 .metric {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
   text-align: left;
-  padding: 20rpx 16rpx;
+  padding: @space-roomy @space-sm;
   margin: 0;
   border-radius: @radius-medium;
   background: @colors-metricSurface;
@@ -38,7 +40,7 @@
 }
 .metric-label {
   display: flex;
-  gap: 8rpx;
+  gap: @space-xs;
   align-items: center;
   font-size: @type-small;
   font-weight: @weight-semibold;
@@ -47,8 +49,8 @@
 .metric-number {
   display: flex;
   align-items: baseline;
-  gap: 4rpx;
-  margin-top: 12rpx;
+  gap: @space-xxs;
+  margin-top: @space-compact;
   font-size: @type-metric;
   font-weight: @weight-bold;
   color: @colors-primaryText;
@@ -72,7 +74,7 @@
   align-items: center;
   justify-content: center;
   gap: 6rpx;
-  min-height: 52rpx;
+  min-height: @control-compactHeight;
   padding: 0 14rpx;
   margin: 0;
   border-radius: @radius-small;
@@ -87,28 +89,28 @@
   height: 10rpx;
   background: @colors-muted;
   border-radius: 50%;
-  margin-left: 4rpx;
+  margin-left: @space-xxs;
 }
 .device-intro {
   display: flex;
   align-items: center;
   flex-direction: column;
-  gap: 24rpx;
-  padding: 20rpx 0 32rpx;
+  gap: @space-md;
+  padding: @space-roomy 0 @space-lg;
 }
 .detail-photo {
   width: 100%;
   border-radius: @radius-medium;
-  margin-bottom: 24rpx;
+  margin-bottom: @space-md;
 }
 .detail-title {
   font-size: @type-title;
   font-weight: @weight-semibold;
-  margin: 20rpx 0;
+  margin: @space-roomy 0;
   line-height: 1.6;
 }
 .detail-body {
-  margin: 24rpx 0;
+  margin: @space-md 0;
   font-size: @type-body;
   line-height: 1.9;
   white-space: pre-wrap;
@@ -138,8 +140,8 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 16rpx;
-  margin-bottom: 12rpx;
+  gap: @space-sm;
+  margin-bottom: @space-compact;
   font-size: @type-body;
   font-weight: @weight-medium;
 }
@@ -149,11 +151,24 @@
   color: @colors-primaryText;
 }
 
-.litter-inputs { display: flex; gap: 16rpx; align-items: flex-start; }
-.litter-count { flex: 1; min-width: 0; }
-.litter-shape { flex: 2; min-width: 0; }
+.litter-inputs {
+  display: flex;
+  gap: @space-sm;
+  align-items: flex-start;
+}
+.litter-count {
+  flex: 1;
+  min-width: 0;
+}
+.litter-shape {
+  flex: 2;
+  min-width: 0;
+}
 
-.litter-inputs input { width: 100%; box-sizing: border-box; }
+.litter-inputs input {
+  width: 100%;
+  box-sizing: border-box;
+}
 
 .metric-number .metric-status {
   margin-left: 6rpx;
@@ -164,4 +179,26 @@
   font-size: @type-micro;
   font-weight: @weight-regular;
   color: @colors-primaryText;
+}
+.daily-pet-update {
+  display: flex;
+  align-items: center;
+  gap: @space-compact;
+}
+.daily-pet-button {
+  width: 44rpx;
+  height: 44rpx;
+  min-height: 0;
+  border-radius: 50%;
+  padding: 0;
+  margin: 0;
+  background: @colors-accent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.daily-pet-photo {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
 }

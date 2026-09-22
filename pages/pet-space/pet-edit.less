@@ -3,8 +3,8 @@
   display: flex;
   align-items: center;
   gap: 18rpx;
-  padding: 24rpx;
-  margin: 0 0 16rpx;
+  padding: @space-md;
+  margin: 0 0 @space-sm;
   background: @colors-primarySoft;
   border-radius: @radius-medium;
   text-align: left;
@@ -30,8 +30,8 @@
 .recognition-title {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  font-size: 28rpx;
+  gap: @space-compact;
+  font-size: @type-body;
   font-weight: @weight-semibold;
   margin-bottom: 6rpx;
 }
@@ -40,24 +40,24 @@
   line-height: 1.6;
 }
 .recognition-notice {
-  padding: 20rpx;
+  padding: @space-roomy;
   background: @colors-food;
   color: @colors-accentText;
-  font-size: 24rpx;
+  font-size: @type-small;
   line-height: 1.7;
   border-radius: @radius-small;
-  margin: 16rpx 0;
+  margin: @space-sm 0;
 }
 .field-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24rpx;
+  gap: @space-md;
 }
 .pet-form {
-  margin: 32rpx 0;
+  margin: @space-lg 0;
 }
 .pet-form .form-field {
-  margin: 0 0 24rpx;
+  margin: 0 0 @space-md;
 }
 .pet-form input,
 .pet-form .form-value {
@@ -74,4 +74,152 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.optional-card {
+  background: @colors-primarySoft;
+  border-radius: @radius-medium;
+  padding: @space-md;
+  margin-top: @space-xs;
+}
+.optional-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: @type-body;
+  font-weight: @weight-semibold;
+}
+.step-tabs {
+  width: 100%;
+  margin: 18rpx 0 @space-roomy;
+  white-space: nowrap;
+}
+.step-tab-row {
+  display: inline-flex;
+  gap: @space-compact;
+  padding-bottom: 0;
+}
+.step-tab,
+.allergy-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  margin: 0;
+  padding: 10rpx @space-roomy;
+  font-size: @type-small;
+  line-height: 1.5;
+  background: @colors-surface;
+  color: @colors-secondary;
+  border-radius: 30rpx;
+}
+.step-tab.active {
+  background: @colors-accent;
+  color: @colors-accentText;
+  font-weight: @weight-semibold;
+}
+.allergy-option.active {
+  background: @colors-primary;
+  color: @colors-inverse;
+}
+.step-content {
+  min-height: 128rpx;
+}
+.age-hint {
+  display: block;
+  margin-top: @space-compact;
+  line-height: 1.6;
+}
+.allergy-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: @space-compact;
+  margin: 0 0 14rpx;
+}
+.step-actions,
+.step-right {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @space-md;
+}
+.step-next {
+  margin: 0;
+  padding: 14rpx 28rpx;
+  line-height: 1.5;
+  font-size: @type-small;
+  border-radius: 30rpx;
+  color: @colors-primary;
+  background: @colors-primaryMedium;
+}
+.step-complete {
+  padding: @space-md 0;
+  font-size: @type-body;
+  line-height: 1.6;
+}
+.step-complete .caption {
+  display: block;
+  margin-top: @space-compact;
+}
+.optional-card textarea {
+  background: @colors-surface;
+}
+
+.optional-card .step-tab {
+  flex-shrink: 0;
+  height: 46rpx;
+  min-height: 0;
+  padding: 0 18rpx;
+  font-size: @type-caption;
+  line-height: 46rpx;
+}
+.pet-form .optional-card .form-field {
+  margin: 0;
+}
+.pet-form .optional-card input,
+.pet-form .optional-card .form-value {
+  height: @control-compactInputHeight;
+  min-height: @control-compactInputHeight;
+  margin-top: 0;
+  padding: 0 18rpx;
+  border-radius: 16rpx;
+  font-size: @type-small;
+  line-height: 36rpx;
+}
+.optional-card .age-hint {
+  margin-top: 10rpx;
+  font-size: @type-caption;
+  line-height: 1.5;
+  font-weight: @weight-regular;
+}
+.optional-card .step-actions {
+  margin-top: @space-sm;
+}
+.optional-card .step-actions button,
+.optional-card .step-content .text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: @control-compactHeight;
+  min-height: @control-compactHeight;
+  margin: 0;
+  padding: 0 @space-sm;
+  font-size: @type-small;
+  line-height: @control-compactHeight;
+  border-radius: 28rpx;
+}
+.optional-card .step-actions .text-button {
+  background: transparent;
+}
+.optional-card .step-actions .step-next {
+  padding: 0 @space-md;
+  background: @colors-primaryMedium;
+  color: @colors-primary;
+}
+.optional-card .step-right {
+  gap: @space-compact;
+}
+.optional-card .field-pair .form-field > text {
+  display: block;
+  margin-bottom: 10rpx;
 }

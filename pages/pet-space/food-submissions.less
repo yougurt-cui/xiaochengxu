@@ -1,19 +1,19 @@
 @import '../../styles/tokens.less';
 .page {
-  padding-bottom: 48rpx;
+  padding-bottom: @space-xl;
 }
 .form-card,
 .submission {
   background: @colors-surface;
   border-radius: @radius-medium;
   padding: 28rpx;
-  margin: 20rpx 0;
+  margin: @space-roomy 0;
 }
 .submission {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
+  gap: @space-roomy;
   text-align: left;
   line-height: 1.5;
 }
@@ -23,27 +23,27 @@
 }
 .section-title {
   display: block;
-  font-size: 28rpx;
-  font-weight: 600;
-  margin: 16rpx 0;
+  font-size: @type-body;
+  font-weight: @weight-semibold;
+  margin: @space-sm 0;
 }
 .status {
   display: block;
   color: @colors-primary;
-  font-size: 24rpx;
+  font-size: @type-small;
 }
 .body-copy {
   display: block;
   white-space: pre-wrap;
   line-height: 1.6;
-  margin: 24rpx 0;
-  font-size: 28rpx;
+  margin: @space-md 0;
+  font-size: @type-body;
 }
 .photos {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
-  margin: 24rpx 0;
+  gap: @space-sm;
+  margin: @space-md 0;
 }
 .photo,
 .add-photo,
@@ -62,7 +62,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 22rpx;
+  font-size: @type-caption;
   padding: 0;
   margin: 0;
 }
@@ -80,8 +80,24 @@
 }
 .notice {
   background: @colors-primarySoft;
-  padding: 20rpx;
+  padding: @space-roomy;
   border-radius: 16rpx;
-  font-size: 24rpx;
+  font-size: @type-small;
   line-height: 1.6;
+}
+
+.has-submit-footer {
+  padding-bottom: calc(156rpx + env(safe-area-inset-bottom));
+}
+.submit-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: @space-roomy @layout-gutter calc(@space-roomy + env(safe-area-inset-bottom));
+  background: @colors-page;
+}
+.submit-footer .primary-button {
+  margin: 0;
 }

@@ -13,6 +13,7 @@ Page({
     forChat: false,
   },
   onLoad(q) {
+    this._initialId = q.id || '';
     this.setData({ creating: q.create === '1', forChat: q.chat === '1' });
     this.getOpenerEventChannel().on('prefill', (form) => this.setData({ form: { ...this.data.form, ...form } }));
   },
@@ -21,7 +22,7 @@ Page({
     const account = accountKey('food-submissions');
     if (this._account && this._account !== account) this.setData({ items: [], selected: null });
     this._account = account;
-    this.load();
+    if (!this.data.creating) this.load();
   },
   onHide() {
     this._active = false;
@@ -41,7 +42,11 @@ Page({
       const r = await api('/food-submissions?limit=100');
       if (!this._active || account !== accountKey('food-submissions')) return;
       this.setData({ items: (r.items || []).map(submissionView) });
-      if (this.data.selected) await this.readDetail(this.data.selected.id);
+      if (this._initialId) {
+        const id = this._initialId;
+        await this.readDetail(id);
+        this._initialId = '';
+      } else if (this.data.selected) await this.readDetail(this.data.selected.id);
     } catch (e) {
       if (this._active) this.setData({ error: errorText(e) });
     } finally {

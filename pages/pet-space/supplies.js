@@ -1,4 +1,5 @@
-import { api, mediaUrl, errorText, hasSession, mapPet } from '../../api/miniprogram';
+import { submissionView } from '../../utils/food-submission';
+import { api, mediaUrl, errorText, hasSession, mapPet, login } from '../../api/miniprogram';
 import { loadStore, saveStore, persistImage, accountKey } from '../../utils/pet-store';
 
 const covers = [
@@ -53,6 +54,9 @@ Page({
     slide: 0,
     items: [],
     mine: [],
+    mineLoading: false,
+    mineError: '',
+    mineLimit: 2,
     loading: false,
     error: '',
     brand: '皇家',
@@ -94,6 +98,7 @@ Page({
   },
 
   onShow() {
+    this._visible = true;
     this.refreshMine();
     this.syncPet();
   },
@@ -121,11 +126,72 @@ Page({
   },
 
   onHide() {
+    this._visible = false;
+    clearTimeout(this._minePoll);
+    this._mineRequest = (this._mineRequest || 0) + 1;
     this._petRequestId = (this._petRequestId || 0) + 1;
   },
 
-  refreshMine() {
-    this.setData({ mine: loadStore().supplies[this.data.kind] });
+  async measureFoodRow() {
+    const width = wx.getWindowInfo().windowWidth;
+    let available = width - 32;
+    if (this.createSelectorQuery) {
+      const rect = await new Promise((resolve) =>
+        this.createSelectorQuery().select('.food-mine-row').boundingClientRect(resolve).exec(),
+      );
+      if (rect && rect.width) available = rect.width;
+    }
+    // Reserve 56px for More; each food card needs at least 96px plus an 8px gap.
+    return Math.max(1, Math.min(100, Math.floor((available - 56) / 104)));
+  },
+  onResize() {
+    if (this._visible && this.data.kind === 'food') this.refreshMine();
+  },
+  moreFood() {
+    this.openFoodSubmissions();
+  },
+  async refreshMine() {
+    if (this.data.kind !== 'food') {
+      this.setData({ mine: loadStore().supplies.toys });
+      return;
+    }
+    clearTimeout(this._minePoll);
+    const version = (this._mineRequest = (this._mineRequest || 0) + 1);
+    if (this._mineAccount !== accountKey('supplies')) this.setData({ mine: [] });
+    this.setData({ mineLoading: true, mineError: '' });
+    let account;
+    try {
+      await login();
+      if (version !== this._mineRequest || !this._visible) return;
+      account = accountKey('supplies');
+      if (this._mineAccount !== account) this.setData({ mine: [] });
+      this._mineAccount = account;
+      const limit = await this.measureFoodRow();
+      if (version !== this._mineRequest || !this._visible) return;
+      this.setData({ mineLimit: limit });
+      const response = await api(`/food-submissions?limit=${limit}`);
+      if (version !== this._mineRequest || !this._visible || account !== accountKey('supplies')) return;
+      const mine = (response.items || [])
+        .filter((item) => item.status !== 'cancelled')
+        .slice(0, limit)
+        .map((item) => {
+          const view = submissionView(item);
+          return {
+            ...view,
+            name: view.title,
+            note: view.statusText,
+            image: item.images && item.images[0] ? mediaUrl(item.images[0].url) : '',
+          };
+        });
+      this.setData({ mine });
+      if (mine.some((item) => ['pending', 'processing'].includes(item.recognition_status))) {
+        this._minePoll = setTimeout(() => this.refreshMine(), 5000);
+      }
+    } catch (e) {
+      if (version === this._mineRequest && this._visible) this.setData({ mineError: errorText(e) });
+    } finally {
+      if (version === this._mineRequest && this._visible) this.setData({ mineLoading: false });
+    }
   },
 
   changeSlide(e) {
@@ -229,6 +295,11 @@ Page({
   addToMine() {
     const p = this.data.selected;
     if (!p) return;
+    if (this.data.kind === 'food') {
+      this.openFoodSubmissions(true, { brand: p.brand || '', product: p.name || '' });
+      this.closeDetail();
+      return;
+    }
     const supplies = loadStore().supplies;
     if (supplies[this.data.kind].some((i) => i.sourceId === p.id)) {
       wx.showToast({ title: '已经在你的清单里了', icon: 'none' });
@@ -257,9 +328,6 @@ Page({
       url: `/pages/pet-space/food-submissions${create ? '?create=1' : ''}`,
       success: (r) => r.eventChannel.emit('prefill', form),
     });
-  },
-  viewSubmissions() {
-    this.openFoodSubmissions();
   },
   openCatalogAdd() {
     if (this.data.kind !== 'food') return;
@@ -344,6 +412,12 @@ Page({
   },
 
   editMine(e) {
+    if (this.data.kind === 'food') {
+      const id = e.currentTarget.dataset.id;
+      if (id) wx.navigateTo({ url: `/pages/pet-space/food-submissions?id=${encodeURIComponent(id)}` });
+      else this.openFoodSubmissions(true);
+      return;
+    }
     const item = this.data.mine.find((i) => i.id === e.currentTarget.dataset.id);
     this.setData({
       editing: true,
@@ -433,6 +507,10 @@ Page({
   },
 
   async saveMine() {
+    if (this.data.kind === 'food') {
+      this.openFoodSubmissions(true);
+      return;
+    }
     if (!this.data.form.name.trim()) {
       wx.showToast({ title: '请填写名称', icon: 'none' });
       return;
@@ -464,6 +542,7 @@ Page({
   },
 
   onUnload() {
+    this.onHide();
     this._petRequestId = (this._petRequestId || 0) + 1;
     this._requestId = (this._requestId || 0) + 1;
   },

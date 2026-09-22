@@ -14,6 +14,7 @@ fs.writeFileSync(
   `// Generated from theme/tokens.json\nexport default ${JSON.stringify(tokens, null, 2)};\n`,
 );
 const icons = {
+  check: '<path d="m5 12 4 4L19 6"/>',
   'chat-new': '<path d="M20 11a8 8 0 0 1-8 8H4l-2 3V11a9 9 0 0 1 18 0Z"/><path d="M11 7v8m-4-4h8"/>',
   edit: '<path d="m15.5 4.5 4 4M4 20l4.5-1 12-12a2.83 2.83 0 0 0-4-4l-12 12L4 20Z"/>',
   'ai-search':

@@ -2,8 +2,8 @@
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12rpx;
-  margin: 32rpx 0;
+  gap: @space-compact;
+  margin: @space-lg 0;
 }
 .photo,
 .add-photo {
@@ -48,9 +48,9 @@
 }
 .publish-actions {
   display: flex;
-  gap: 20rpx;
+  gap: @space-roomy;
   margin-top: 40rpx;
-  padding-bottom: 48rpx;
+  padding-bottom: @space-xl;
 }
 .publish-actions button {
   flex: 1;
@@ -62,8 +62,8 @@
 .topic-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
-  margin: 24rpx 0;
+  gap: @space-compact;
+  margin: @space-md 0;
 }
 .topic-tags .topic-tag {
   display: inline-flex;
@@ -94,7 +94,7 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16rpx 24rpx;
+  gap: @space-sm @space-md;
   margin-top: 28rpx;
 }
 .post-pets-heading {
@@ -112,12 +112,12 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16rpx;
+  gap: @space-sm;
 }
 .post-pet-options .post-pet {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: @space-compact;
   width: auto;
   min-height: 72rpx;
   flex: 0 1 auto;
@@ -177,13 +177,13 @@
   background: @colors-primary;
   color: @colors-inverse;
   border: 2rpx solid @colors-page;
-  font-size: 16rpx;
+  font-size: @type-micro;
   line-height: 1;
 }
 .post-pet-options .post-add-pet {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: @space-compact;
   min-height: 72rpx;
   width: auto;
   margin: 0;
@@ -202,7 +202,7 @@
   flex-basis: 100%;
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: @space-compact;
   font-size: @type-caption;
   color: @colors-secondary;
 }

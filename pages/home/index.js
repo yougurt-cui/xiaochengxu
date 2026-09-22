@@ -1,7 +1,7 @@
 import { setModalData, syncModalTabBar } from '../../utils/modal-layout';
 import { categories, getFeedPosts, fetchPosts } from '../../utils/community';
-import { errorText } from '../../api/miniprogram';
-import { loadStore, saveStore, dayKey } from '../../utils/pet-store';
+import { errorText, api, hasSession, mapPet } from '../../api/miniprogram';
+import { loadStore, saveStore, dayKey, currentPet, cachePetList, accountKey } from '../../utils/pet-store';
 
 Page({
   data: {
@@ -12,6 +12,7 @@ Page({
     loading: false,
     feedError: '',
     metrics: [],
+    pet: null,
     updated: '尚未记录',
     recordFields: [],
     recordTitle: '记一下',
@@ -25,12 +26,30 @@ Page({
   onShow() {
     syncModalTabBar(this);
     if (this.getTabBar()) this.getTabBar().setData({ value: 'home' });
+    const store = loadStore();
+    cachePetList(store.pets || (store.pet ? [store.pet] : []));
     this.refreshData();
+    this.syncPets();
     // 从发帖返回时刷新；热更新/空列表时补拉，避免样式区空白
     if (this._reloadFeedOnShow || (!this.data.posts.length && !this.data.loading)) {
       this._reloadFeedOnShow = false;
       this.loadFeed();
     }
+  },
+  async syncPets() {
+    if (!hasSession()) return;
+    const account = accountKey('home');
+    try {
+      const r = await api('/cat-profiles');
+      if (account !== accountKey('home')) return;
+      cachePetList((r.items || []).map(mapPet));
+      this.refreshData();
+    } catch (_) {
+      /* Keep cached selection while offline. */
+    }
+  },
+  openPetPage() {
+    wx.switchTab({ url: '/pages/my/index' });
   },
   async loadFeed() {
     const silent = this.data.posts.length > 0;
@@ -47,16 +66,23 @@ Page({
     }
   },
   refreshData() {
-    const record = loadStore().records.find((r) => r.day === dayKey());
+    const record = loadStore().records.find((r) => r.day === dayKey() && (r.petId || '') === (currentPet()?.id || ''));
     const notes = (record && record.litterNotes) || [];
     const litterStatus = notes.length ? notes[notes.length - 1].shape : '';
     this.setData({
+      pet: currentPet(),
       updated: record ? `${record.time} 更新` : '尚未记录',
       metrics: [
         ['water', '饮水', 'ml'],
         ['food', '进食', 'g'],
         ['litter', '排便', '次'],
-      ].map(([key, label, unit]) => ({ key, label, unit, value: record ? record[key] : '—', status: key === 'litter' ? litterStatus : '' })),
+      ].map(([key, label, unit]) => ({
+        key,
+        label,
+        unit,
+        value: record ? record[key] : '—',
+        status: key === 'litter' ? litterStatus : '',
+      })),
     });
     this.filterPosts();
   },
@@ -99,7 +125,7 @@ Page({
   openRecord(e) {
     const key = e && e.currentTarget && e.currentTarget.dataset.key;
     const fields = this.data.metrics.filter((item) => !key || item.key === key);
-    const record = loadStore().records.find((r) => r.day === dayKey());
+    const record = loadStore().records.find((r) => r.day === dayKey() && (r.petId || '') === (currentPet()?.id || ''));
     setModalData(this, {
       showRecord: true,
       recordTitle: key ? `记录${fields[0].label}` : '记一下',
@@ -135,10 +161,12 @@ Page({
     const now = new Date();
     const store = loadStore();
     const today = dayKey(now);
-    const previous = store.records.find((r) => r.day === today) || {};
+    const petId = currentPet(store)?.id || '';
+    const previous = store.records.find((r) => r.day === today && (r.petId || '') === petId) || {};
     const record = {
       ...previous,
       day: today,
+      petId,
       time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
       water: Number(previous.water) || 0,
       food: Number(previous.food) || 0,
@@ -148,14 +176,17 @@ Page({
       record[key] = Math.round((record[key] + value) * 100) / 100;
     });
     if (entries.some(({ key }) => key === 'litter')) {
-      record.litterNotes = [...(previous.litterNotes || []), {
-        time: record.time,
-        count: entries.find(({ key }) => key === 'litter').value,
-        shape: shape || '正常',
-      }];
+      record.litterNotes = [
+        ...(previous.litterNotes || []),
+        {
+          time: record.time,
+          count: entries.find(({ key }) => key === 'litter').value,
+          shape: shape || '正常',
+        },
+      ];
     }
     try {
-      saveStore({ records: [record, ...store.records.filter((r) => r.day !== today)] });
+      saveStore({ records: [record, ...store.records.filter((r) => r.day !== today || (r.petId || '') !== petId)] });
       this.closeSheet();
       this.refreshData();
       wx.showToast({ title: '已计入今日累计', icon: 'success' });

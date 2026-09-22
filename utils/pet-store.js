@@ -2,7 +2,16 @@
 const KEY = 'pet_companion_v1';
 export function loadStore() {
   const saved = wx.getStorageSync(`${KEY}:${(wx.getStorageSync('miniprogram_user') || {}).id || 'guest'}`) || {};
-  return { pet: null, parent: null, favorites: [], posts: [], supplies: { toys: [], food: [] }, catalogFood: [], records: [], ...saved };
+  return {
+    pet: null,
+    parent: null,
+    favorites: [],
+    posts: [],
+    supplies: { toys: [], food: [] },
+    catalogFood: [],
+    records: [],
+    ...saved,
+  };
 }
 export function saveStore(patch) {
   const next = { ...loadStore(), ...patch };
@@ -35,4 +44,24 @@ export function persistImage(path) {
 
 export function accountKey(key) {
   return `${key}:${(wx.getStorageSync('miniprogram_user') || {}).id || 'guest'}`;
+}
+
+export function cachePetList(pets) {
+  const store = loadStore();
+  const pet =
+    pets.find((p) => p.id === store.selectedPetId) ||
+    pets.find((p) => p.id === store.pet?.id) ||
+    pets.find((p) => p.is_default) ||
+    pets[0] ||
+    null;
+  const legacyId = store.pet?.id || pet?.id || '';
+  return saveStore({
+    pets,
+    pet,
+    selectedPetId: pet?.id || '',
+    records: store.records.map((r) => (r.petId === undefined ? { ...r, petId: legacyId } : r)),
+  });
+}
+export function currentPet(store = loadStore()) {
+  return (store.pets || []).find((p) => p.id === store.selectedPetId) || store.pet || null;
 }
