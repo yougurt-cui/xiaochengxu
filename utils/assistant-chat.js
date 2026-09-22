@@ -1,3 +1,4 @@
+import { setModalData } from './modal-layout';
 import { api, login, hasSession, mapPet } from '../api/miniprogram';
 import { loadStore, saveStore, accountKey } from './pet-store';
 import config from '../config';
@@ -50,7 +51,7 @@ export const chatMethods = {
   resolvePetGate(event) {
     const resolve = this._resolvePetGate;
     this._resolvePetGate = null;
-    this.setData({ showPetGate: false });
+    setModalData(this, { showPetGate: false });
     if (resolve) resolve({ confirm: !!(event && event.currentTarget.dataset.action === 'bind') });
   },
   focusChatInput() {
@@ -65,7 +66,7 @@ export const chatMethods = {
       if (!this.data.boundPet) {
         const choice = await new Promise((resolve) => {
           this._resolvePetGate = resolve;
-          this.setData({ showPetGate: true, composerFocused: false, keyboardHeight: 0 });
+          setModalData(this, { showPetGate: true, composerFocused: false, keyboardHeight: 0 });
         });
         if (choice.confirm) {
           this.addChatPet();

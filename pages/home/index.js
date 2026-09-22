@@ -1,3 +1,4 @@
+import { setModalData, syncModalTabBar } from '../../utils/modal-layout';
 import { categories, getFeedPosts, fetchPosts } from '../../utils/community';
 import { errorText } from '../../api/miniprogram';
 import { loadStore, saveStore, dayKey } from '../../utils/pet-store';
@@ -12,14 +13,17 @@ Page({
     feedError: '',
     metrics: [],
     updated: '尚未记录',
+    recordFields: [],
+    recordTitle: '记一下',
     showRecord: false,
     showDevices: false,
-    form: { water: '', food: '', litter: '' },
+    form: { water: '', food: '', litter: '', litterShape: '' },
   },
   onLoad() {
     this.loadFeed();
   },
   onShow() {
+    syncModalTabBar(this);
     if (this.getTabBar()) this.getTabBar().setData({ value: 'home' });
     this.refreshData();
     // 从发帖返回时刷新；热更新/空列表时补拉，避免样式区空白
@@ -44,13 +48,15 @@ Page({
   },
   refreshData() {
     const record = loadStore().records.find((r) => r.day === dayKey());
+    const notes = (record && record.litterNotes) || [];
+    const litterStatus = notes.length ? notes[notes.length - 1].shape : '';
     this.setData({
       updated: record ? `${record.time} 更新` : '尚未记录',
       metrics: [
         ['water', '饮水', 'ml'],
         ['food', '进食', 'g'],
         ['litter', '排便', '次'],
-      ].map(([key, label, unit]) => ({ key, label, unit, value: record ? record[key] : '—' })),
+      ].map(([key, label, unit]) => ({ key, label, unit, value: record ? record[key] : '—', status: key === 'litter' ? litterStatus : '' })),
     });
     this.filterPosts();
   },
@@ -88,50 +94,77 @@ Page({
     wx.navigateTo({ url: '/pages/history/index' });
   },
   openDevices() {
-    this.setData({ showDevices: true });
+    setModalData(this, { showDevices: true });
   },
-  openRecord() {
+  openRecord(e) {
+    const key = e && e.currentTarget && e.currentTarget.dataset.key;
+    const fields = this.data.metrics.filter((item) => !key || item.key === key);
     const record = loadStore().records.find((r) => r.day === dayKey());
-    this.setData({
+    setModalData(this, {
       showRecord: true,
-      form: record
-        ? { water: record.water, food: record.food, litter: record.litter }
-        : { water: '', food: '', litter: '' },
+      recordTitle: key ? `记录${fields[0].label}` : '记一下',
+      recordFields: fields.map((item) => ({ ...item, total: Number(record && record[item.key]) || 0 })),
+      form: { water: '', food: '', litter: '', litterShape: '' },
     });
   },
   onRecordInput(e) {
     this.setData({ [`form.${e.currentTarget.dataset.key}`]: e.detail.value });
   },
   saveRecord() {
-    const values = ['water', 'food', 'litter'].map((key) => Number(this.data.form[key]));
+    if (!this.data.showRecord) return;
+    const entries = this.data.recordFields
+      .filter(({ key }) => String(this.data.form[key]).trim() !== '')
+      .map(({ key }) => ({ key, value: Number(this.data.form[key]) }));
     if (
-      Object.values(this.data.form).some((v) => String(v).trim() === '') ||
-      values.some((v) => !Number.isFinite(v) || v < 0 || v > 9999) ||
-      !Number.isInteger(values[2]) ||
-      values[2] > 99
+      !entries.length ||
+      entries.some(
+        ({ key, value }) =>
+          !Number.isFinite(value) ||
+          value <= 0 ||
+          (key === 'litter' ? !Number.isInteger(value) || value > 99 : value > 9999),
+      )
     ) {
-      wx.showToast({ title: '请填写有效的今日累计值', icon: 'none' });
+      wx.showToast({ title: '请填写有效的本次记录值', icon: 'none' });
+      return;
+    }
+    const shape = (this.data.form.litterShape || '').trim();
+    if (shape && !entries.some(({ key }) => key === 'litter')) {
+      wx.showToast({ title: '请同时填写排便次数', icon: 'none' });
       return;
     }
     const now = new Date();
+    const store = loadStore();
+    const today = dayKey(now);
+    const previous = store.records.find((r) => r.day === today) || {};
     const record = {
-      day: dayKey(now),
+      ...previous,
+      day: today,
       time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
-      water: values[0],
-      food: values[1],
-      litter: values[2],
+      water: Number(previous.water) || 0,
+      food: Number(previous.food) || 0,
+      litter: Number(previous.litter) || 0,
     };
+    entries.forEach(({ key, value }) => {
+      record[key] = Math.round((record[key] + value) * 100) / 100;
+    });
+    if (entries.some(({ key }) => key === 'litter')) {
+      record.litterNotes = [...(previous.litterNotes || []), {
+        time: record.time,
+        count: entries.find(({ key }) => key === 'litter').value,
+        shape: shape || '正常',
+      }];
+    }
     try {
-      saveStore({ records: [record, ...loadStore().records.filter((r) => r.day !== record.day)] });
+      saveStore({ records: [record, ...store.records.filter((r) => r.day !== today)] });
       this.closeSheet();
       this.refreshData();
-      wx.showToast({ title: '已保存', icon: 'success' });
+      wx.showToast({ title: '已计入今日累计', icon: 'success' });
     } catch (e) {
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
     }
   },
   closeSheet() {
-    this.setData({ showRecord: false, showDevices: false });
+    setModalData(this, { showRecord: false, showDevices: false });
   },
   onHide() {
     this.closeSheet();

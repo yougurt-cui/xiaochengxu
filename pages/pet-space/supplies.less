@@ -357,3 +357,20 @@
   font-size: 30rpx;
   font-weight: @weight-semibold;
 }
+
+.page.needs-pet {
+  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
+}
+.add-pet-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  padding: 20rpx @layout-gutter calc(24rpx + env(safe-area-inset-bottom));
+  background: @colors-page;
+}
+.add-pet-footer .primary-button {
+  margin: 0;
+  gap: 12rpx;
+}

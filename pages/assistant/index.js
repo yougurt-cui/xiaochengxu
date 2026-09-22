@@ -1,3 +1,4 @@
+import { setModalData, syncModalTabBar } from '../../utils/modal-layout';
 import { chatMethods } from '../../utils/assistant-chat';
 import { accountKey } from '../../utils/pet-store';
 import config from '../../config';
@@ -155,6 +156,7 @@ Page({
   },
 
   onShow() {
+    syncModalTabBar(this);
     const account = accountKey('assistant');
     if (this._account && this._account !== account) {
       this._cloudConversationId = '';
@@ -182,7 +184,7 @@ Page({
 
   goBack() {
     if (this.data.userMessage || this.data.recognized) {
-      this.setData({ showExitModal: true });
+      setModalData(this, { showExitModal: true });
       return;
     }
     if (getCurrentPages().length > 1) {
@@ -208,7 +210,7 @@ Page({
       savedAt: Date.now(),
     };
     wx.setStorageSync(accountKey('food_change_draft'), savedDraft);
-    this.setData({
+    setModalData(this, {
       showExitModal: false,
       savedMode: true,
       savedDraft,
@@ -227,7 +229,7 @@ Page({
 
   continueConversation(event) {
     if (this.data.showExitModal) {
-      this.setData({ showExitModal: false });
+      setModalData(this, { showExitModal: false });
       return;
     }
     if (!event || event.currentTarget.dataset.action !== 'resume') return;
@@ -256,7 +258,7 @@ Page({
   deleteSavedConversation() {
     wx.removeStorageSync(accountKey('food_change_draft'));
     wx.removeStorageSync(accountKey('food_change_session_id'));
-    this.setData({
+    setModalData(this, {
       savedMode: false,
       savedDraft: {},
       currentFood: FOODS.current[0],
@@ -288,7 +290,7 @@ Page({
   },
 
   openIngredientSheet() {
-    this.setData({ showIngredientSheet: true, keyboardHeight: 0 });
+    setModalData(this, { showIngredientSheet: true, keyboardHeight: 0 });
   },
 
   previewIngredientExample() {
@@ -329,7 +331,7 @@ Page({
         });
         if (!files.length) return;
         const next = [...this.data.composerImages, ...files.map((file) => file.tempFilePath)].slice(0, 3);
-        this.setData({
+        setModalData(this, {
           showIngredientSheet: false,
           composerImages: next,
           inputMessage: this.data.inputMessage || '请帮我分析配料表',
@@ -368,7 +370,7 @@ Page({
   async openFoodSheet(event) {
     const foodType = event.currentTarget.dataset.type;
     const selectedFood = this.data[`${foodType}Food`];
-    this.setData({
+    setModalData(this, {
       showFoodSheet: true,
       foodType,
       foodTitle: foodType === 'current' ? '选择当前粮' : '选择目标粮',
@@ -401,7 +403,7 @@ Page({
     const food = this.data.foodOptions.find((item) => item.id === event.currentTarget.dataset.id);
     if (!food) return;
     const foodType = this.data.foodType;
-    this.setData({ [`${foodType}Food`]: food, showFoodSheet: false });
+    setModalData(this, { [`${foodType}Food`]: food, showFoodSheet: false });
     try {
       const response = await request(`${config.apiBaseUrl}/api/miniprogram/products/ingredients`, 'POST', {
         catalog_key: food.id,
@@ -422,10 +424,10 @@ Page({
   },
 
   openSymptoms() {
-    this.setData({ showSymptomSheet: true });
+    setModalData(this, { showSymptomSheet: true });
   },
   closeSheet() {
-    this.setData({ showFoodSheet: false, showSymptomSheet: false, showIngredientSheet: false });
+    setModalData(this, { showFoodSheet: false, showSymptomSheet: false, showIngredientSheet: false });
   },
 
   toggleSymptom(event) {
@@ -448,7 +450,7 @@ Page({
       wx.showToast({ title: '请至少选择一项', icon: 'none' });
       return;
     }
-    this.setData({ symptomText: this.data.selectedSymptoms.join(' / '), showSymptomSheet: false });
+    setModalData(this, { symptomText: this.data.selectedSymptoms.join(' / '), showSymptomSheet: false });
   },
 
   onMessageInput(event) {
@@ -620,7 +622,7 @@ Page({
     if (this.data.showPetGate) this.resolvePetGate();
     if (this.data.sending) this.stopSending();
     this.saveConversation();
-    this.setData({
+    setModalData(this, {
       keyboardHeight: 0,
       showFoodSheet: false,
       showSymptomSheet: false,

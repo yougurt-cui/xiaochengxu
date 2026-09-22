@@ -1,5 +1,5 @@
-import { api, mediaUrl, errorText } from '../../api/miniprogram';
-import { loadStore, saveStore, persistImage } from '../../utils/pet-store';
+import { api, mediaUrl, errorText, hasSession, mapPet } from '../../api/miniprogram';
+import { loadStore, saveStore, persistImage, accountKey } from '../../utils/pet-store';
 
 const covers = [
   {
@@ -46,6 +46,7 @@ function mapLocalFood(p) {
 
 Page({
   data: {
+    hasPet: false,
     kind: 'toys',
     title: '我的玩具',
     slides: [],
@@ -94,6 +95,33 @@ Page({
 
   onShow() {
     this.refreshMine();
+    this.syncPet();
+  },
+
+  async syncPet() {
+    this.setData({ hasPet: !!(loadStore().pet && loadStore().pet.id) });
+    if (!hasSession()) return;
+    const account = accountKey('supplies');
+    const version = (this._petRequestId || 0) + 1;
+    this._petRequestId = version;
+    try {
+      const response = await api('/cat-profiles');
+      if (version !== this._petRequestId || account !== accountKey('supplies')) return;
+      const pets = response.items || [];
+      const pet = pets.find((p) => p.is_default) || pets[0];
+      saveStore({ pet: pet ? mapPet(pet) : null });
+      this.setData({ hasPet: !!pet });
+    } catch (_) {
+      // Preserve the last known binding when the network is unavailable.
+    }
+  },
+
+  addPet() {
+    wx.navigateTo({ url: '/pages/pet-space/pet-edit' });
+  },
+
+  onHide() {
+    this._petRequestId = (this._petRequestId || 0) + 1;
   },
 
   refreshMine() {
@@ -472,6 +500,7 @@ Page({
   },
 
   onUnload() {
+    this._petRequestId = (this._petRequestId || 0) + 1;
     this._requestId = (this._requestId || 0) + 1;
   },
 });

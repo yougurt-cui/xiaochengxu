@@ -1,5 +1,7 @@
+import { hasOpenModal } from '../utils/modal-layout';
 Component({
   data: {
+    modalHidden: false,
     value: 'home',
     list: [
       { value: 'home', label: '状态', icon: 'activity' },
@@ -11,7 +13,7 @@ Component({
     attached() {
       const pages = getCurrentPages();
       const page = pages[pages.length - 1];
-      if (page) this.setData({ value: page.route.split('/')[1] });
+      if (page) this.setData({ value: page.route.split('/')[1], modalHidden: hasOpenModal(page.data) });
     },
   },
   methods: {

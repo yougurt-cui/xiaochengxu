@@ -1,4 +1,4 @@
-<view class="page">
+<view class="page {{!hasPet ? 'needs-pet' : ''}}">
   <page-header title="{{title}}" back />
   <view class="screen-body">
     <swiper
@@ -24,7 +24,7 @@
     </swiper>
 
     <view class="section-heading">
-      <text>我的清单 <text class="count">{{mine.length}}</text></text>
+      <text>我的清单 <text wx:if="{{mine.length > 0}}" class="count">{{mine.length}}</text></text>
       <button class="text-button" bindtap="editMine"><p-icon name="plus" size="26" />添加</button>
     </view>
     <view wx:if="{{!mine.length}}" class="local-empty">
@@ -100,6 +100,10 @@
       <button wx:if="{{kind === 'food'}}" class="catalog-empty-button" bindtap="openCatalogAdd">手动添加</button>
     </view>
   </view>
+</view>
+
+<view wx:if="{{!hasPet && !selected && !editing && !catalogAdding}}" class="add-pet-footer">
+  <button class="primary-button" bindtap="addPet"><p-icon name="plus" tone="inverse" size="30" />添加爱宠</button>
 </view>
 
 <view

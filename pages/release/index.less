@@ -88,3 +88,121 @@
   color: @colors-primary;
   font-weight: @weight-semibold;
 }
+
+.post-pets {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16rpx 24rpx;
+  margin-top: 28rpx;
+}
+.post-pets-heading {
+  display: block;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  font-size: @type-small;
+  color: @colors-secondary;
+  font-weight: @weight-medium;
+}
+.post-pet-options {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.post-pet-options .post-pet {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  width: auto;
+  min-height: 72rpx;
+  flex: 0 1 auto;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  line-height: 1.4;
+  overflow: visible;
+}
+.post-pet-avatar,
+.post-empty-avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: @colors-primarySoft;
+  border: 3rpx solid transparent;
+}
+.post-pet.selected .post-pet-avatar {
+  border-color: @colors-primary;
+}
+.post-pet-photo {
+  width: 50rpx;
+  height: 50rpx;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.post-pet-name {
+  margin-top: 0;
+  max-width: 112rpx;
+  font-size: @type-caption;
+  color: @colors-secondary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.post-pet.selected .post-pet-name {
+  color: @colors-primary;
+  font-weight: @weight-semibold;
+}
+.post-pet-check,
+.post-pet-plus {
+  position: absolute;
+  top: -4rpx;
+  right: -4rpx;
+  width: 22rpx;
+  height: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: @colors-primary;
+  color: @colors-inverse;
+  border: 2rpx solid @colors-page;
+  font-size: 16rpx;
+  line-height: 1;
+}
+.post-pet-options .post-add-pet {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-height: 72rpx;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: @colors-secondary;
+  font-size: @type-small;
+  line-height: 1.4;
+}
+.post-empty-avatar {
+  border: 2rpx dashed @colors-muted;
+  background: transparent;
+}
+.post-pets-error {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: @type-caption;
+  color: @colors-secondary;
+}

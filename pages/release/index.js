@@ -1,8 +1,12 @@
 import { categories, mapPost } from '../../utils/community';
-import { loadStore, saveStore, persistImage } from '../../utils/pet-store';
-import { api, login, uploadImage, errorText } from '../../api/miniprogram';
+import { loadStore, saveStore, persistImage, accountKey } from '../../utils/pet-store';
+import { api, login, uploadImage, errorText, hasSession, mediaUrl } from '../../api/miniprogram';
 Page({
   data: {
+    pets: [],
+    selectedPetId: '',
+    petsLoading: false,
+    petsError: '',
     categories: categories.slice(1),
     category: 'CHIN',
     title: '',
@@ -16,11 +20,53 @@ Page({
     if (draft)
       this.setData({
         draftId: draft.id,
+        selectedPetId: draft.petId || draft.cat_profile_id || '',
         category: draft.category,
         title: draft.title,
         body: draft.body,
         images: draft.images || [],
       });
+  },
+  onShow() {
+    this.loadPets();
+  },
+  async loadPets() {
+    const version = (this._petsVersion || 0) + 1;
+    this._petsVersion = version;
+    const account = accountKey('release');
+    if (!hasSession()) {
+      const pet = loadStore().pet;
+      this.applyPets(pet && pet.id ? [pet] : []);
+      return;
+    }
+    this.setData({ petsLoading: true, petsError: '' });
+    try {
+      const response = await api('/cat-profiles');
+      if (version !== this._petsVersion || account !== accountKey('release')) return;
+      this.applyPets(response.items || []);
+    } catch (error) {
+      if (version === this._petsVersion) this.setData({ petsError: errorText(error) });
+    } finally {
+      if (version === this._petsVersion) this.setData({ petsLoading: false });
+    }
+  },
+  applyPets(items) {
+    const pets = items.map((pet) => ({
+      ...pet,
+      image: mediaUrl(pet.avatar_url || pet.image || ''),
+      icon: ['dog', '狗', '狗狗', '犬'].includes(pet.species || pet.type) ? 'dog' : 'cat',
+    }));
+    const selected = pets.find((pet) => pet.id === this.data.selectedPetId) || pets[0];
+    this.setData({ pets, selectedPetId: selected ? selected.id : '' });
+  },
+  selectPet(e) {
+    if (!this.data.saving) this.setData({ selectedPetId: e.currentTarget.dataset.id });
+  },
+  addPet() {
+    if (!this.data.saving) wx.navigateTo({ url: '/pages/pet-space/pet-edit' });
+  },
+  onUnload() {
+    this._petsVersion = (this._petsVersion || 0) + 1;
   },
   input(e) {
     this.setData({ [e.currentTarget.dataset.key]: e.detail.value });
@@ -65,6 +111,7 @@ Page({
           {
             id,
             status: 'draft',
+            petId: d.selectedPetId,
             title: d.title,
             body: d.body,
             images: d.images,
@@ -89,6 +136,8 @@ Page({
     this.setData({ saving: true });
     try {
       const user = await login();
+      await this.loadPets();
+      if (this.data.petsError) throw new Error(this.data.petsError);
       const images = [];
       // Keep successful uploads for a retry; never submit temporary WeChat URLs.
       for (let i = 0; i < this.data.images.length; i += 1) {
@@ -97,14 +146,13 @@ Page({
         images.push(url);
         this.setData({ [`images[${i}]`]: url });
       }
-      const pet = loadStore().pet;
       const result = await api('/moments', 'POST', {
         title: this.data.title.trim(),
         content: this.data.body.trim(),
         category_code: this.data.category,
         images,
         visibility: 'public',
-        cat_profile_id: (pet && pet.id) || '',
+        cat_profile_id: this.data.selectedPetId || '',
         author_name: user.name,
         author_avatar: user.avatarUrl,
       });

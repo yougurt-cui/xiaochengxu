@@ -72,14 +72,14 @@
   align-items: center;
   justify-content: center;
   gap: 6rpx;
-  min-height: 60rpx;
-  padding: 0 18rpx;
+  min-height: 52rpx;
+  padding: 0 14rpx;
   margin: 0;
   border-radius: @radius-small;
   background: @colors-primaryMedium;
   color: @colors-primaryPressed;
-  font-size: @type-small;
-  font-weight: @weight-semibold;
+  font-size: @type-caption;
+  font-weight: @weight-medium;
   line-height: 1.4;
 }
 .device-dot {
@@ -132,4 +132,36 @@
   border-radius: 50%;
   background: @colors-primary;
   box-shadow: 0 10rpx 30rpx fade(@colors-primary, 22%);
+}
+
+.record-field-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+  font-size: @type-body;
+  font-weight: @weight-medium;
+}
+.record-total {
+  font-size: @type-caption;
+  font-weight: @weight-regular;
+  color: @colors-primaryText;
+}
+
+.litter-inputs { display: flex; gap: 16rpx; align-items: flex-start; }
+.litter-count { flex: 1; min-width: 0; }
+.litter-shape { flex: 2; min-width: 0; }
+
+.litter-inputs input { width: 100%; box-sizing: border-box; }
+
+.metric-number .metric-status {
+  margin-left: 6rpx;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: @type-micro;
+  font-weight: @weight-regular;
+  color: @colors-primaryText;
 }

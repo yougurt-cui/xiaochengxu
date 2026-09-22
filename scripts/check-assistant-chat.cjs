@@ -22,6 +22,7 @@ let code = fs
   .replace(/export /g, '');
 vm.runInNewContext(code + '\nexpose(chatMethods, mapChatMessage);', {
   wx,
+  setModalData: (page, patch) => page.setData(patch),
   config: { apiBaseUrl: 'https://example.test' },
   api: async (path, method, data) => {
     calls.push({ path, method, data });

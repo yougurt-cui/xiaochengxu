@@ -11,7 +11,7 @@ Page({
     foodCount: 0,
   },
   onShow() {
-    if (this.getTabBar()) this.getTabBar().setData({ value: 'my' });
+    if (this.getTabBar()) this.getTabBar().setData({ value: 'my', modalHidden: false });
     this.refreshData();
     if (hasSession()) this.syncProfile();
   },
