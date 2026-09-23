@@ -1022,3 +1022,81 @@ button::after {
 .has-composer-pet .content {
   padding-bottom: calc(470rpx + env(safe-area-inset-bottom));
 }
+
+// A bounded flex column keeps scrolling inside the transcript, including with the keyboard open.
+page {
+  height: 100%;
+  overflow: hidden;
+}
+.page.chat-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 0 calc(@layout-tabHeight + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+.page.chat-layout.keyboard-open {
+  padding-bottom: 0;
+}
+.chat-header {
+  flex-shrink: 0;
+}
+.chat-layout .active-chat-toolbar {
+  flex-shrink: 0;
+  padding: 0 @layout-gutter;
+  margin: 0 0 @space-xs;
+}
+.chat-message-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  width: auto;
+  margin: 0 @layout-gutter;
+  border-radius: @radius-medium;
+  overflow: hidden;
+}
+.chat-message-scroll.has-messages {
+  background: @colors-surface;
+}
+.chat-layout .content {
+  padding: @space-md @space-roomy;
+  min-height: 0;
+  box-sizing: border-box;
+}
+.chat-layout .conversation-thread {
+  gap: @space-md;
+}
+.chat-layout .thread-message {
+  box-sizing: border-box;
+}
+.chat-layout .thread-message.assistant {
+  align-self: flex-start;
+  max-width: 94%;
+  padding: @space-roomy @space-md;
+  background: @colors-primarySoft;
+  border-radius: @radius-medium @radius-medium @radius-medium @space-xs;
+}
+.chat-layout .thread-message.user {
+  background: @colors-primarySoft;
+}
+.chat-layout .chat-input-dock {
+  position: relative;
+  flex-shrink: 0;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: @space-sm;
+}
+.chat-layout .thread-message.assistant.risk-message {
+  background: fade(@colors-danger, 8%);
+}
+
+// Transcript and composer share the same outer edges and corner token.
+.chat-layout .chat-message-scroll,
+.chat-layout .chat-input-box {
+  border-radius: @radius-medium;
+}

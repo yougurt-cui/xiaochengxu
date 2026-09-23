@@ -2,5 +2,6 @@
   "navigationStyle": "custom",
   "usingComponents": {
     "p-image": "/components/p-image"
-  }
+  },
+  "disableScroll": true
 }

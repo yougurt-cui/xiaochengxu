@@ -143,6 +143,7 @@ Page({
     composerPet: null,
     showChatPetPicker: false,
     petsLoading: false,
+    chatScrollTop: 0,
     composerImages: [],
     savedMode: false,
     savedDraft: {},
@@ -230,7 +231,7 @@ Page({
       targetIngredientGroups: [],
       ingredientGroups: [],
     });
-    wx.pageScrollTo({ scrollTop: 0, duration: 0 });
+    this.setData({ chatScrollTop: 0 });
   },
 
   continueConversation(event) {
@@ -258,7 +259,7 @@ Page({
       ingredientGroups: draft.currentIngredientGroups || [],
       recognized: true,
     });
-    wx.pageScrollTo({ scrollTop: 0, duration: 0 });
+    this.setData({ chatScrollTop: 0 });
   },
 
   deleteSavedConversation() {
@@ -287,7 +288,7 @@ Page({
       currentFoodMatched: false,
       targetFoodMatched: false,
     });
-    wx.pageScrollTo({ scrollTop: 0, duration: 0 });
+    this.setData({ chatScrollTop: 0 });
   },
 
   usePrompt(event) {
@@ -370,7 +371,7 @@ Page({
   },
   focusComposer() {
     this.setData({ composerFocused: true });
-    wx.pageScrollTo({ scrollTop: 0, duration: 300 });
+    this.setData({ chatScrollTop: 0 });
   },
 
   async openFoodSheet(event) {
@@ -553,10 +554,12 @@ Page({
   },
   onKeyboardChange(e) {
     const keyboardHeight = e.detail.height || 0;
-    this.setData({ keyboardHeight });
+    this.setData({ keyboardHeight }, () => {
+      if (keyboardHeight) this.scrollChat();
+    });
   },
   scrollChat() {
-    wx.pageScrollTo({ scrollTop: 100000, duration: 200 });
+    this.setData({ chatScrollTop: (this.data.chatScrollTop || 0) + 100000 });
   },
   appendAssistant(text, error = false) {
     this.setData({
