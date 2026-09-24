@@ -4,6 +4,24 @@ import { loadStore, saveStore, accountKey } from './pet-store';
 import config from '../config';
 import request from '../api/request';
 
+function recentDailyRecords(petId) {
+  return (loadStore().records || [])
+    .filter((record) => (record.petId || '') === (petId || ''))
+    .sort((a, b) => String(b.day || '').localeCompare(String(a.day || '')))
+    .slice(0, 7)
+    .map((record) => ({
+      day: record.day || '',
+      water_ml: Number.isFinite(Number(record.water)) ? Number(record.water) : null,
+      food_g: Number.isFinite(Number(record.food)) ? Number(record.food) : null,
+      stool_count: Number.isFinite(Number(record.litter)) ? Number(record.litter) : null,
+      litter_notes: (record.litterNotes || []).slice(-10).map((note) => ({
+        time: note.time || '',
+        count: Number.isFinite(Number(note.count)) ? Number(note.count) : null,
+        shape: note.shape || '',
+      })),
+    }));
+}
+
 export function mapChatMessage(message) {
   const interaction = message.interaction || {};
   return {
@@ -201,7 +219,10 @@ export const chatMethods = {
           this._cloudConversationId,
         )}/messages`,
         'POST',
-        payload,
+        {
+          ...payload,
+          client_context: { recent_daily_records: recentDailyRecords(pet.id) },
+        },
       );
       const response = await this._sendRequest;
       if (version !== this._sendVersion) return;
