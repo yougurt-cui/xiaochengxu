@@ -1,6 +1,6 @@
-import { submissionView } from '../../utils/food-submission';
+import { fetchFoodCatalog } from '../../utils/food-catalog';
 import { api, mediaUrl, errorText, hasSession, mapPet, login } from '../../api/miniprogram';
-import { loadStore, saveStore, persistImage, accountKey } from '../../utils/pet-store';
+import { loadStore, saveStore, persistImage, accountKey, cachePetList, currentPet } from '../../utils/pet-store';
 
 const covers = [
   {
@@ -48,6 +48,10 @@ function mapLocalFood(p) {
 Page({
   data: {
     hasPet: false,
+    pets: [],
+    dietSaving: false,
+    dietPetId: '',
+    dietForm: { brand: '', product: '' },
     kind: 'toys',
     title: '我的玩具',
     slides: [],
@@ -82,7 +86,7 @@ Page({
               {
                 id: 'meal',
                 title: '每一餐，都值得认真对待',
-                subtitle: '查看食品目录，记录正在吃的粮',
+                subtitle: '逛逛狩猎广场，记录正在吃的粮',
                 image: '/pages/pet-space/static/cat-4.webp',
               },
               {
@@ -100,7 +104,7 @@ Page({
   onShow() {
     this._visible = true;
     this.refreshMine();
-    this.syncPet();
+    if (this.data.kind !== 'food') this.syncPet();
   },
 
   async syncPet() {
@@ -113,8 +117,8 @@ Page({
       const response = await api('/cat-profiles');
       if (version !== this._petRequestId || account !== accountKey('supplies')) return;
       const pets = response.items || [];
-      const pet = pets.find((p) => p.is_default) || pets[0];
-      saveStore({ pet: pet ? mapPet(pet) : null });
+      cachePetList(pets.map(mapPet));
+      const pet = currentPet();
       this.setData({ hasPet: !!pet });
     } catch (_) {
       // Preserve the last known binding when the network is unavailable.
@@ -122,7 +126,7 @@ Page({
   },
 
   addPet() {
-    wx.navigateTo({ url: '/pages/pet-space/pet-edit' });
+    wx.navigateTo({ url: '/pages/pet-space/pet-edit?mode=create' });
   },
 
   onHide() {
@@ -132,61 +136,37 @@ Page({
     this._petRequestId = (this._petRequestId || 0) + 1;
   },
 
-  async measureFoodRow() {
-    const width = wx.getWindowInfo().windowWidth;
-    let available = width - 32;
-    if (this.createSelectorQuery) {
-      const rect = await new Promise((resolve) =>
-        this.createSelectorQuery().select('.food-mine-row').boundingClientRect(resolve).exec(),
-      );
-      if (rect && rect.width) available = rect.width;
-    }
-    // Reserve 56px for More; each food card needs at least 96px plus an 8px gap.
-    return Math.max(1, Math.min(100, Math.floor((available - 56) / 104)));
-  },
-  onResize() {
-    if (this._visible && this.data.kind === 'food') this.refreshMine();
-  },
-  moreFood() {
-    this.openFoodSubmissions();
+  openHunting() {
+    wx.navigateTo({ url: '/pages/pet-space/hunting' });
   },
   async refreshMine() {
     if (this.data.kind !== 'food') {
       this.setData({ mine: loadStore().supplies.toys });
       return;
     }
-    clearTimeout(this._minePoll);
     const version = (this._mineRequest = (this._mineRequest || 0) + 1);
-    if (this._mineAccount !== accountKey('supplies')) this.setData({ mine: [] });
-    this.setData({ mineLoading: true, mineError: '' });
-    let account;
+    this.setData({ mineLoading: true, mineError: '', mine: [], pets: [] });
     try {
       await login();
-      if (version !== this._mineRequest || !this._visible) return;
-      account = accountKey('supplies');
-      if (this._mineAccount !== account) this.setData({ mine: [] });
-      this._mineAccount = account;
-      const limit = await this.measureFoodRow();
-      if (version !== this._mineRequest || !this._visible) return;
-      this.setData({ mineLimit: limit });
-      const response = await api(`/food-submissions?limit=${limit}`);
+      const account = accountKey('supplies');
+      const response = await api('/cat-profiles?limit=100');
       if (version !== this._mineRequest || !this._visible || account !== accountKey('supplies')) return;
-      const mine = (response.items || [])
-        .filter((item) => item.status !== 'cancelled')
-        .slice(0, limit)
-        .map((item) => {
-          const view = submissionView(item);
+      const pets = response.items || [];
+      cachePetList(pets.map(mapPet));
+      const mine = pets
+        .map((pet) => {
+          const brand = pet.food_brand || (pet.diet && pet.diet.brand) || '';
+          const product = pet.food_product || (pet.diet && pet.diet.product) || '';
           return {
-            ...view,
-            name: view.title,
-            note: view.statusText,
-            image: item.images && item.images[0] ? mediaUrl(item.images[0].url) : '',
+            id: pet.id,
+            brand,
+            product,
+            name: [brand, product].filter(Boolean).join(' · '),
+            note: pet.name + '的口粮',
           };
-        });
-      this.setData({ mine });
-      if (mine.some((item) => ['pending', 'processing'].includes(item.recognition_status))) {
-        this._minePoll = setTimeout(() => this.refreshMine(), 5000);
-      }
+        })
+        .filter((item) => item.name);
+      this.setData({ pets, mine, hasPet: pets.length > 0 });
     } catch (e) {
       if (version === this._mineRequest && this._visible) this.setData({ mineError: errorText(e) });
     } finally {
@@ -228,23 +208,13 @@ Page({
   async loadCatalog() {
     const requestId = (this._requestId || 0) + 1;
     this._requestId = requestId;
-    if (this.data.kind === 'food' && !this.data.brand.trim()) {
-      wx.showToast({ title: '先填写要查询的品牌', icon: 'none' });
-      return;
-    }
     this.setData({ loading: true, error: '', items: [] });
     try {
       const food = this.data.kind === 'food';
-      const r = await api(
-        food
-          ? `/products?brand=${encodeURIComponent(this.data.brand.trim())}&q=${encodeURIComponent(
-              this.data.query.trim(),
-            )}&limit=50`
-          : '/ideas?limit=100',
-      );
+      const r = food ? await fetchFoodCatalog('', 4) : await api('/ideas?limit=100');
       if (requestId !== this._requestId) return;
       const items = food
-        ? this.mergeFoodItems((r.items || []).map(mapFoodItem))
+        ? (r.items || []).map(mapFoodItem).slice(0, 4)
         : (r.items || [])
             .filter((p) => ['PET_TOY', 'OWNER_TOY', 'SMART_DEVICE', 'DAILY_USE'].includes(p.category))
             .map((p) => ({
@@ -274,7 +244,7 @@ Page({
     } catch (e) {
       if (requestId === this._requestId) {
         if (this.data.kind === 'food') {
-          this.setData({ items: this.mergeFoodItems([]), error: '' });
+          this.setData({ items: [], error: errorText(e) });
         } else {
           this.setData({ error: errorText(e) });
         }
@@ -296,8 +266,9 @@ Page({
     const p = this.data.selected;
     if (!p) return;
     if (this.data.kind === 'food') {
-      this.openFoodSubmissions(true, { brand: p.brand || '', product: p.name || '' });
       this.closeDetail();
+      this.editMine({ currentTarget: { dataset: {} } });
+      this.setData({ dietForm: { brand: p.brand || '', product: p.name || '' } });
       return;
     }
     const supplies = loadStore().supplies;
@@ -413,9 +384,23 @@ Page({
 
   editMine(e) {
     if (this.data.kind === 'food') {
-      const id = e.currentTarget.dataset.id;
-      if (id) wx.navigateTo({ url: `/pages/pet-space/food-submissions?id=${encodeURIComponent(id)}` });
-      else this.openFoodSubmissions(true);
+      if (this.data.mineLoading || this.data.mineError) return;
+      if (!this.data.pets.length) {
+        this.addPet();
+        return;
+      }
+      const pet =
+        this.data.pets.find((p) => p.id === e.currentTarget.dataset.id) ||
+        this.data.pets.find((p) => p.id === currentPet()?.id) ||
+        this.data.pets[0];
+      this.setData({
+        editing: true,
+        dietPetId: pet.id,
+        dietForm: {
+          brand: pet.food_brand || pet.diet?.brand || '',
+          product: pet.food_product || pet.diet?.product || '',
+        },
+      });
       return;
     }
     const item = this.data.mine.find((i) => i.id === e.currentTarget.dataset.id);
@@ -430,6 +415,7 @@ Page({
   },
 
   closeEditor() {
+    if (this.data.dietSaving) return;
     this.setData({ editing: false, editorMode: 'form' });
   },
 
@@ -508,7 +494,7 @@ Page({
 
   async saveMine() {
     if (this.data.kind === 'food') {
-      this.openFoodSubmissions(true);
+      await this.saveDiet();
       return;
     }
     if (!this.data.form.name.trim()) {
@@ -538,6 +524,38 @@ Page({
       this.closeEditor();
     } catch (e) {
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+    }
+  },
+
+  selectDietPet(e) {
+    if (this.data.dietSaving) return;
+    this.setData({ dietPetId: e.currentTarget.dataset.id });
+  },
+  inputDiet(e) {
+    this.setData({ ['dietForm.' + e.currentTarget.dataset.key]: e.detail.value });
+  },
+  async saveDiet() {
+    if (this.data.dietSaving) return;
+    const id = this.data.dietPetId;
+    if (!this.data.pets.some((p) => p.id === id)) return;
+    const diet = { brand: this.data.dietForm.brand.trim(), product: this.data.dietForm.product.trim() };
+    if (!diet.brand || !diet.product) {
+      wx.showToast({ title: '请填写口粮品牌和系列', icon: 'none' });
+      return;
+    }
+    const account = accountKey('supplies');
+    this.setData({ dietSaving: true });
+    try {
+      // POST creates a new animal; PATCH updates only this animal's current diet.
+      await api('/cat-profiles/' + encodeURIComponent(id), 'PATCH', { diet });
+      if (account !== accountKey('supplies') || !this._visible) return;
+      this.setData({ editing: false });
+      await this.refreshMine();
+      wx.showToast({ title: '口粮已保存' });
+    } catch (e) {
+      if (this._visible) wx.showToast({ title: errorText(e), icon: 'none' });
+    } finally {
+      if (this._visible) this.setData({ dietSaving: false });
     }
   },
 

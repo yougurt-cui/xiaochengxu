@@ -27,19 +27,18 @@
       <text>我的清单 <text wx:if="{{kind === 'toys' && mine.length > 0}}" class="count">{{mine.length}}</text></text>
       <button class="text-button" bindtap="editMine"><p-icon name="plus" size="26" />添加</button>
     </view>
-    <view wx:if="{{mineLoading && !mine.length}}" class="local-empty">正在读取食品投稿…</view>
+    <view wx:if="{{mineLoading && !mine.length}}" class="local-empty">正在读取宠物口粮…</view>
     <view wx:if="{{mineError}}" class="local-empty">{{mineError}}<button class="text-button" bindtap="refreshMine">重新加载</button></view>
     <view wx:if="{{!mineLoading && !mineError && !mine.length}}" class="local-empty">
-      {{kind === 'toys' ? '它喜欢的玩具，在这里慢慢收集。' : '还没有食品投稿，点击添加，上传包装照片开始识别。'}}
+      {{kind === 'toys' ? '它喜欢的玩具，在这里慢慢收集。' : '还没有口粮记录，点击添加，为爱宠记录正在吃的粮。'}}
     </view>
-    <view wx:if="{{kind === 'food'}}" class="food-mine-row" style="grid-template-columns: repeat({{mineLimit}}, minmax(0, 1fr)) 56px;">
+    <scroll-view wx:if="{{kind === 'food'}}" scroll-x class="diet-mine-scroll"><view class="diet-mine-row">
       <button wx:for="{{mine}}" wx:key="id" class="food-mine-card" data-id="{{item.id}}" bindtap="editMine">
         <p-image wx:if="{{item.image}}" image-class="food-mine-photo" src="{{item.image}}" />
         <view wx:else class="food-mine-placeholder"><p-icon name="food" size="44" /></view>
         <text class="food-mine-name">{{item.name}}</text><text class="food-mine-status">{{item.note}}</text>
       </button>
-      <button wx:if="{{!mineLoading && !mineError && mine.length > 0}}" class="food-mine-more" style="grid-column: {{mineLimit + 1}};" bindtap="moreFood">更多</button>
-    </view>
+    </view></scroll-view>
     <block wx:else>    <button wx:for="{{mine}}" wx:key="id" class="mine-card" data-id="{{item.id}}" bindtap="editMine">
       <p-image wx:if="{{kind === 'food' && item.image}}" image-class="mine-photo" src="{{item.image}}" /><view wx:else class="mine-icon"><p-icon name="{{kind === 'toys' ? 'toy' : 'food'}}" /></view>
       <view class="mine-copy">
@@ -52,31 +51,11 @@
     <text wx:if="{{kind === 'toys'}}" class="caption">清单保存在当前设备</text>
 
     <view class="section-heading">
-      <text>{{kind === 'toys' ? '创意好物' : '食品目录'}}</text>
-<text wx:if="{{kind === 'toys'}}">来自周边创意</text>
+      <text>{{kind === 'toys' ? '创意好物' : '狩猎广场'}}</text>
+<text wx:if="{{kind === 'toys'}}">来自周边创意</text><button wx:else class="text-button" bindtap="openHunting">更多<p-icon name="arrow" size="24" /></button>
     </view>
 
-    <view wx:if="{{kind === 'food'}}" class="catalog-search">
-      <input
-        value="{{brand}}"
-        data-key="brand"
-        bindinput="inputSearch"
-        placeholder="品牌，如皇家"
-        confirm-type="search"
-        bindconfirm="loadCatalog"
-      />
-      <input
-        value="{{query}}"
-        data-key="query"
-        bindinput="inputSearch"
-        placeholder="系列 / 产品（选填）"
-        confirm-type="search"
-        bindconfirm="loadCatalog"
-      />
-      <button bindtap="loadCatalog">查询</button>
-    </view>
-
-    <view wx:if="{{loading}}" class="empty-state">正在加载{{kind === 'toys' ? '创意好物' : '食品目录'}}…</view>
+    <view wx:if="{{loading}}" class="empty-state">正在加载{{kind === 'toys' ? '创意好物' : '狩猎广场'}}…</view>
     <view wx:if="{{error}}" class="empty-state">
       {{error}}
       <button class="text-button" bindtap="loadCatalog">重新加载</button>
@@ -112,7 +91,7 @@
   </view>
 </view>
 
-<view wx:if="{{!hasPet && !selected && !editing && !catalogAdding}}" class="add-pet-footer">
+<view wx:if="{{!hasPet && !selected && !editing && !catalogAdding}}" class="page-action-footer">
   <button class="primary-button" bindtap="addPet"><p-icon name="plus" tone="inverse" size="30" />添加爱宠</button>
 </view>
 
@@ -135,7 +114,7 @@
   <view class="section-heading detail-title">{{selected.name}}</view>
   <text wx:if="{{kind === 'food' && selected.originType}}" class="detail-meta">{{selected.originType}}</text>
   <text class="detail-note">{{kind === 'food' ? selected.displayText : selected.note}}</text>
-  <button class="primary-button" bindtap="addToMine">{{kind === 'food' ? '添加食品投稿' : '加入我的玩具'}}</button>
+  <button class="primary-button" bindtap="addToMine">{{kind === 'food' ? '设为当前口粮' : '加入我的玩具'}}</button>
 </view>
 
 <view wx:if="{{catalogAdding}}" class="bottom-sheet">
@@ -204,7 +183,15 @@
   </block>
 </view>
 
-<view wx:if="{{editing}}" class="bottom-sheet">
+<view wx:if="{{editing && kind === 'food'}}" class="bottom-sheet">
+  <view class="sheet-heading"><text>记录当前口粮</text><button bindtap="closeEditor" disabled="{{dietSaving}}" aria-label="关闭"><p-icon name="close" /></button></view>
+  <scroll-view scroll-x class="diet-pet-scroll"><view class="diet-pet-row"><button wx:for="{{pets}}" wx:key="id" class="diet-pet {{dietPetId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectDietPet" disabled="{{dietSaving}}">{{item.name}}</button></view></scroll-view>
+  <text class="caption">每只宠物记录一份当前口粮，保存后将替换该宠物原来的口粮。</text>
+  <view class="form-field"><text>品牌</text><input value="{{dietForm.brand}}" data-key="brand" bindinput="inputDiet" maxlength="128" placeholder="如：皇家" disabled="{{dietSaving}}" /></view>
+  <view class="form-field"><text>产品 / 系列</text><input value="{{dietForm.product}}" data-key="product" bindinput="inputDiet" maxlength="512" placeholder="如：肠胃舒适" disabled="{{dietSaving}}" /></view>
+  <button class="primary-button" bindtap="saveMine" loading="{{dietSaving}}" disabled="{{dietSaving}}">保存口粮</button>
+</view>
+<view wx:if="{{editing && kind === 'toys'}}" class="bottom-sheet">
   <block wx:if="{{editorMode === 'ingredient'}}">
     <view class="sheet-heading">
       <text>拍摄示例</text>

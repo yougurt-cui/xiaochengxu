@@ -46,15 +46,6 @@
   font-size: @type-caption;
   margin: 0;
 }
-.publish-actions {
-  display: flex;
-  gap: @space-roomy;
-  margin-top: 40rpx;
-  padding-bottom: @space-xl;
-}
-.publish-actions button {
-  flex: 1;
-}
 .form-field textarea {
   min-height: 260rpx;
 }
@@ -205,4 +196,22 @@
   gap: @space-compact;
   font-size: @type-caption;
   color: @colors-secondary;
+}
+
+// Keep the heading and the pet selector on one row, regardless of pet count.
+.post-pet-scroll {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  white-space: nowrap;
+}
+.post-pet-options {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  min-width: 100%;
+  box-sizing: border-box;
+  padding: 8rpx 4rpx;
+}
+.post-pet-options .post-pet {
+  flex: 0 0 auto;
 }

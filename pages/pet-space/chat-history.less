@@ -1,6 +1,6 @@
 @import '../../styles/tokens.less';
 .history-page {
-  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(156rpx + env(safe-area-inset-bottom));
 }
 .history-body {
   padding-top: @space-roomy;
@@ -58,18 +58,6 @@
   flex-shrink: 0;
   font-size: @type-caption;
   color: @colors-muted;
-}
-.history-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: @space-roomy @layout-gutter calc(@space-md + env(safe-area-inset-bottom));
-  background: @colors-page;
-}
-.history-footer .primary-button {
-  margin: 0;
-  gap: @space-compact;
 }
 .history-notice {
   display: block;

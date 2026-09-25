@@ -359,22 +359,8 @@
 }
 
 .page.needs-pet {
-  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(156rpx + env(safe-area-inset-bottom));
 }
-.add-pet-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 4;
-  padding: @space-roomy @layout-gutter calc(@space-md + env(safe-area-inset-bottom));
-  background: @colors-page;
-}
-.add-pet-footer .primary-button {
-  margin: 0;
-  gap: @space-compact;
-}
-
 .mine-photo {
   width: 80rpx;
   height: 80rpx;
@@ -439,4 +425,36 @@
   background: @colors-primarySoft;
   color: @colors-primary;
   font-size: @type-small;
+}
+
+.diet-mine-scroll,
+.diet-pet-scroll {
+  width: 100%;
+}
+.diet-mine-row {
+  display: flex;
+  gap: @space-sm;
+  padding: @space-sm 0;
+}
+.diet-mine-row .food-mine-card {
+  flex: 0 0 210rpx;
+  width: 210rpx;
+}
+.diet-pet-row {
+  display: flex;
+  gap: @space-sm;
+  padding: @space-xs 0 @space-md;
+}
+.diet-pet {
+  flex-shrink: 0;
+  width: auto;
+  margin: 0;
+  padding: 0 @space-md;
+  font-size: @type-small;
+  border-radius: @radius-pill;
+  background: @colors-surface;
+}
+.diet-pet.active {
+  background: @colors-primarySoft;
+  color: @colors-primary;
 }

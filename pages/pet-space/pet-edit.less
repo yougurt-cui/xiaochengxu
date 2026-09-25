@@ -67,7 +67,7 @@
   line-height: 40rpx;
 }
 .page {
-  padding-bottom: 40rpx;
+  padding-bottom: calc(156rpx + env(safe-area-inset-bottom));
 }
 
 .form-value {
@@ -223,3 +223,5 @@
   display: block;
   margin-bottom: 10rpx;
 }
+
+@import '../../styles/page-action-footer.less';

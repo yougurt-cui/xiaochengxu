@@ -1,0 +1,30 @@
+// Standalone page actions share sizing, gutters and the bottom safe area.
+.page.has-page-actions {
+  padding-bottom: calc(156rpx + env(safe-area-inset-bottom));
+}
+.page.has-stacked-actions {
+  padding-bottom: calc(228rpx + env(safe-area-inset-bottom));
+}
+.page-action-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  box-sizing: border-box;
+  padding: @space-roomy @layout-gutter calc(@space-roomy + env(safe-area-inset-bottom));
+  background: @colors-page;
+}
+.page-action-footer .primary-button,
+.page-action-footer .secondary-button {
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  height: @control-primaryHeight;
+  gap: @space-compact;
+}
+.page-action-row { display: flex; align-items: center; gap: @space-roomy; }
+.page-action-row > button { flex: 1; }
+.page-action-links { display: flex; align-items: center; justify-content: space-between; gap: @space-sm; }
+.page-action-links > button { flex: 1; width: auto; min-width: 0; margin: 0; padding: 0 @space-xs; min-height: @control-compactHeight; font-size: @type-small; }
+.page-action-footer > .primary-button + .page-action-links { margin-top: @space-sm; }

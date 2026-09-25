@@ -23,9 +23,13 @@ Page({
   async syncFoodCount() {
     const account = accountKey('my');
     try {
-      const r = await api('/food-submissions?limit=100');
+      const r = await api('/cat-profiles?limit=100');
       if (account === accountKey('my'))
-        this.setData({ foodCount: (r.items || []).filter((item) => item.status !== 'cancelled').length });
+        this.setData({
+          foodCount: (r.items || []).filter(
+            (item) => item.food_brand || item.food_product || (item.diet && (item.diet.brand || item.diet.product)),
+          ).length,
+        });
     } catch (_) {
       /* Keep the entry usable when the server is unavailable. */
     }

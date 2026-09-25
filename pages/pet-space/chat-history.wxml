@@ -1,4 +1,4 @@
-<view class="page history-page">
+<view class="page history-page has-page-actions">
   <page-header title="对话记录" back />
   <view class="screen-body history-body">
     <view wx:if="{{error}}" class="history-notice"><text>{{error}}</text><button size="mini" class="text-button" bindtap="loadHistory">重新加载</button></view>
@@ -13,5 +13,5 @@
       </button>
     </view>
   </view>
-  <view class="history-footer"><button class="primary-button" bindtap="newConversation" disabled="{{!!opening}}"><p-icon name="plus" tone="inverse" size="30" />开启新对话</button></view>
+  <view class="page-action-footer"><button class="primary-button" bindtap="newConversation" disabled="{{!!opening}}"><p-icon name="plus" tone="inverse" size="30" />开启新对话</button></view>
 </view>

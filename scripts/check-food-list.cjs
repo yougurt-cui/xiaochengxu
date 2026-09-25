@@ -1,86 +1,78 @@
-const fs = require('fs');
-const vm = require('vm');
-const assert = require('node:assert/strict');
+const fs = require('fs'),
+  vm = require('vm'),
+  assert = require('node:assert/strict');
 let definition,
-  nav,
   calls = [],
-  timer;
+  store = { supplies: { toys: [{ id: 'toy' }] } },
+  nav;
 let response = {
   items: [
-    { id: 'a', claimed_brand: '品牌', claimed_product_name: '粮', status: 'active', recognition_status: 'processing' },
-    { id: 'b', status: 'cancelled' },
+    { id: 'a', name: '阿哥', diet: { brand: '皇家', product: '肠胃舒适' } },
+    { id: 'b', name: '布丁' },
   ],
 };
 const context = {
   Page: (p) => (definition = p),
-  api: async (path) => {
-    calls.push(path);
+  api: async (...args) => {
+    calls.push(args);
     return response;
   },
   login: async () => {},
-  accountKey: () => 'account-a',
+  accountKey: () => 'u1',
   hasSession: () => true,
   mapPet: (p) => p,
   mediaUrl: (p) => p,
   errorText: (e) => e.message,
-  loadStore: () => ({ supplies: { toys: [{ id: 'toy', name: '球' }], food: [{ id: 'old-local' }] } }),
-  saveStore: () => {
-    throw new Error('Food list must not save locally');
+  loadStore: () => store,
+  currentPet: () => ({ id: 'b' }),
+  cachePetList: (p) => {
+    store.pets = p;
   },
-  submissionView: (p) => ({ ...p, title: `${p.claimed_brand} ${p.claimed_product_name}`, statusText: '识别中' }),
-  setTimeout: (fn) => {
-    timer = fn;
-    return 1;
-  },
+  saveStore: () => {},
   clearTimeout: () => {},
-  wx: {
-    getWindowInfo: () => ({ windowWidth: 375 }),
-    navigateTo: (o) => {
-      nav = o;
-    },
-  },
+  wx: { navigateTo: (o) => (nav = o), showToast: () => {} },
 };
 vm.runInNewContext(fs.readFileSync('pages/pet-space/supplies.js', 'utf8').replace(/^import .*;\n/gm, ''), context);
-function make(kind) {
-  return {
-    ...definition,
-    _visible: true,
-    data: { ...definition.data, kind },
-    setData(p) {
-      Object.assign(this.data, p);
-    },
-  };
-}
+const page = {
+  ...definition,
+  _visible: true,
+  data: JSON.parse(JSON.stringify(definition.data)),
+  setData(p) {
+    for (const [k, v] of Object.entries(p)) {
+      const parts = k.split('.');
+      if (parts.length === 2) this.data[parts[0]][parts[1]] = v;
+      else this.data[k] = v;
+    }
+  },
+};
 (async () => {
-  const page = make('food');
+  page.data.kind = 'food';
   await page.refreshMine();
-  assert.equal(calls[0], '/food-submissions?limit=2');
+  assert.equal(calls[0][0], '/cat-profiles?limit=100');
   assert.equal(page.data.mine.length, 1);
-  assert.equal(page.data.mine[0].name, '品牌 粮');
-  assert.equal(page.data.mine[0].note, '识别中');
-  assert.equal(typeof timer, 'function');
-  assert.equal(await page.measureFoodRow(), 2);
-  context.wx.getWindowInfo = () => ({windowWidth: 768});
-  assert.equal(await page.measureFoodRow(), 6);
-  context.wx.getWindowInfo = () => ({windowWidth: 375});
+  assert.equal(page.data.mine[0].name, '皇家 · 肠胃舒适');
   page.editMine({ currentTarget: { dataset: {} } });
-  assert.match(nav.url, /create=1/);
-  page.editMine({ currentTarget: { dataset: { id: 'a' } } });
-  assert.match(nav.url, /id=a/);
-  page.data.selected = { id: 'catalog', brand: 'B', name: 'P' };
-  page.addToMine();
-  assert.match(nav.url, /create=1/);
-  const toys = make('toys');
-  await toys.refreshMine();
-  assert.equal(toys.data.mine[0].id, 'toy');
+  assert.equal(page.data.dietPetId, 'b');
+  page.inputDiet({ currentTarget: { dataset: { key: 'brand' } }, detail: { value: '新品牌' } });
+  page.inputDiet({ currentTarget: { dataset: { key: 'product' } }, detail: { value: '新系列' } });
+  await page.saveDiet();
+  const write = calls.find((c) => c[1]);
+  assert.equal(write[0], '/cat-profiles/b');
+  assert.equal(write[1], 'PATCH');
+  assert.deepEqual(JSON.parse(JSON.stringify(write[2])), { diet: { brand: '新品牌', product: '新系列' } });
+  assert(!calls.some((c) => c[0].includes('food-submissions')));
+  page.openHunting();
+  assert.equal(nav.url, '/pages/pet-space/hunting');
   response = { items: [] };
   await page.refreshMine();
   assert.equal(page.data.mine.length, 0);
-  page.onHide();
-  assert.equal(page._visible, false);
-  console.log(
-    'PASS: remote food list, cancelled filtering, create/detail routing, catalog submission, empty state and unchanged toy source',
-  );
+  assert.equal(page.data.hasPet, false);
+  page.editMine({ currentTarget: { dataset: {} } });
+  assert.match(nav.url, /mode=create/);
+  page.data.kind = 'toys';
+  await page.refreshMine();
+  assert.equal(page.data.mine[0].id, 'toy');
+  console.log('PASS: profile diet source, selected-pet PATCH only, empty state, hunting routing and toy isolation');
 })().catch((e) => {
   console.error(e);
   process.exitCode = 1;
