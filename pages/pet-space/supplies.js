@@ -49,6 +49,7 @@ Page({
   data: {
     hasPet: false,
     pets: [],
+    selectedPetId: '',
     dietSaving: false,
     dietPetId: '',
     dietForm: { brand: '', product: '' },
@@ -149,7 +150,7 @@ Page({
       return;
     }
     const version = (this._mineRequest = (this._mineRequest || 0) + 1);
-    this.setData({ mineLoading: true, mineError: '', mine: [], pets: [] });
+    this.setData({ mineLoading: true, mineError: '', mine: [] });
     try {
       await login();
       const account = accountKey('supplies');
@@ -157,7 +158,9 @@ Page({
       if (version !== this._mineRequest || !this._visible || account !== accountKey('supplies')) return;
       const pets = response.items || [];
       cachePetList(pets.map(mapPet));
+      const selectedPetId = currentPet()?.id || pets[0]?.id || '';
       const mine = pets
+        .filter((pet) => pet.id === selectedPetId)
         .map((pet) => {
           const brand = pet.food_brand || (pet.diet && pet.diet.brand) || '';
           const product = pet.food_product || (pet.diet && pet.diet.product) || '';
@@ -170,7 +173,7 @@ Page({
           };
         })
         .filter((item) => item.name);
-      this.setData({ pets, mine, hasPet: pets.length > 0 });
+      this.setData({ pets, mine, selectedPetId, hasPet: pets.length > 0 });
     } catch (e) {
       if (version === this._mineRequest && this._visible) this.setData({ mineError: errorText(e) });
     } finally {
@@ -529,6 +532,14 @@ Page({
     } catch (e) {
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
     }
+  },
+
+  async selectListPet(e) {
+    const pet = this.data.pets.find((p) => p.id === e.currentTarget.dataset.id);
+    if (!pet || pet.id === this.data.selectedPetId) return;
+    saveStore({ pet: mapPet(pet), selectedPetId: pet.id });
+    this.setData({ selectedPetId: pet.id, mine: [] });
+    await this.refreshMine();
   },
 
   selectDietPet(e) {

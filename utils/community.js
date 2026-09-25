@@ -11,6 +11,7 @@ export const categories = [
 export function mapPost(p) {
   return {
     id: p.id,
+    userId: p.user_id,
     category: p.category_code,
     tag: p.category_name,
     image: mediaUrl(p.images && p.images[0] && (p.images[0].url || p.images[0])),

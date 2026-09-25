@@ -1,6 +1,6 @@
 import { birthdayAge, profileForm, profilePayload } from '../../utils/pet-profile-form';
 import { requireSession, api, login, hasSession, mapPet, errorText, recognizePetImage } from '../../api/miniprogram';
-import { loadStore, saveStore, cachePetList } from '../../utils/pet-store';
+import { loadStore, saveStore, cachePetList, accountKey } from '../../utils/pet-store';
 Page({
   data: {
     form: profileForm({}),
@@ -11,6 +11,7 @@ Page({
     today: '',
     loading: false,
     saving: false,
+    deleting: false,
     recognizing: false,
     recognitionNote: '',
     animalTypes: ['猫咪', '狗狗', '未知'],
@@ -93,7 +94,7 @@ Page({
   },
   recognize() {
     if (!requireSession()) return;
-    if (this.data.recognizing || this.data.saving || this.data.loading || this._choosing) return;
+    if (this.data.recognizing || this.data.saving || this.data.deleting || this.data.loading || this._choosing) return;
     this._choosing = true;
     wx.chooseMedia({
       count: 1,
@@ -154,9 +155,40 @@ Page({
   onUnload() {
     this._disposed = true;
   },
+  async deletePet() {
+    if (!requireSession()) return;
+    if (!this.data.form.id || this.data.saving || this.data.deleting || this.data.loading || this.data.recognizing)
+      return;
+    const id = this.data.form.id;
+    const account = accountKey('pet-edit');
+    this.setData({ deleting: true });
+    try {
+      const choice = await new Promise((resolve) =>
+        wx.showModal({
+          title: '删除宠物档案',
+          content: `确定删除“${this.data.form.name}”的档案吗？删除后将无法在宠物列表中选择它。`,
+          confirmText: '删除',
+          cancelText: '保留',
+          success: resolve,
+          fail: () => resolve({ confirm: false }),
+        }),
+      );
+      if (!choice.confirm || this._disposed || account !== accountKey('pet-edit')) return;
+      await api(`/cat-profiles/${encodeURIComponent(id)}`, 'DELETE');
+      if (account !== accountKey('pet-edit')) return;
+      const store = loadStore();
+      cachePetList((store.pets || (store.pet ? [store.pet] : [])).filter((pet) => pet.id !== id));
+      wx.showToast({ title: '档案已删除' });
+      if (!this._disposed) wx.navigateBack();
+    } catch (e) {
+      if (!this._disposed) wx.showToast({ title: errorText(e), icon: 'none' });
+    } finally {
+      if (!this._disposed) this.setData({ deleting: false });
+    }
+  },
   async save() {
     if (!requireSession()) return;
-    if (this.data.saving || this.data.recognizing || this.data.loading) return;
+    if (this.data.saving || this.data.deleting || this.data.recognizing || this.data.loading) return;
     const f = this.data.form;
     let payload;
     try {

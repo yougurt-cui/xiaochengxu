@@ -17,27 +17,12 @@ Page({
     this.refreshData();
     if (hasSession()) {
       this.syncProfile();
-      this.syncFoodCount();
-    }
-  },
-  async syncFoodCount() {
-    const account = accountKey('my');
-    try {
-      const r = await api('/cat-profiles?limit=100');
-      if (account === accountKey('my'))
-        this.setData({
-          foodCount: (r.items || []).filter(
-            (item) => item.food_brand || item.food_product || (item.diet && (item.diet.brand || item.diet.product)),
-          ).length,
-        });
-    } catch (_) {
-      /* Keep the entry usable when the server is unavailable. */
     }
   },
   async syncProfile(strict = false) {
     try {
       const account = accountKey('my');
-      const res = await api('/cat-profiles');
+      const res = await api('/cat-profiles?limit=100');
       if (account !== accountKey('my')) return;
       cachePetList((res.items || []).map(mapPet));
       saveStore({ parent: wx.getStorageSync('miniprogram_user') });
@@ -49,9 +34,12 @@ Page({
   },
   refreshData() {
     const s = loadStore();
+    const pet = currentPet(s);
+    const diet = pet && (pet.food_brand || pet.food_product || pet.diet?.brand || pet.diet?.product);
     const parent = s.parent || wx.getStorageSync('miniprogram_user') || {};
     this.setData({
-      pet: currentPet(s),
+      pet,
+      foodCount: diet ? 1 : 0,
       pets: (s.pets || (s.pet ? [s.pet] : [])).map((p) => ({
         ...p,
         meta: [

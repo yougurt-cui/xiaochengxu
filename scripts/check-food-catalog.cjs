@@ -7,7 +7,7 @@ const ctx = {
   mediaUrl: (x) => x,
   api: async (path) => {
     calls.push(path);
-    return { items: [{ catalog_key: 'one', brand: '皇家', product_name: 'BK34' }] };
+    return { [path.includes('/search?') ? 'suggestions' : 'items']: [{ catalog_key: 'one', brand: '皇家', product_name: 'BK34' }] };
   },
 };
 vm.createContext(ctx);
@@ -20,12 +20,11 @@ vm.runInContext(
 );
 (async () => {
   await ctx.fetch('', 4);
-  assert.match(calls[0], /brand=.*limit=4$/);
+  assert.match(calls[0], /products\?brand=.*limit=4$/);
   calls = [];
-  const result = await ctx.fetch('BK34');
-  assert.equal(calls.length, 3);
-  assert(calls.some((p) => p.includes('brand=BK34')));
-  assert(calls.some((p) => p.includes('q=BK34')));
+  const result = await ctx.fetch(' 皇家肠胃舒适 ');
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0], '/products/search?q=' + encodeURIComponent('皇家肠胃舒适') + '&limit=20');
   assert.equal(result.items.length, 1);
   ctx.api = async () => {
     throw Error('offline');
@@ -55,7 +54,7 @@ vm.runInContext(
   pending[0].resolve({ items: [{ id: 'old' }] });
   await old;
   assert.equal(page.data.items[0].id, 'new');
-  console.log('PASS: preview limit, brand/series compatibility, deduplication, failure and stale search responses');
+  console.log('PASS: preview limit, combined brand/series search and suggestions mapping, failure and stale search responses');
 })().catch((e) => {
   console.error(e);
   process.exitCode = 1;

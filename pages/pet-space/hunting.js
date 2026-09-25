@@ -2,7 +2,7 @@ import { fetchFoodCatalog, mapCatalogFood } from '../../utils/food-catalog';
 import { errorText } from '../../api/miniprogram';
 
 Page({
-  data: { query: '', items: [], loading: false, error: '', selected: null, partial: false },
+  data: { query: '', items: [], loading: false, error: '', selected: null },
   onLoad() {
     this.search();
   },
@@ -11,11 +11,11 @@ Page({
   },
   async search() {
     const request = (this._request = (this._request || 0) + 1);
-    this.setData({ loading: true, error: '', items: [], selected: null, partial: false });
+    this.setData({ loading: true, error: '', items: [], selected: null });
     try {
-      const result = await fetchFoodCatalog(this.data.query, 100);
+      const result = await fetchFoodCatalog(this.data.query, 20);
       if (request !== this._request) return;
-      this.setData({ items: (result.items || []).map(mapCatalogFood), partial: !!result.partial });
+      this.setData({ items: (result.items || []).map(mapCatalogFood) });
     } catch (e) {
       if (request === this._request) this.setData({ error: errorText(e) });
     } finally {

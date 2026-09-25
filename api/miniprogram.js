@@ -21,6 +21,10 @@ export function api(path, method = 'GET', data = {}) {
       success(res) {
         if (res.statusCode === 401) wx.removeStorageSync('miniprogram_token');
         const body = res.data && typeof res.data === 'object' ? res.data : {};
+        if (method === 'DELETE' && res.statusCode === 204) {
+          resolve({ ok: true });
+          return;
+        }
         if (res.statusCode >= 200 && res.statusCode < 300 && body.ok === true) resolve(body);
         else reject(new Error(body.error || body.message || '服务暂时不可用，请重试'));
       },

@@ -27,6 +27,7 @@
       <text>我的清单 <text wx:if="{{kind === 'toys' && mine.length > 0}}" class="count">{{mine.length}}</text></text>
       <button class="text-button" bindtap="editMine"><p-icon name="plus" size="26" />添加</button>
     </view>
+    <scroll-view wx:if="{{kind === 'food' && pets.length}}" scroll-x class="diet-pet-scroll"><view class="diet-pet-row"><button wx:for="{{pets}}" wx:key="id" class="diet-pet {{selectedPetId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectListPet">{{item.name}}</button></view></scroll-view>
     <view wx:if="{{mineLoading && !mine.length}}" class="local-empty">正在读取宠物口粮…</view>
     <view wx:if="{{mineError}}" class="local-empty">{{mineError}}<button class="text-button" bindtap="refreshMine">重新加载</button></view>
     <view wx:if="{{!mineLoading && !mineError && !mine.length}}" class="local-empty">

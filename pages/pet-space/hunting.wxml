@@ -2,11 +2,9 @@
   <page-header title="狩猎广场" back />
   <view class="screen-body">
     <view class="catalog-search hunting-search"><p-icon name="search" size="30" /><input value="{{query}}" bindinput="input" bindconfirm="search" confirm-type="search" placeholder="查询品牌或系列名称" maxlength="128" /></view>
-    <text class="caption search-scope">支持品牌查询，系列暂在皇家及已记录的口粮品牌内搜索。</text>
     <view wx:if="{{loading}}" class="empty-state">正在寻找食物…</view>
     <view wx:elif="{{error}}" class="empty-state">{{error}}<button class="text-button" bindtap="search">重新加载</button></view>
     <view wx:elif="{{!items.length}}" class="empty-state">暂未找到相关食物，试试品牌名称，或投稿补充。</view>
-    <view wx:if="{{partial}}" class="caption">部分结果暂未加载成功，可回车重试。</view>
     <view class="catalog-grid"><button wx:for="{{items}}" wx:key="id" class="catalog-card" data-id="{{item.id}}" bindtap="openItem"><view class="catalog-media"><p-image wx:if="{{item.image}}" image-class="catalog-image" src="{{item.image}}" /><view wx:else class="catalog-placeholder food"><p-icon name="food" tone="accentText" size="80" /></view><text wx:if="{{item.brand}}" class="catalog-brand">{{item.brand}}</text></view><view class="catalog-copy"><text class="card-title">{{item.name}}</text><text class="card-note">{{item.displayText}}</text></view></button></view>
   </view>
 </view>

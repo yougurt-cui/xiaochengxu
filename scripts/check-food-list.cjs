@@ -3,7 +3,7 @@ const fs = require('fs'),
   assert = require('node:assert/strict');
 let definition,
   calls = [],
-  store = { supplies: { toys: [{ id: 'toy' }] } },
+  store = { selectedPetId: 'a', supplies: { toys: [{ id: 'toy' }] } },
   nav;
 let response = {
   items: [
@@ -25,11 +25,11 @@ const context = {
   mediaUrl: (p) => p,
   errorText: (e) => e.message,
   loadStore: () => store,
-  currentPet: () => ({ id: 'b' }),
+  currentPet: () => (store.pets || []).find(p => p.id === store.selectedPetId),
   cachePetList: (p) => {
     store.pets = p;
   },
-  saveStore: () => {},
+  saveStore: patch => Object.assign(store, patch),
   clearTimeout: () => {},
   wx: { navigateTo: (o) => (nav = o), showToast: () => {} },
 };
@@ -52,6 +52,9 @@ const page = {
   assert.equal(calls[0][0], '/cat-profiles?limit=100');
   assert.equal(page.data.mine.length, 1);
   assert.equal(page.data.mine[0].name, '皇家 · 肠胃舒适');
+  await page.selectListPet({ currentTarget: { dataset: { id: 'b' } } });
+  assert.equal(page.data.mine.length, 0);
+  assert.equal(store.selectedPetId, 'b');
   page.editMine({ currentTarget: { dataset: {} } });
   assert.equal(page.data.dietPetId, 'b');
   page.inputDiet({ currentTarget: { dataset: { key: 'brand' } }, detail: { value: '新品牌' } });
