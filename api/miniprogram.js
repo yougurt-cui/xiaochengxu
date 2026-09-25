@@ -4,6 +4,10 @@ export const mediaUrl = (url) => (url && url.startsWith('/') ? origin + url : ur
 export const hasSession = () => Boolean(wx.getStorageSync('miniprogram_token'));
 export const errorText = (error) => error.message || '连接失败，请检查网络后重试';
 export function api(path, method = 'GET', data = {}) {
+  if (method !== 'GET' && path !== '/auth/wechat-login' && !hasSession()) {
+    requireSession();
+    return Promise.reject(new Error('请先登录／注册后继续'));
+  }
   return new Promise((resolve, reject) =>
     wx.request({
       url: `${origin}/api/miniprogram${path}`,
@@ -24,10 +28,35 @@ export function api(path, method = 'GET', data = {}) {
     }),
   );
 }
+// One explicit account entry; never manufacture an account during another action.
+export function requireSession() {
+  if (hasSession()) return true;
+  const pages = getCurrentPages();
+  const current = pages[pages.length - 1];
+  if (current && current.route === 'pages/my/info-edit/index') return false;
+  if (current && current._openingLogin) return false;
+  if (current) current._openingLogin = true;
+  wx.navigateTo({
+    url: '/pages/my/info-edit/index?auth=1',
+    events: {
+      authenticated: () => {
+        if (current) current._returningFromLogin = true;
+      },
+    },
+    complete: () => {
+      if (current) current._openingLogin = false;
+    },
+  });
+  return false;
+}
 let signingIn;
 export async function login(profile = null) {
   if (!profile && hasSession()) return wx.getStorageSync('miniprogram_user');
-  if (!profile && signingIn) return signingIn;
+  if (!profile) {
+    requireSession();
+    throw new Error('请先登录／注册后继续');
+  }
+  if (signingIn) return signingIn;
   const work = (async () => {
     const code = await new Promise((resolve, reject) =>
       wx.login({
@@ -40,11 +69,11 @@ export async function login(profile = null) {
     wx.setStorageSync('miniprogram_user', result.user);
     return result.user;
   })();
-  if (!profile) signingIn = work;
+  signingIn = work;
   try {
     return await work;
   } finally {
-    if (!profile) signingIn = null;
+    signingIn = null;
   }
 }
 export async function uploadImage(path) {

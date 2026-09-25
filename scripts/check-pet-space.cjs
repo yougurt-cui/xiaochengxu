@@ -19,6 +19,7 @@ const context = {
     saved = p;
   },
   hasSession: () => false,
+  requireSession: () => true,
   login: async () => ({ id: 'test' }),
   mapPet: (p) => p,
   errorText: (e) => e.message,

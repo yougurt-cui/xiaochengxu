@@ -1,4 +1,4 @@
-import { api, login, errorText, downloadPetImage } from '../../api/miniprogram';
+import { requireSession, hasSession, api, login, errorText, downloadPetImage } from '../../api/miniprogram';
 import { accountKey } from '../../utils/pet-store';
 import { submitFood, submissionView } from '../../utils/food-submission';
 Page({
@@ -33,6 +33,10 @@ Page({
     this.onHide();
   },
   async load() {
+    if (!hasSession()) {
+      this.setData({ items: [], error: '登录后查看食品投稿' });
+      return;
+    }
     if (this._loading) return;
     this._loading = true;
     this.setData({ loading: true, error: '' });
@@ -100,6 +104,7 @@ Page({
     }
   },
   async submit() {
+    if (!requireSession()) return;
     if (this.data.saving) return;
     this.setData({ saving: true, error: '' });
     try {

@@ -64,7 +64,8 @@ Page({
       })),
       parent: {
         ...parent,
-        name: parent.name || parent.nickName || '添加家长资料',
+        name: hasSession() ? parent.name || parent.nickName || '完善家长资料' : '登录／注册',
+        signedIn: hasSession(),
         image: parent.image || parent.avatarUrl || '',
       },
       favoriteCount: s.favorites.length,

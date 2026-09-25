@@ -1,6 +1,6 @@
 import { categories, mapPost } from '../../utils/community';
 import { loadStore, saveStore, persistImage, accountKey } from '../../utils/pet-store';
-import { api, login, uploadImage, errorText, hasSession, mediaUrl } from '../../api/miniprogram';
+import { requireSession, api, login, uploadImage, errorText, hasSession, mediaUrl } from '../../api/miniprogram';
 Page({
   data: {
     pets: [],
@@ -128,6 +128,7 @@ Page({
     }
   },
   async release() {
+    if (!requireSession()) return;
     if (this.data.saving) return;
     if (!this.data.body.trim() || !this.data.images.length) {
       wx.showToast({ title: '请填写内容并添加图片', icon: 'none' });

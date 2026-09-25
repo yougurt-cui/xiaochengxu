@@ -1,3 +1,4 @@
+@import '../../styles/tokens.less';
 .login {
   &__title {
     color: rgba(0, 0, 0, 0.9);
@@ -90,5 +91,16 @@
   }
 }
 
-.page { padding-bottom: calc(156rpx + env(safe-area-inset-bottom)); }
-.login__button { position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; margin: 0; padding: 20rpx 36rpx calc(20rpx + env(safe-area-inset-bottom)); background: #f8f8fb; }
+.page {
+  padding-bottom: calc(156rpx + env(safe-area-inset-bottom));
+}
+.login__button {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: @space-roomy @layout-gutter calc(@space-roomy + env(safe-area-inset-bottom));
+  background: @colors-page;
+}

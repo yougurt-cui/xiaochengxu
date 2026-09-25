@@ -1,5 +1,5 @@
 import { birthdayAge, profileForm, profilePayload } from '../../utils/pet-profile-form';
-import { api, login, hasSession, mapPet, errorText, recognizePetImage } from '../../api/miniprogram';
+import { requireSession, api, login, hasSession, mapPet, errorText, recognizePetImage } from '../../api/miniprogram';
 import { loadStore, saveStore, cachePetList } from '../../utils/pet-store';
 Page({
   data: {
@@ -92,6 +92,7 @@ Page({
     this.setData({ step: Math.min(8, this.data.step + 1) });
   },
   recognize() {
+    if (!requireSession()) return;
     if (this.data.recognizing || this.data.saving || this.data.loading || this._choosing) return;
     this._choosing = true;
     wx.chooseMedia({
@@ -154,6 +155,7 @@ Page({
     this._disposed = true;
   },
   async save() {
+    if (!requireSession()) return;
     if (this.data.saving || this.data.recognizing || this.data.loading) return;
     const f = this.data.form;
     let payload;

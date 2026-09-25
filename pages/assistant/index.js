@@ -168,7 +168,7 @@ Page({
       this._cloudPetId = '';
       this._selectedChatPetId = '';
       this.setData({ composerPet: null, boundPet: null, chatPets: [] });
-      if (!this._bindingPet) this.setData({ inputMessage: '', composerImages: [] });
+      if (!this._bindingPet && !this._returningFromLogin) this.setData({ inputMessage: '', composerImages: [] });
       if (this.data.sending) {
         this._sendVersion = (this._sendVersion || 0) + 1;
         if (this._sendRequest) this._sendRequest.abort();
@@ -181,6 +181,7 @@ Page({
         userMessage: '',
       });
     }
+    this._returningFromLogin = false;
     this._account = account;
     this._bindingPet = false;
     this.refreshChatPet();

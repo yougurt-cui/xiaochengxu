@@ -1,4 +1,4 @@
-import { login, errorText } from '../../api/miniprogram';
+import { login, errorText, hasSession } from '../../api/miniprogram';
 import { loadStore, saveStore, formatEdited } from '../../utils/pet-store';
 import { getPosts, fetchPosts } from '../../utils/community';
 Page({
@@ -19,6 +19,7 @@ Page({
     if (this.data.mode === 'posts') this.reload();
   },
   async reload() {
+    if (!hasSession()) return;
     if (this.data.loading) return;
     this.setData({ loading: true, error: '' });
     try {

@@ -42,7 +42,7 @@
       <view wx:else class="parent-avatar"><p-icon name="cat" tone="muted" /></view>
       <view class="parent-copy">
         <text>{{parent.name}}</text>
-        <text class="caption">微信资料 · 编辑昵称</text>
+        <text class="caption">{{parent.signedIn ? '微信资料 · 编辑昵称' : '登录后，一起照顾它'}}</text>
       </view>
       <p-icon name="arrow" tone="muted" size="28" />
     </button>

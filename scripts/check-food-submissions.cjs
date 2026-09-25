@@ -9,6 +9,7 @@ let sent;
 let reply = { statusCode: 202, data: { ok: true, item: { id: 'food1' } } };
 const context = {
   config: { apiBaseUrl: 'https://example.test' },
+  requireSession: () => true,
   login: async () => {},
   Uint8Array,
   ArrayBuffer,

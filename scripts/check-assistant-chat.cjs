@@ -31,6 +31,7 @@ vm.runInNewContext(code + '\nexpose(chatMethods, mapChatMessage);', {
     if (method === 'POST') return { conversation: { id: 'c1', pet_id: pet.id } };
     return replies;
   },
+  requireSession: () => { if (hasSessionValue) return true; navigated = '/pages/my/info-edit/index?auth=1'; return false; },
   login: async () => ({}),
   hasSession: () => hasSessionValue,
   mapPet: (p) => p,
@@ -81,6 +82,14 @@ function page() {
   };
 }
 (async () => {
+  let guest = page();
+  hasSessionValue = false;
+  const guestDraft = guest.data.inputMessage;
+  await guest.sendMessage();
+  assert.equal(navigated, '/pages/my/info-edit/index?auth=1');
+  assert.equal(guest.data.inputMessage, guestDraft);
+  assert.equal(calls.length, 0);
+  assert.equal(requests.length, 0);
   pet = null;
   modalChoice = { cancel: true };
   let p = page();

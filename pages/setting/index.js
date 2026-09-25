@@ -1,4 +1,4 @@
-import { api, login, hasSession, errorText } from '../../api/miniprogram';
+import { requireSession, api, login, hasSession, errorText } from '../../api/miniprogram';
 
 Page({
   data: {
@@ -37,6 +37,7 @@ Page({
     this.setData({ feedbackText: event.detail.value });
   },
   async submitFeedback() {
+    if (!requireSession()) return;
     const content = this.data.feedbackText.trim();
     if (!content) {
       wx.showToast({ title: '请描述你遇到的问题或建议', icon: 'none' });

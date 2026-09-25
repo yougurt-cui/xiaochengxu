@@ -23,8 +23,29 @@
   height: @control-primaryHeight;
   gap: @space-compact;
 }
-.page-action-row { display: flex; align-items: center; gap: @space-roomy; }
-.page-action-row > button { flex: 1; }
-.page-action-links { display: flex; align-items: center; justify-content: space-between; gap: @space-sm; }
-.page-action-links > button { flex: 1; width: auto; min-width: 0; margin: 0; padding: 0 @space-xs; min-height: @control-compactHeight; font-size: @type-small; }
-.page-action-footer > .primary-button + .page-action-links { margin-top: @space-sm; }
+.page-action-row {
+  display: flex;
+  align-items: center;
+  gap: @space-roomy;
+}
+.page-action-row > button {
+  flex: 1;
+}
+.page-action-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @space-sm;
+}
+.page-action-links > button {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0 @space-xs;
+  min-height: @control-compactHeight;
+  font-size: @type-small;
+}
+.page-action-footer > .primary-button + .page-action-links {
+  margin-top: @space-sm;
+}

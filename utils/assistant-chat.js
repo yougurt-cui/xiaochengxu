@@ -1,5 +1,5 @@
 import { setModalData } from './modal-layout';
-import { api, login, hasSession, mapPet, errorText } from '../api/miniprogram';
+import { requireSession, api, login, hasSession, mapPet, errorText } from '../api/miniprogram';
 import { loadStore, saveStore, accountKey } from './pet-store';
 import config from '../config';
 import request from '../api/request';
@@ -73,6 +73,7 @@ export const chatMethods = {
     }
   },
   async openChatPetPicker() {
+    if (!requireSession()) return;
     if (this.data.sending || this.data.petsLoading) return;
     this.setData({ petsLoading: true, composerFocused: false, keyboardHeight: 0 });
     try {
@@ -127,6 +128,7 @@ export const chatMethods = {
     this.setData({ composerFocused: true });
   },
   async sendMessage() {
+    if (!requireSession()) return;
     if (this.data.sending || this._checkingPet || (!this.data.inputMessage.trim() && !this.data.composerImages.length))
       return;
     this._checkingPet = true;
@@ -154,6 +156,7 @@ export const chatMethods = {
     }
   },
   async openFoodSubmission() {
+    if (!requireSession()) return;
     if (this._openingFoodSubmission) return;
     this._openingFoodSubmission = true;
     await this.refreshChatPet();
@@ -187,6 +190,7 @@ export const chatMethods = {
     });
   },
   async sendCloudMessage(payload, displayText) {
+    if (!requireSession()) return;
     if (this.data.sending) return;
     const version = (this._sendVersion || 0) + 1;
     this._sendVersion = version;

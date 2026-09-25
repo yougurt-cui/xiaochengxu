@@ -1,10 +1,10 @@
 import { loadStore, saveStore, persistImage } from '../../../utils/pet-store';
-import { login, uploadImage, errorText } from '../../../api/miniprogram';
+import { login, uploadImage, errorText, hasSession } from '../../../api/miniprogram';
 Page({
-  data: { name: '', image: '', saving: false },
+  data: { name: '', image: '', saving: false, signedIn: false },
   onLoad() {
     const p = wx.getStorageSync('miniprogram_user') || loadStore().parent || {};
-    this.setData({ name: p.name || p.nickName || '', image: p.image || p.avatarUrl || '' });
+    this.setData({ signedIn: hasSession(), name: p.name || p.nickName || '', image: p.image || p.avatarUrl || '' });
   },
   onNameChange(e) {
     this.setData({ name: e.detail.value });
@@ -26,10 +26,18 @@ Page({
     this.setData({ saving: true });
     try {
       let avatarUrl = this.data.image;
-      if (avatarUrl && !/^https?:\/\//.test(avatarUrl)) avatarUrl = await uploadImage(avatarUrl);
-      const user = await login({ nickName: this.data.name.trim(), avatarUrl });
+      let user = await login({
+        nickName: this.data.name.trim(),
+        avatarUrl: /^https?:\/\//.test(avatarUrl) ? avatarUrl : '',
+      });
+      this.getOpenerEventChannel().emit('authenticated');
+      if (avatarUrl && !/^https?:\/\//.test(avatarUrl)) {
+        avatarUrl = await uploadImage(avatarUrl);
+        user = await login({ nickName: this.data.name.trim(), avatarUrl });
+      }
       saveStore({ parent: user });
-      wx.showToast({ title: '资料已保存' });
+      this.getOpenerEventChannel().emit('authenticated');
+      wx.showToast({ title: this.data.signedIn ? '资料已保存' : '登录成功' });
       wx.navigateBack();
     } catch (error) {
       wx.showToast({ title: errorText(error), icon: 'none' });

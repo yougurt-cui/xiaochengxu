@@ -17,6 +17,7 @@ const context = {
     calls.push(args);
     return response;
   },
+  requireSession: () => true,
   login: async () => {},
   accountKey: () => 'u1',
   hasSession: () => true,

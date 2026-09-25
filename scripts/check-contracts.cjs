@@ -5,7 +5,8 @@ const assert = require('node:assert/strict');
 const path = require('path');
 const storage = new Map();
 let reply = { statusCode: 200, data: { ok: true } };
-let last;
+let last, navigation;
+const originPage = { route: "pages/release/index" };
 const wx = {
   getStorageSync: (k) => storage.get(k),
   setStorageSync: (k, v) => storage.set(k, v),
@@ -15,6 +16,7 @@ const wx = {
     queueMicrotask(() => options.success(reply));
     return { abort() {} };
   },
+  navigateTo: (options) => { navigation = options; options.complete(); },
   login: ({ success }) => success({ code: 'test-code' }),
 };
 const cache = new Map();
@@ -39,7 +41,7 @@ function load(file) {
   const exports = {};
   vm.runInNewContext(
     `${code}\nObject.assign(exports, {${names.join(',')}});`,
-    { wx, load, exports, console, setTimeout, Date },
+    { wx, load, exports, console, setTimeout, Date, getCurrentPages: () => [originPage] },
     { filename: file },
   );
   cache.set(full, exports);
@@ -54,7 +56,16 @@ function load(file) {
   assert.equal(last.header.Authorization, 'Bearer ');
   assert.match(last.url, /^https:\/\/chongxi.cloud/);
   reply = { statusCode: 200, data: { ok: true, token: 'real-token', user: { id: 'user-a', name: '家长' } } };
-  await api.login();
+  const priorRequest = last;
+  await assert.rejects(api.login(), /请先登录/);
+  assert.equal(last, priorRequest);
+  assert.equal(navigation.url, '/pages/my/info-edit/index?auth=1');
+  assert.equal(storage.has('miniprogram_token'), false);
+  await assert.rejects(api.api('/moments', 'POST', { content: 'draft' }), /请先登录/);
+  assert.equal(last, priorRequest);
+  navigation.events.authenticated();
+  assert.equal(originPage._returningFromLogin, true);
+  await api.login({ nickName: '家长' });
   assert.equal(storage.get('miniprogram_token'), 'real-token');
   assert.equal(last.data.code, 'test-code');
   store.saveStore({ favorites: ['p1'], records: [{ day: '2026-09-19', water: 10 }] });

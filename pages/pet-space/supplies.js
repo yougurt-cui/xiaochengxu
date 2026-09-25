@@ -1,5 +1,5 @@
 import { fetchFoodCatalog } from '../../utils/food-catalog';
-import { api, mediaUrl, errorText, hasSession, mapPet, login } from '../../api/miniprogram';
+import { requireSession, api, mediaUrl, errorText, hasSession, mapPet, login } from '../../api/miniprogram';
 import { loadStore, saveStore, persistImage, accountKey, cachePetList, currentPet } from '../../utils/pet-store';
 
 const covers = [
@@ -142,6 +142,10 @@ Page({
   async refreshMine() {
     if (this.data.kind !== 'food') {
       this.setData({ mine: loadStore().supplies.toys });
+      return;
+    }
+    if (!hasSession()) {
+      this.setData({ mine: [], pets: [], mineLoading: false, hasPet: false });
       return;
     }
     const version = (this._mineRequest = (this._mineRequest || 0) + 1);
@@ -535,6 +539,7 @@ Page({
     this.setData({ ['dietForm.' + e.currentTarget.dataset.key]: e.detail.value });
   },
   async saveDiet() {
+    if (!requireSession()) return;
     if (this.data.dietSaving) return;
     const id = this.data.dietPetId;
     if (!this.data.pets.some((p) => p.id === id)) return;
