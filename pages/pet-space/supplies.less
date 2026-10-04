@@ -437,6 +437,7 @@
   padding: @space-sm 0;
 }
 .diet-mine-row .food-mine-card {
+  box-sizing: border-box;
   flex: 0 0 210rpx;
   width: 210rpx;
 }
@@ -457,4 +458,124 @@
 .diet-pet.active {
   background: @colors-primarySoft;
   color: @colors-primary;
+}
+
+.list-title-row {
+  display: flex;
+  align-items: center;
+  gap: @space-compact;
+  flex: 1;
+  min-width: 0;
+}
+.list-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-title-row .list-pet-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44rpx;
+  height: 44rpx;
+  padding: 0;
+  margin: 0;
+  background: @colors-primarySoft;
+  border-radius: @radius-pill;
+}
+.list-pet-options {
+  display: flex;
+  flex-direction: column;
+  gap: @space-sm;
+}
+.list-pet-option {
+  width: 100%;
+  margin: 0;
+  padding: @space-sm;
+  display: flex;
+  align-items: center;
+  gap: @space-sm;
+  background: @colors-surface;
+  border-radius: @radius-medium;
+  text-align: left;
+}
+.list-pet-option.active {
+  background: @colors-primarySoft;
+  color: @colors-primary;
+}
+.list-pet-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: @radius-pill;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.list-pet-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: @colors-surfaceMuted;
+}
+.list-pet-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: @type-body;
+}
+
+.diet-mine-row {
+  align-items: stretch;
+}
+// Use the shared section heading spacing; avoid additional list padding.
+.food-page .diet-mine-row { padding-top: 0; padding-bottom: 0; }
+.food-page .section-content > .empty-state { margin-top: 0; padding-top: 0; }
+.diet-mine-row .food-mine-entry {
+  box-sizing: border-box;
+  min-height: 226rpx;
+  padding: 0;
+  border: 2rpx dashed fade(@colors-primary, 25%);
+  background: fade(@colors-surface, 60%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.food-mine-entry button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  line-height: @leading-compact;
+  border-radius: 0;
+}
+.food-mine-entry .entry-add {
+  flex: 1;
+  flex-direction: column;
+  gap: @space-compact;
+  padding: @space-roomy 0;
+  font-size: @type-small;
+  font-weight: @weight-medium;
+  color: @colors-primary;
+}
+.entry-plus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: @radius-pill;
+  background: @colors-primarySoft;
+}
+.food-mine-entry .entry-history {
+  flex: 0 0 60rpx;
+  gap: 6rpx;
+  border-top: 1rpx solid fade(@colors-primary, 8%);
+  background: fade(@colors-primarySoft, 45%);
+  color: @colors-secondary;
+  font-size: @type-micro;
 }

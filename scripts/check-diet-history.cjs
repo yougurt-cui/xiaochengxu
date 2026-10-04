@@ -1,0 +1,13 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+let store={};const c={loadStore:()=>store,saveStore:p=>Object.assign(store,p)};vm.createContext(c);
+vm.runInContext(fs.readFileSync('utils/diet-history.js','utf8').replace(/^import .*;$/gm,'').replace(/export /g,'')+'\nthis.remember=rememberDiet;this.history=dietHistory;',c);
+c.remember({id:'a',diet:{brand:'皇家',product:'FIT32'}});
+assert.equal(c.history('a').length,0);
+c.remember({id:'a',diet:{brand:'皇家',product:'FIT32'}});
+assert.equal(c.history('a').length,0);
+c.remember({id:'a',diet:{brand:'皇家',product:'EP42'}});
+assert.equal(c.history('a').length,1);assert.equal(c.history('a')[0].product,'FIT32');
+c.remember({id:'b',diet:{brand:'其他',product:'B'}});assert.equal(c.history('b').length,0);assert.equal(c.history('a').length,1);
+c.remember({id:'a',diet:{}});assert.equal(c.history('a').length,2);assert.equal(c.history('a')[0].product,'EP42');
+store={};assert.equal(c.history('a').length,0);
+console.log('PASS: snapshot deduplication, previous diet archive, per-pet isolation, clearing diet and account store isolation');

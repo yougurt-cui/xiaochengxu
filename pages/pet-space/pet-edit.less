@@ -225,3 +225,46 @@
 }
 
 @import '../../styles/page-action-footer.less';
+
+.name-age-row .age-field {
+  width: 100%;
+}
+.pet-form .form-field > text {
+  display: block;
+  font-size: @type-small;
+  font-weight: @weight-medium;
+  line-height: 1.5;
+  color: @colors-secondary;
+}
+.pet-form input,
+.pet-form textarea,
+.pet-form .form-value {
+  font-size: @type-body;
+  font-weight: @weight-regular;
+  color: @colors-text;
+}
+.pet-form .profile-placeholder {
+  font-size: @type-body;
+  font-weight: @weight-regular;
+  color: @colors-muted;
+}
+.age-input {
+  margin-top: 10rpx;
+}
+.pet-form .age-input input {
+  margin-top: 0;
+}
+.age-input {
+  position: relative;
+}
+.pet-form .age-input input {
+  padding-right: 56rpx;
+}
+.age-unit {
+  position: absolute;
+  right: @space-sm;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: @type-small;
+  color: @colors-muted;
+}

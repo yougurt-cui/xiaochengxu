@@ -1,3 +1,4 @@
+import { rememberDiet } from '../../utils/diet-history';
 import { fetchFoodCatalog } from '../../utils/food-catalog';
 import { requireSession, api, mediaUrl, errorText, hasSession, mapPet, login } from '../../api/miniprogram';
 import { loadStore, saveStore, persistImage, accountKey, cachePetList, currentPet } from '../../utils/pet-store';
@@ -50,6 +51,8 @@ Page({
     hasPet: false,
     pets: [],
     selectedPetId: '',
+    selectedPetName: '',
+    listPetPickerVisible: false,
     dietSaving: false,
     dietPetId: '',
     dietForm: { brand: '', product: '' },
@@ -118,6 +121,7 @@ Page({
       const response = await api('/cat-profiles');
       if (version !== this._petRequestId || account !== accountKey('supplies')) return;
       const pets = response.items || [];
+      pets.forEach(rememberDiet);
       cachePetList(pets.map(mapPet));
       const pet = currentPet();
       this.setData({ hasPet: !!pet });
@@ -146,7 +150,15 @@ Page({
       return;
     }
     if (!hasSession()) {
-      this.setData({ mine: [], pets: [], mineLoading: false, hasPet: false });
+      this.setData({
+        mine: [],
+        pets: [],
+        selectedPetId: '',
+        selectedPetName: '',
+        listPetPickerVisible: false,
+        mineLoading: false,
+        hasPet: false,
+      });
       return;
     }
     const version = (this._mineRequest = (this._mineRequest || 0) + 1);
@@ -157,6 +169,7 @@ Page({
       const response = await api('/cat-profiles?limit=100');
       if (version !== this._mineRequest || !this._visible || account !== accountKey('supplies')) return;
       const pets = response.items || [];
+      pets.forEach(rememberDiet);
       cachePetList(pets.map(mapPet));
       const selectedPetId = currentPet()?.id || pets[0]?.id || '';
       const mine = pets
@@ -173,7 +186,13 @@ Page({
           };
         })
         .filter((item) => item.name);
-      this.setData({ pets, mine, selectedPetId, hasPet: pets.length > 0 });
+      this.setData({
+        pets: pets.map(mapPet),
+        mine,
+        selectedPetId,
+        selectedPetName: pets.find((p) => p.id === selectedPetId)?.name || '',
+        hasPet: pets.length > 0,
+      });
     } catch (e) {
       if (version === this._mineRequest && this._visible) this.setData({ mineError: errorText(e) });
     } finally {
@@ -534,11 +553,35 @@ Page({
     }
   },
 
+  openFoodList() {
+    if (!this.data.selectedPetId) {
+      this.editMine({ currentTarget: { dataset: {} } });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/pet-space/food-list?petId=' + encodeURIComponent(this.data.selectedPetId) });
+  },
+  openDietHistory() {
+    if (!this.data.selectedPetId) {
+      this.addPet();
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/pet-space/food-list?mode=history&petId=' + encodeURIComponent(this.data.selectedPetId),
+    });
+  },
+  openListPetPicker() {
+    if (this.data.pets.length > 1) this.setData({ listPetPickerVisible: true });
+  },
+  closeListPetPicker() {
+    this.setData({ listPetPickerVisible: false });
+  },
   async selectListPet(e) {
     const pet = this.data.pets.find((p) => p.id === e.currentTarget.dataset.id);
-    if (!pet || pet.id === this.data.selectedPetId) return;
+    if (!pet) return;
+    this.closeListPetPicker();
+    if (pet.id === this.data.selectedPetId) return;
     saveStore({ pet: mapPet(pet), selectedPetId: pet.id });
-    this.setData({ selectedPetId: pet.id, mine: [] });
+    this.setData({ selectedPetId: pet.id, selectedPetName: pet.name, mine: [] });
     await this.refreshMine();
   },
 
@@ -562,9 +605,13 @@ Page({
     const account = accountKey('supplies');
     this.setData({ dietSaving: true });
     try {
+      const previous = this.data.pets.find((p) => p.id === id);
       // POST creates a new animal; PATCH updates only this animal's current diet.
       await api('/cat-profiles/' + encodeURIComponent(id), 'PATCH', { diet });
-      if (account !== accountKey('supplies') || !this._visible) return;
+      if (account !== accountKey('supplies')) return;
+      rememberDiet(previous);
+      rememberDiet({ id, diet });
+      if (!this._visible) return;
       this.setData({ editing: false });
       await this.refreshMine();
       wx.showToast({ title: '口粮已保存' });

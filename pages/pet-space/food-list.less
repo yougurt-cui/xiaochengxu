@@ -1,0 +1,26 @@
+@import '../../styles/tokens.less';
+.diet-list-card {
+  display: flex;
+  align-items: center;
+  gap: @space-sm;
+  margin-top: @space-roomy;
+  padding: @space-roomy;
+  background: @colors-surface;
+  border-radius: @radius-medium;
+}
+.diet-icon {
+  padding: @space-sm;
+  background: @colors-primarySoft;
+  border-radius: @radius-small;
+}
+.diet-copy {
+  flex: 1;
+  min-width: 0;
+}
+.diet-name {
+  display: block;
+  font-size: @type-body;
+  font-weight: @weight-semibold;
+  margin-bottom: @space-xs;
+  word-break: break-all;
+}

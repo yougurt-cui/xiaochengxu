@@ -1,4 +1,4 @@
-<view class="page {{!hasPet ? 'needs-pet' : ''}}">
+<view class="page {{kind === 'food' ? 'food-page' : ''}} {{!hasPet ? 'needs-pet' : ''}}">
   <page-header title="{{title}}" back />
   <view class="screen-body">
     <swiper
@@ -24,16 +24,17 @@
     </swiper>
 
     <view class="section-heading">
-      <text>我的清单 <text wx:if="{{kind === 'toys' && mine.length > 0}}" class="count">{{mine.length}}</text></text>
-      <button class="text-button" bindtap="editMine"><p-icon name="plus" size="26" />添加</button>
+      <view class="list-title-row"><text class="list-title">{{kind === 'food' && selectedPetName ? selectedPetName + '的清单' : '我的清单'}} <text wx:if="{{kind === 'toys' && mine.length > 0}}" class="count">{{mine.length}}</text></text><button wx:if="{{kind === 'food' && pets.length > 1}}" class="list-pet-switch" size="mini" bindtap="openListPetPicker" aria-label="切换宠物"><p-icon name="switch" size="26" /></button></view>
+      <button wx:if="{{kind === 'food'}}" class="text-button" bindtap="openFoodList">更多<p-icon name="arrow" size="24" /></button><button wx:else class="text-button" bindtap="editMine"><p-icon name="plus" size="26" />添加</button>
     </view>
-    <scroll-view wx:if="{{kind === 'food' && pets.length}}" scroll-x class="diet-pet-scroll"><view class="diet-pet-row"><button wx:for="{{pets}}" wx:key="id" class="diet-pet {{selectedPetId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectListPet">{{item.name}}</button></view></scroll-view>
+    <view class="section-content">
     <view wx:if="{{mineLoading && !mine.length}}" class="local-empty">正在读取宠物口粮…</view>
     <view wx:if="{{mineError}}" class="local-empty">{{mineError}}<button class="text-button" bindtap="refreshMine">重新加载</button></view>
     <view wx:if="{{!mineLoading && !mineError && !mine.length}}" class="local-empty">
       {{kind === 'toys' ? '它喜欢的玩具，在这里慢慢收集。' : '还没有口粮记录，点击添加，为爱宠记录正在吃的粮。'}}
     </view>
     <scroll-view wx:if="{{kind === 'food'}}" scroll-x class="diet-mine-scroll"><view class="diet-mine-row">
+      <view class="food-mine-card food-mine-entry"><button class="entry-add" bindtap="editMine" disabled="{{mineLoading || mineError}}"><view class="entry-plus"><p-icon name="plus" size="32" /></view><text>添加口粮</text></button><button class="entry-history" bindtap="openDietHistory" disabled="{{mineLoading || mineError}}"><p-icon name="history" size="24" /><text>历史口粮</text><p-icon name="arrow" size="20" tone="muted" /></button></view>
       <button wx:for="{{mine}}" wx:key="id" class="food-mine-card" data-id="{{item.id}}" bindtap="editMine">
         <p-image wx:if="{{item.image}}" image-class="food-mine-photo" src="{{item.image}}" />
         <view wx:else class="food-mine-placeholder"><p-icon name="food" size="44" /></view>
@@ -51,11 +52,13 @@
 </block>
     <text wx:if="{{kind === 'toys'}}" class="caption">清单保存在当前设备</text>
 
+    </view>
     <view class="section-heading">
       <text>{{kind === 'toys' ? '创意好物' : '狩猎广场'}}</text>
 <text wx:if="{{kind === 'toys'}}">来自周边创意</text><button wx:else class="text-button" bindtap="openHunting">更多<p-icon name="arrow" size="24" /></button>
     </view>
 
+    <view class="section-content">
     <view wx:if="{{loading}}" class="empty-state">正在加载{{kind === 'toys' ? '创意好物' : '狩猎广场'}}…</view>
     <view wx:if="{{error}}" class="empty-state">
       {{error}}
@@ -88,6 +91,7 @@
         {{kind === 'toys' ? '更多创意正在准备中，也可以先添加自己的玩具。' : '暂未收录相关商品，试试其他品牌或手动添加'}}
       </text>
       <button wx:if="{{kind === 'food'}}" class="catalog-empty-button" bindtap="openCatalogAdd">手动添加</button>
+    </view>
     </view>
   </view>
 </view>
@@ -262,4 +266,14 @@
     </view>
     <button class="primary-button" bindtap="saveMine">保存记录</button>
   </block>
+</view>
+
+<view wx:if="{{listPetPickerVisible}}" class="sheet-mask" bindtap="closeListPetPicker"></view>
+<view wx:if="{{listPetPickerVisible}}" class="bottom-sheet">
+  <view class="sheet-heading"><text>选择宠物</text><button bindtap="closeListPetPicker" aria-label="关闭"><p-icon name="close" /></button></view>
+  <view class="list-pet-options"><button wx:for="{{pets}}" wx:key="id" class="list-pet-option {{selectedPetId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectListPet">
+    <p-image wx:if="{{item.image}}" image-class="list-pet-avatar" src="{{item.image}}" />
+    <view wx:else class="list-pet-avatar list-pet-placeholder"><p-icon name="{{item.type === '狗狗' ? 'dog' : 'cat'}}" size="36" /></view>
+    <text class="list-pet-name">{{item.name}}</text><p-icon wx:if="{{selectedPetId === item.id}}" name="check" size="28" />
+  </button></view>
 </view>

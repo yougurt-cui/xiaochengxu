@@ -47,6 +47,7 @@
       <p-icon name="arrow" tone="muted" size="28" />
     </button>
     <view class="profile-links">
+      <button class="menu-row" bindtap="openReminders"><p-icon name="bell" /><view class="row-copy">我的提醒</view><view class="profile-end"><p-icon name="arrow" tone="muted" size="26" /></view></button>
       <button class="menu-row" bindtap="openFavorites">
         <p-icon name="save" />
         <view class="row-copy">我的收藏</view>

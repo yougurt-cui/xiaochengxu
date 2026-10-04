@@ -14,6 +14,13 @@ fs.writeFileSync(
   `// Generated from theme/tokens.json\nexport default ${JSON.stringify(tokens, null, 2)};\n`,
 );
 const icons = {
+  bell: '<path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3ZM10 21h4M12 2v2"/>',
+  health: '<rect x="3" y="6" width="18" height="15" rx="3"/><path d="M8 6V3h8v3M12 10v7m-3.5-3.5h7"/>',
+  bath: '<path d="M3 12h18v3a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5v-3Zm3 8v2m12-2v2M6 12V5a3 3 0 0 1 6 0v1m-2 0h4"/>',
+  medicine: '<rect x="6" y="7" width="12" height="14" rx="3"/><path d="M8 7V3h8v4M10 13h4m-2-2v4"/>',
+  vaccine: '<path d="m14 3 7 7M17.5 6.5 15 9m-2-2 4 4-9 9H4v-4l9-9ZM3 21l2-2m5-7 2 2m1-5 2 2"/>',
+  groom: '<circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="m8.5 8.5 12 11m-12-4 12-11M17 3v4"/>',
+  switch: '<path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/>',
   check: '<path d="m5 12 4 4L19 6"/>',
   'chat-new': '<path d="M20 11a8 8 0 0 1-8 8H4l-2 3V11a9 9 0 0 1 18 0Z"/><path d="M11 7v8m-4-4h8"/>',
   edit: '<path d="m15.5 4.5 4 4M4 20l4.5-1 12-12a2.83 2.83 0 0 0-4-4l-12 12L4 20Z"/>',

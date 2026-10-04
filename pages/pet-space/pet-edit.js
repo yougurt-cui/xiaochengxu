@@ -52,6 +52,9 @@ Page({
   input(e) {
     this.setData({ [`form.${e.currentTarget.dataset.key}`]: e.detail.value });
   },
+  inputAge(e) {
+    this.setData({ 'form.ageYears': e.detail.value, 'form.ageEdited': true });
+  },
   changeType(e) {
     const index = Number(e.detail.value);
     this.setData({ 'form.animal_type': ['cat', 'dog', 'unknown'][index], 'form.type': this.data.animalTypes[index] });

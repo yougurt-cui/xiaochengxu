@@ -85,6 +85,9 @@ Page({
   openSupplies(e) {
     wx.navigateTo({ url: `/pages/pet-space/supplies?kind=${e.currentTarget.dataset.kind}` });
   },
+  openReminders() {
+    wx.navigateTo({ url: '/pages/pet-space/reminders' });
+  },
   openFavorites() {
     wx.navigateTo({ url: '/pages/pet-space/library?mode=favorites' });
   },

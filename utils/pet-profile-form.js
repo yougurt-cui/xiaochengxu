@@ -45,6 +45,13 @@ export function profileForm(p) {
     form[key + 'Text'] = (form[key] || []).join('、');
   form.allergyChoice = form.allergies && form.allergies.length ? 'yes' : 'unknown';
   if (form.birthday) Object.assign(form, birthdayAge(form.birthday));
+  form.ageYears =
+    form.age_months != null
+      ? String(Math.round((form.age_months / 12) * 100) / 100)
+      : /^\d+(\.\d+)?(?:\s*岁)?$/.test(String(form.age_text || form.age || ''))
+      ? String(form.age_text || form.age).replace(/\s*岁$/, '')
+      : '';
+  form.ageEdited = false;
   return form;
 }
 export function profilePayload(f) {
@@ -67,6 +74,20 @@ export function profilePayload(f) {
   if (f.avatar_image_id) payload.avatar_image_id = f.avatar_image_id;
   if (f.birthday) Object.assign(payload, { birthday: f.birthday }, birthdayAge(f.birthday));
   else if (f.birthdayCleared) Object.assign(payload, { birthday: '', age: '', age_text: '', age_months: null });
+  if (f.ageEdited) {
+    const value = String(f.ageYears || '').trim();
+    if (value) {
+      const years = Number(value);
+      if (!/^\d+(\.\d{1,2})?$/.test(value) || !Number.isFinite(years) || years < 0 || years > 30)
+        throw new Error('年龄请填写 0～30 岁，可填写小数');
+      Object.assign(payload, {
+        birthday: '',
+        age: `${years}岁`,
+        age_text: `${years}岁`,
+        age_months: Math.round(years * 12),
+      });
+    } else Object.assign(payload, { birthday: '', age: '', age_text: '', age_months: null });
+  }
   // Preserve an existing age when editing a legacy profile without a birthday.
   if (f.weight !== '' && f.weight != null) {
     const weight = Number(f.weight);
