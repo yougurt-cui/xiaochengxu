@@ -213,17 +213,22 @@ button::after {
   display: flex;
   justify-content: space-between;
   gap: @space-xs;
-  margin: 14rpx 0 @space-md;
+  margin: @space-xs 0 @space-sm;
 }
 .category-tab {
   position: relative;
-  padding: 0 @space-compact @space-compact;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 @space-compact;
   margin: 0;
+  height: @layout-touch;
   min-height: @layout-touch;
   background: transparent;
   color: @colors-secondary;
   font-size: @type-small;
-  line-height: 76rpx;
+  line-height: 32rpx;
 }
 .category-tab.active {
   color: @colors-primary;
@@ -232,7 +237,8 @@ button::after {
 .category-tab.active::before {
   content: '';
   position: absolute;
-  bottom: 0;
+  // Keep an 8rpx gap below the centered 32rpx text line.
+  top: calc(50% + 16rpx + @space-xs);
   left: 50%;
   width: 36rpx;
   height: 6rpx;
@@ -319,4 +325,50 @@ page {
   font-weight: @weight-regular;
 }
 
-@import "./page-action-footer.less";
+@import './page-action-footer.less';
+
+// Theme light at the top fades into the shared page canvas.
+.page {
+  background-image: radial-gradient(ellipse 100% 360rpx at 15% 0, fade(@colors-primary, 14%), transparent 100%);
+  background-repeat: no-repeat;
+}
+.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  min-width: 0;
+  margin: 0;
+  padding: 12rpx 0;
+  background: transparent;
+  border-radius: @radius-small;
+  line-height: 1.4;
+}
+.calendar-week {
+  font-size: @type-micro;
+  color: @colors-muted;
+}
+.calendar-number {
+  font-size: @type-small;
+  font-weight: @weight-semibold;
+}
+.calendar-day.selected {
+  background: @colors-primary;
+  color: @colors-inverse;
+}
+.calendar-day.selected .calendar-week {
+  color: @colors-inverse;
+}
+.calendar-dot {
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: @radius-pill;
+  background: transparent;
+}
+.calendar-dot.has-reminder {
+  background: @colors-primary;
+}
+.calendar-day.selected .calendar-dot.has-reminder {
+  background: @colors-accent;
+}

@@ -1,3 +1,6 @@
+import { calendarDays, remindersOnDate, shiftDate, birthdayCountdown } from '../../utils/reminder-calendar';
+import { localDate, listReminders } from '../../utils/reminders';
+import { getReminderPrompt } from '../../utils/reminder-prompts';
 import { setModalData, syncModalTabBar } from '../../utils/modal-layout';
 import { categories, getFeedPosts, fetchPosts } from '../../utils/community';
 import { errorText, api, hasSession, mapPet } from '../../api/miniprogram';
@@ -13,7 +16,8 @@ Page({
     feedError: '',
     metrics: [],
     pet: null,
-    updated: '尚未记录',
+    hasReminders: false,
+    reminderPrompt: '',
     recordFields: [],
     recordTitle: '记一下',
     showRecord: false,
@@ -65,13 +69,40 @@ Page({
       if (!silent) this.setData({ loading: false });
     }
   },
+  openReminders() {
+    const hasReminders = (loadStore().reminders || []).length > 0;
+    this.setData({ hasReminders });
+    wx.navigateTo({ url: hasReminders ? '/pages/pet-space/reminders' : '/pages/pet-space/reminder-types' });
+  },
+  chooseCalendarDay(e) {
+    this.setData({ calendarDate: e.currentTarget.dataset.date });
+    this.refreshData();
+  },
+  openAllReminders() {
+    wx.navigateTo({ url: '/pages/pet-space/reminders' });
+  },
+  openCalendar() {
+    wx.navigateTo({ url: '/pages/pet-space/reminders?date=' + (this.data.calendarDate || localDate()) });
+  },
   refreshData() {
+    const calendarDate = this.data.calendarDate || localDate();
+    const pet = currentPet();
+    const reminders = listReminders().filter((r) => !r.petId || r.petId === pet?.id);
+    const calendarItems = remindersOnDate(reminders, calendarDate);
+
     const record = loadStore().records.find((r) => r.day === dayKey() && (r.petId || '') === (currentPet()?.id || ''));
     const notes = (record && record.litterNotes) || [];
     const litterStatus = notes.length ? notes[notes.length - 1].shape : '';
     this.setData({
       pet: currentPet(),
-      updated: record ? `${record.time} 更新` : '尚未记录',
+      calendarDate,
+      calendarDays: calendarDays(shiftDate(localDate(), -1), 7, calendarDate, reminders),
+      calendarSummary: calendarItems.length
+        ? calendarItems.map((r) => r.title).join(' · ')
+        : ['当天暂无提醒', birthdayCountdown(pet?.birthday)].filter(Boolean).join(' · '),
+      calendarCount: calendarItems.length,
+      hasReminders: (loadStore().reminders || []).length > 0,
+      reminderPrompt: getReminderPrompt(),
       metrics: [
         ['water', '饮水', 'ml'],
         ['food', '进食', 'g'],

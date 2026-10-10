@@ -1,21 +1,74 @@
 @import '../../styles/tokens.less';
 .record-card {
   background: @colors-surface;
-  border-radius: @radius-large;
-  padding: 28rpx;
-  margin-top: 24rpx;
+  border-radius: @radius-medium;
+  padding: @space-md;
+  margin-top: @space-md;
 }
-.record-values {
-  display: flex;
-  padding: 20rpx 0;
-}
-.record-values > view {
-  flex: 1;
+.record-heading {
   display: flex;
   align-items: center;
-  flex-direction: column;
-  gap: 12rpx;
-  font-size: 32rpx;
+  justify-content: space-between;
+  gap: @space-sm;
+  margin-bottom: @space-sm;
 }
-
-.litter-note { margin-top: 16rpx; line-height: 1.5; word-break: break-all; }
+.record-date {
+  font-size: @type-body;
+  font-weight: @weight-semibold;
+  color: @colors-text;
+  line-height: @leading-compact;
+}
+.record-updated {
+  font-size: @type-micro;
+  color: @colors-muted;
+  line-height: @leading-compact;
+}
+.record-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: @space-compact;
+}
+.record-metric {
+  min-width: 0;
+  padding: @space-compact;
+  background: @colors-metricSurface;
+  border-radius: @radius-small;
+}
+.record-label {
+  display: flex;
+  align-items: center;
+  gap: @space-xs;
+  color: @colors-primaryText;
+  font-size: @type-small;
+  font-weight: @weight-medium;
+  line-height: @leading-compact;
+}
+.record-value {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: @space-xxs;
+  margin-top: @space-xs;
+  font-size: @type-cardTitle;
+  font-weight: @weight-semibold;
+  color: @colors-text;
+  line-height: @leading-compact;
+  word-break: break-all;
+}
+.record-unit {
+  font-size: @type-micro;
+  font-weight: @weight-regular;
+  color: @colors-secondary;
+}
+.record-notes {
+  margin-top: @space-sm;
+  padding-top: @space-sm;
+  border-top: 1rpx solid @colors-line;
+}
+.litter-note {
+  font-size: @type-caption;
+  color: @colors-secondary;
+  line-height: 1.5;
+  word-break: break-all;
+}
+.litter-note + .litter-note { margin-top: @space-xs; }

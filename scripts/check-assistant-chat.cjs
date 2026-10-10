@@ -4,6 +4,7 @@ const vm = require('vm');
 const assert = require('node:assert/strict');
 let methods, mapper, pet, modalChoice, navigated, requests, calls, replies, hasSessionValue;
 let petList = null;
+let responseBody;
 const wx = {
   showModal: (options) => {
     assert.equal(options.confirmText, '去绑定宠物');
@@ -43,6 +44,7 @@ vm.runInNewContext(code + '\nexpose(chatMethods, mapChatMessage);', {
   accountKey: () => 'account1',
   request: async (url, method, data) => {
     requests.push({ url, method, data });
+    if (responseBody !== undefined) return { data: responseBody };
     return {
       data: {
         ok: true,
@@ -113,7 +115,8 @@ function page() {
   // Event handler starts an async request; wait until it settles.
   await new Promise((r) => setImmediate(r));
   assert.equal(requests[1].data.interaction.value, false);
-  assert.equal(Object.keys(requests[1].data).join(','), 'interaction');
+  assert.equal(Object.keys(requests[1].data).sort().join(','), 'client_context,interaction');
+  assert.equal(requests[1].data.client_context.recent_daily_records.length, 0);
   p = page();
   p.data.boundPet = pet;
   p._cloudConversationId = 'c1';
@@ -167,6 +170,36 @@ function page() {
   assert.equal(p.data.showChatPetPicker, false);
   await p.refreshChatPet();
   assert.equal(p.data.boundPet.id, 'pet2');
+  // New servers return ordered bubbles; legacy message repeats the last bubble.
+  const summary = { id: 'summary', role: 'assistant', content: '先看看它的情况', response_type: 'text' };
+  const question = { id: 'question', role: 'assistant', content: '最近换过粮吗？', response_type: 'single_select', interaction: { slot: 'changed', options: [{ label: '没有', value: false }] } };
+  for (const body of [
+    { ok: true, messages: [summary, question], message: question },
+    { ok: true, messages: [summary, question] },
+  ]) {
+    responseBody = body;
+    p = page(); p.data.boundPet = petList[0];
+    await p.sendCloudMessage({ message: '最近软便' }, '最近软便');
+    assert.equal(p.data.chatMessages.length, 3);
+    assert.deepEqual(Array.from(p.data.chatMessages.slice(1), (m) => m.id), ['summary', 'question']);
+    assert.equal(p.data.chatMessages[1].text, summary.content);
+    assert.equal(p.data.chatMessages[2].canInteract, true);
+    assert.equal(p.data.chatMessages[2].interaction.options[0].value, false);
+    assert.equal(p.data.sending, false);
+  }
+  for (const body of [{ ok: true, message: question }, { ok: true, messages: [], message: question }]) {
+    responseBody = body;
+    p = page(); p.data.boundPet = petList[0];
+    await p.sendCloudMessage({ message: '旧接口' }, '旧接口');
+    assert.equal(p.data.chatMessages.length, 2);
+    assert.equal(p.data.chatMessages[1].id, 'question');
+  }
+  responseBody = { ok: true, messages: [] };
+  p = page(); p.data.boundPet = petList[0];
+  await p.sendCloudMessage({ message: '保留草稿' }, '保留草稿');
+  assert.equal(p.data.chatMessages[1].cloudError, true);
+  assert.equal(p.data.inputMessage, '保留草稿');
+  responseBody = undefined;
   petList = []; pet = null; p = page();
   await p.openChatPetPicker();
   assert.equal(navigated, '/pages/pet-space/pet-edit');

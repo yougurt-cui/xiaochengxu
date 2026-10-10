@@ -12,6 +12,9 @@ export function mapPost(p) {
   return {
     id: p.id,
     userId: p.user_id,
+    liked: !!p.liked,
+    likes: Number(p.likes) || 0,
+    commentCount: Number(p.comment_count ?? p.commentCount) || 0,
     category: p.category_code,
     tag: p.category_name,
     image: mediaUrl(p.images && p.images[0] && (p.images[0].url || p.images[0])),

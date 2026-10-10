@@ -1,3 +1,4 @@
+import { chooseReminderPrompt } from './utils/reminder-prompts';
 import config from './config';
 import createBus from './utils/eventBus';
 
@@ -28,6 +29,9 @@ App({
       this.getUnreadNum();
       this.connect();
     }
+  },
+  onShow() {
+    chooseReminderPrompt();
   },
   globalData: {
     userInfo: null,

@@ -1,3 +1,4 @@
+import { syncBirthdayReminder } from '../../utils/reminders';
 import { birthdayAge, profileForm, profilePayload } from '../../utils/pet-profile-form';
 import { requireSession, api, login, hasSession, mapPet, errorText, recognizePetImage } from '../../api/miniprogram';
 import { loadStore, saveStore, cachePetList, accountKey } from '../../utils/pet-store';
@@ -68,7 +69,14 @@ Page({
   changeBirthday(e) {
     try {
       this.setData({
-        form: { ...this.data.form, birthday: e.detail.value, birthdayCleared: false, ...birthdayAge(e.detail.value) },
+        form: {
+          ...this.data.form,
+          birthday: e.detail.value,
+          birthdayCleared: false,
+          ageEdited: false,
+          ageYears: String(Math.round((birthdayAge(e.detail.value).age_months / 12) * 100) / 100),
+          ...birthdayAge(e.detail.value),
+        },
       });
     } catch (e) {
       wx.showToast({ title: errorText(e), icon: 'none' });
@@ -81,6 +89,8 @@ Page({
       'form.age_text': '',
       'form.age_months': null,
       'form.birthdayCleared': true,
+      'form.ageYears': '',
+      'form.ageEdited': false,
     });
   },
   chooseAllergy(e) {
@@ -224,6 +234,14 @@ Page({
       const store = loadStore();
       cachePetList([...(store.pets || (store.pet ? [store.pet] : [])).filter((p) => p.id !== saved.id), saved]);
       saveStore({ pet: saved, selectedPetId: saved.id });
+      try {
+        syncBirthdayReminder({
+          ...saved,
+          birthday: payload.birthday !== undefined ? payload.birthday : saved.birthday,
+        });
+      } catch (e) {
+        wx.showModal({ title: '档案已保存', content: '生日提醒未能保存，请在我的提醒中手动添加。', showCancel: false });
+      }
       wx.showToast({ title: '档案已保存' });
       wx.navigateBack();
     } catch (e) {

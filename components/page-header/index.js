@@ -1,5 +1,8 @@
 Component({
+  options: { multipleSlots: true },
   properties: {
+    search: Boolean,
+    inverse: Boolean,
     title: String,
     back: Boolean,
     customBack: Boolean,

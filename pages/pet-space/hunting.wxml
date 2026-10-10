@@ -1,7 +1,7 @@
 <view class="page hunting-page">
-  <page-header title="狩猎广场" back />
+  <page-header title="狩猎广场" back search><view slot="search" class="hunting-search"><p-icon name="search" size="30" /><input value="{{query}}" bindinput="input" bindconfirm="search" confirm-type="search" placeholder="查询品牌或系列名称" placeholder-style="font-weight:400;" maxlength="128" /></view></page-header>
   <view class="screen-body">
-    <view class="catalog-search hunting-search"><p-icon name="search" size="30" /><input value="{{query}}" bindinput="input" bindconfirm="search" confirm-type="search" placeholder="查询品牌或系列名称" maxlength="128" /></view>
+
     <view wx:if="{{loading}}" class="empty-state">正在寻找食物…</view>
     <view wx:elif="{{error}}" class="empty-state">{{error}}<button class="text-button" bindtap="search">重新加载</button></view>
     <view wx:elif="{{!items.length}}" class="empty-state">暂未找到相关食物，试试品牌名称，或投稿补充。</view>

@@ -10,7 +10,15 @@
   align-items: center;
   justify-content: space-between;
 }
-.daily-pet-update > text {
+.daily-reminder-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48rpx;
+  min-height: 64rpx;
+  margin: 0;
+  padding: 0 @space-xs;
+  background: transparent;
   font-size: @type-caption;
   font-weight: @weight-regular;
   color: @colors-primaryText;
@@ -186,19 +194,262 @@
   gap: @space-compact;
 }
 .daily-pet-button {
-  width: 44rpx;
-  height: 44rpx;
+  box-sizing: border-box;
+  width: 56rpx;
+  height: 56rpx;
   min-height: 0;
-  border-radius: 50%;
-  padding: 0;
+  border: 0;
+  border-radius: @radius-pill;
+  padding: @space-xxs;
   margin: 0;
-  background: @colors-accent;
+  background: @colors-surface;
+  line-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.daily-pet-image {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: @radius-pill;
+  overflow: hidden;
+}
 .daily-pet-photo {
-  width: 44rpx;
-  height: 44rpx;
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
+}
+
+// Longer reminder copy must not push the history entry outside the card.
+.daily-pet-update {
+  flex: 1;
+  min-width: 0;
+}
+.daily-pet-button {
+  flex-shrink: 0;
+}
+.daily-reminder-button {
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+}
+.daily-reminder-button text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.daily-head > .text-button {
+  flex-shrink: 0;
+  margin-left: @space-sm;
+}
+
+.daily-reminder-button.reminder-prompt-pill {
+  box-sizing: border-box;
+  min-height: 0;
+  padding: @space-xs @space-sm;
+  border-radius: @radius-pill;
+  background: @colors-accent;
+  color: @colors-primary;
+}
+
+// Compact daily totals; pet and reminder context lives in the calendar above.
+.daily-card {
+  padding: @space-sm @space-md;
+  margin-top: @space-md;
+  border-radius: @radius-medium;
+}
+.daily-title {
+  font-size: @type-small;
+  font-weight: @weight-semibold;
+  color: @colors-primaryText;
+}
+.daily-head > .text-button {
+  min-height: 40rpx;
+  font-size: @type-micro;
+}
+.daily-metrics {
+  margin: @space-xs 0;
+  gap: @space-sm;
+}
+.metric {
+  padding: @space-xs 0;
+  background: transparent;
+  border-radius: 0;
+}
+.metric-label {
+  font-size: @type-caption;
+  gap: @space-xxs;
+}
+.metric-number {
+  margin-top: @space-xxs;
+  font-size: @type-title;
+  flex-wrap: wrap;
+  line-height: 1.3;
+}
+.metric-number .metric-status {
+  font-size: @type-micro;
+}
+.daily-foot {
+  border-top: 1rpx solid fade(@colors-primary, 9%);
+  padding-top: @space-xs;
+}
+.daily-foot .text-button {
+  min-height: 48rpx;
+  font-size: @type-micro;
+}
+.daily-foot .record-button {
+  min-height: 48rpx;
+  font-size: @type-micro;
+  padding: 0 @space-sm;
+}
+.pet-calendar {
+  padding: @space-md;
+  border-radius: @radius-medium;
+  background: @colors-surface;
+}
+.calendar-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: @space-sm;
+}
+.calendar-pet {
+  display: flex;
+  align-items: center;
+  gap: @space-sm;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  text-align: left;
+  min-width: 0;
+}
+.calendar-pet-copy {
+  min-width: 0;
+}
+.calendar-pet-copy > text {
+  display: block;
+  line-height: 1.5;
+}
+.calendar-pet-copy > text:first-child {
+  font-size: @type-small;
+  font-weight: @weight-semibold;
+}
+.calendar-label {
+  color: @colors-primary;
+  font-size: @type-small;
+  font-weight: @weight-semibold;
+}
+.home-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: @space-xxs;
+}
+.calendar-summary {
+  display: flex;
+  align-items: center;
+  gap: @space-xs;
+  padding: @space-sm;
+  margin: @space-sm 0 0;
+  background: @colors-primarySoft;
+  border-radius: @radius-small;
+  color: @colors-primaryText;
+  font-size: @type-caption;
+  text-align: left;
+  line-height: 1.5;
+}
+.calendar-summary > text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-heading .calendar-more {
+  min-height: 48rpx;
+  padding: 0;
+  font-size: @type-caption;
+  flex-shrink: 0;
+}
+
+// Saturated theme header with a raised center curve and lower side shoulders.
+.home-page {
+  position: relative;
+  z-index: 0;
+  background-image: none;
+}
+.home-theme-backdrop {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 440rpx;
+  overflow: hidden;
+  background: @colors-primary;
+}
+.home-theme-curve {
+  position: absolute;
+  top: 230rpx;
+  left: 0;
+  width: 100%;
+  height: 440rpx;
+  border-radius: 72rpx 72rpx 0 0 / 160rpx 160rpx 0 0;
+  background: @colors-page;
+}
+.home-page .pet-calendar {
+  box-shadow: 0 8rpx 28rpx fade(@colors-primary, 5%);
+}
+
+.home-calendar-days .calendar-day.no-reminder {
+  background: @colors-surfaceMuted;
+}
+.home-calendar-days .calendar-day.selected {
+  background: @colors-primary;
+}
+.calendar-summary > text {
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+}
+
+// The whole inner tile is purple, separated from its outline by a white inset.
+.home-calendar-days .calendar-day {
+  box-sizing: border-box;
+  border: 4rpx solid transparent;
+  padding: 4rpx;
+}
+.calendar-day-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  flex: 1;
+  gap: 8rpx;
+  padding: 8rpx 0;
+  border-radius: 8rpx;
+}
+.home-calendar-days .calendar-day.selected,
+.home-calendar-days .calendar-day.today {
+  border-color: @colors-primary;
+  background: @colors-surface;
+}
+.home-calendar-days .calendar-day.selected .calendar-day-inner,
+.home-calendar-days .calendar-day.today .calendar-day-inner {
+  background: @colors-primary;
+  color: @colors-inverse;
+}
+.home-calendar-days .calendar-day.selected .calendar-week,
+.home-calendar-days .calendar-day.today .calendar-week {
+  color: @colors-inverse;
+}
+.home-calendar-days .calendar-day.selected .calendar-dot.has-reminder,
+.home-calendar-days .calendar-day.today .calendar-dot.has-reminder {
+  background: @colors-accent;
 }

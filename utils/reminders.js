@@ -1,6 +1,7 @@
 // Local repository boundary: replace these methods when reminder APIs are available.
 import { loadStore, saveStore } from './pet-store';
 export const reminderTypes = [
+  { id: 'birthday', name: '宠物生日', icon: 'gift' },
   { id: 'pump', name: '水泵清洁', icon: 'device' },
   { id: 'litter', name: '清理猫砂盆', icon: 'litter' },
   { id: 'bath', name: '洗澡清洁', icon: 'bath' },
@@ -59,6 +60,8 @@ export function saveReminder(form, now = Date.now()) {
   if (dueAt <= now && (!previous || previous.dueAt !== dueAt)) throw Error('请选择未来的提醒时间');
   const item = {
     id: previous?.id || `reminder-${now}-${Math.random().toString(36).slice(2, 8)}`,
+    source: previous?.source || '',
+    birthday: previous?.birthday || '',
     type: type.id,
     title,
     dueAt,
@@ -129,4 +132,44 @@ export function reminderView(item, now = Date.now()) {
     overdue,
     overdueText: overdue ? `逾期${Math.max(1, Math.ceil((now - item.dueAt) / 86400000))}天` : '待完成',
   };
+}
+
+// One auto-created annual reminder per pet. Preserve completion history and manual edits.
+export function syncBirthdayReminder(pet, now = Date.now()) {
+  if (!pet?.id) return;
+  const items = listReminders();
+  const previous = items.find((r) => r.source === 'pet-birthday' && r.petId === pet.id);
+  const birthday = String(pet.birthday || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthday)) {
+    if (previous) deleteReminder(previous.id);
+    return;
+  }
+  const [, month, day] = birthday.split('-').map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > new Date(2000, month, 0).getDate()) return;
+  if (previous?.birthday === birthday) {
+    saveStore({
+      reminders: items.map((r) => (r.id === previous.id ? { ...r, petName: pet.name, title: pet.name + '的生日' } : r)),
+    });
+    return;
+  }
+  const year = new Date(now).getFullYear();
+  let dueAt = new Date(year, month - 1, Math.min(day, new Date(year, month, 0).getDate()), 9).getTime();
+  if (dueAt <= now) dueAt = nextReminderTime({ dueAt, repeat: 'yearly', anchorDay: day, anchorMonth: month - 1 }, now);
+  const item = {
+    id: previous?.id || `birthday-${pet.id}`,
+    source: 'pet-birthday',
+    birthday,
+    type: 'birthday',
+    title: pet.name + '的生日',
+    dueAt,
+    repeat: 'yearly',
+    petId: pet.id,
+    petName: pet.name,
+    note: '生日当天 09:00，每年提醒',
+    anchorDay: day,
+    anchorMonth: month - 1,
+    createdAt: previous?.createdAt || now,
+    updatedAt: now,
+  };
+  saveStore({ reminders: previous ? items.map((r) => (r.id === previous.id ? item : r)) : [...items, item] });
 }

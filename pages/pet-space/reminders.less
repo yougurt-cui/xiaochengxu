@@ -1,1 +1,118 @@
 @import '../../styles/reminders.less';
+
+.reminder-calendar {
+  padding: @space-md;
+  background: @colors-surface;
+  border-radius: @radius-medium;
+}
+.calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: @type-body;
+  font-weight: @weight-semibold;
+  margin-bottom: @space-sm;
+}
+.calendar-controls {
+  display: flex;
+}
+.calendar-controls .text-button {
+  min-height: 48rpx;
+  width: 56rpx;
+  padding: 0;
+}
+.calendar-weekdays,
+.calendar-fortnight {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: @space-xs;
+}
+.calendar-weekdays {
+  text-align: center;
+  color: @colors-muted;
+  font-size: @type-caption;
+  margin-bottom: @space-sm;
+}
+.calendar-fortnight .calendar-day {
+  background: @colors-surfaceMuted;
+  height: 84rpx;
+  box-sizing: border-box;
+}
+.calendar-fortnight .calendar-day.today {
+  color: @colors-primary;
+}
+.calendar-fortnight .calendar-day.selected {
+  background: @colors-primary;
+  color: @colors-inverse;
+}
+.reminder-section-heading {
+  margin-top: @space-md;
+  font-size: @type-body;
+}
+.compact-reminder-types {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: @space-xs;
+}
+.compact-reminder-types button {
+  display: flex;
+  align-items: center;
+  gap: @space-xs;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: @space-sm @space-xs;
+  background: @colors-surface;
+  border-radius: @radius-small;
+  font-size: @type-micro;
+  line-height: 1.4;
+  text-align: left;
+}
+.compact-reminder-types button:first-child {
+  background: @colors-accent;
+}
+.reminder-list-heading {
+  display: flex;
+  align-items: center;
+  gap: @space-xs;
+  margin-top: @space-md;
+}
+.reminder-list-heading .text-button {
+  font-size: @type-small;
+  min-height: 64rpx;
+  padding: 0;
+}
+.reminder-list-heading > .text-button:last-child {
+  margin-left: auto;
+}
+.selected-filter {
+  font-weight: @weight-semibold;
+}
+.calendar-empty {
+  padding: @space-lg 0;
+  color: @colors-muted;
+  font-size: @type-small;
+  text-align: center;
+}
+.reminder-group-label {
+  color: @colors-secondary;
+  font-size: @type-caption;
+  margin: @space-sm 0;
+}
+.reminders-page .reminder-card {
+  padding: @space-sm @space-md;
+}
+.reminders-page .reminder-card-title {
+  margin: 0;
+  padding-bottom: @space-xs;
+}
+.reminders-page .reminder-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+.reminders-page .reminder-line {
+  margin: @space-xs 0;
+}
+.reminders-page .reminder-card-bottom {
+  margin-top: @space-xs;
+}

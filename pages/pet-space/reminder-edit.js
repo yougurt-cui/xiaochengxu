@@ -43,7 +43,7 @@ Page({
       type: type.id,
       title: item?.title || (type.id === 'custom' ? '' : type.name),
       icon: type.icon,
-      date: item ? localDate(item.dueAt) : '',
+      date: item ? localDate(item.dueAt) : /^\d{4}-\d{2}-\d{2}$/.test(q.date || '') ? q.date : '',
       time: item ? localTime(item.dueAt) : '',
       repeatIndex: Math.max(
         0,

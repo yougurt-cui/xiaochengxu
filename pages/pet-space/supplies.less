@@ -530,8 +530,14 @@
   align-items: stretch;
 }
 // Use the shared section heading spacing; avoid additional list padding.
-.food-page .diet-mine-row { padding-top: 0; padding-bottom: 0; }
-.food-page .section-content > .empty-state { margin-top: 0; padding-top: 0; }
+.food-page .diet-mine-row {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.food-page .section-content > .empty-state {
+  margin-top: 0;
+  padding-top: 0;
+}
 .diet-mine-row .food-mine-entry {
   box-sizing: border-box;
   min-height: 226rpx;
@@ -578,4 +584,47 @@
   background: fade(@colors-primarySoft, 45%);
   color: @colors-secondary;
   font-size: @type-micro;
+}
+
+.diet-mine-row .food-mine-card {
+  position: relative;
+}
+.food-current-check {
+  position: absolute;
+  right: 16rpx;
+  top: 16rpx;
+  width: 34rpx;
+  height: 34rpx;
+  border: 3rpx solid @colors-surface;
+  border-radius: @radius-pill;
+  background: @colors-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.diet-mine-row .food-mine-entry {
+  padding: @space-sm;
+  border: 3rpx dashed fade(@colors-primary, 32%);
+  background: @colors-primarySoft;
+  gap: @space-sm;
+  justify-content: center;
+}
+.entry-title {
+  text-align: center;
+  font-size: @type-small;
+  font-weight: @weight-semibold;
+  color: @colors-primaryText;
+}
+.food-mine-entry .entry-action {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: @space-xs;
+  min-height: 60rpx;
+  padding: @space-xs;
+  background: @colors-surface;
+  border-radius: @radius-pill;
+  font-size: @type-caption;
+  color: @colors-primary;
 }

@@ -5,7 +5,7 @@
   padding-left: @layout-gutter;
   box-sizing: border-box;
   color: @colors-text;
-  background: @colors-page;
+  background: transparent;
   font-size: @type-title;
   font-weight: @weight-semibold;
 }
@@ -22,3 +22,14 @@
 .back::after {
   border: 0;
 }
+
+.header-search {
+  flex: 1;
+  min-width: 0;
+}
+.header.search-header .back {
+  flex-shrink: 0;
+  width: 56rpx;
+}
+
+.header-inverse { color: @colors-inverse; }

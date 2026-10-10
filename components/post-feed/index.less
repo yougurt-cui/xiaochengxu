@@ -8,6 +8,11 @@
   min-width: 0;
 }
 .post {
+  overflow: hidden;
+  background: @colors-surface;
+  border: 1rpx solid fade(@colors-primary, 5%);
+  border-radius: @radius-small;
+  box-shadow: 0 4rpx 16rpx fade(@colors-text, 3%);
   margin-bottom: 20rpx;
 }
 .post-open {
@@ -26,7 +31,7 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: @radius-medium;
+  border-radius: 0;
   background: @colors-surfaceMuted;
 }
 
@@ -75,4 +80,28 @@
   padding: 0 8rpx;
   margin: 0;
   background: transparent;
+}
+
+.post .tag {
+  margin: @space-sm @space-sm @space-xs;
+}
+.post .title {
+  padding: 0 @space-sm;
+}
+.post .meta {
+  margin: @space-xs @space-sm @space-sm;
+}
+
+.byline-text.official-author {
+  display: inline-block;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: @space-xs @space-xs;
+  border-radius: 16rpx;
+  background: @colors-primary;
+  color: @colors-inverse;
+  font-size: @type-micro;
+  font-weight: @weight-medium;
+  line-height: 1;
+  vertical-align: middle;
 }

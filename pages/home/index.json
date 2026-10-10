@@ -1,5 +1,6 @@
 {
   "navigationStyle": "custom",
+  "navigationBarTextStyle": "white",
   "usingComponents": {
     "p-image": "/components/p-image"
   }

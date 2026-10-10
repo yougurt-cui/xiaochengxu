@@ -231,9 +231,11 @@ export const chatMethods = {
       const response = await this._sendRequest;
       if (version !== this._sendVersion) return;
       const body = response.data || {};
-      if (!body.ok || !body.message) throw new Error(body.error || '暂时无法获得回复');
-      const reply = mapChatMessage(body.message);
-      this.setData({ chatMessages: [...this.data.chatMessages, reply], sending: false });
+      const incoming =
+        Array.isArray(body.messages) && body.messages.length ? body.messages : body.message ? [body.message] : [];
+      if (!body.ok || !incoming.length) throw new Error(body.error || '暂时无法获得回复');
+      const replies = incoming.map(mapChatMessage);
+      this.setData({ chatMessages: [...this.data.chatMessages, ...replies], sending: false });
       this.scrollChat();
     } catch (error) {
       if (version !== this._sendVersion) return;

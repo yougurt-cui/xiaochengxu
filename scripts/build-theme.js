@@ -14,6 +14,13 @@ fs.writeFileSync(
   `// Generated from theme/tokens.json\nexport default ${JSON.stringify(tokens, null, 2)};\n`,
 );
 const icons = {
+  report: '<ellipse cx="4.5" cy="9" rx="2" ry="2.5" transform="rotate(-25 4.5 9)"/><ellipse cx="9" cy="4.8" rx="2" ry="2.6" transform="rotate(-10 9 4.8)"/><ellipse cx="15" cy="4.8" rx="2" ry="2.6" transform="rotate(10 15 4.8)"/><ellipse cx="19.5" cy="9" rx="2" ry="2.5" transform="rotate(25 19.5 9)"/><path d="M12 10c-2.7 0-3.5 2.2-5.3 4.2C5.2 15.9 4.5 17 5 18.8c.6 2.2 2.7 2.6 4.6 2 1.7-.6 3.1-.6 4.8 0 1.9.6 4 .2 4.6-2 .5-1.8-.2-2.9-1.7-4.6C15.5 12.2 14.7 10 12 10Z"/><path d="M12 13v3"/><circle cx="12" cy="18" r=".65" fill="COLOR" stroke="none"/>',
+  heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
+  'heart-filled': '<path fill="COLOR" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 5h3"/>',
+  gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13m0-13C5 8 5 2 8 3c3 0 4 5 4 5Zm0 0c7 0 7-6 4-5-3 0-4 5-4 5Z"/>',
+  flag: '<path d="M5 21V4m0 0c5-4 9 4 14 0v10c-5 4-9-4-14 0"/>',
+  alarm: '<circle cx="12" cy="13" r="8"/><path d="M12 8v5l3 2M3 5l3-3m12 0 3 3M6 20l-2 2m14-2 2 2"/>',
   bell: '<path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3ZM10 21h4M12 2v2"/>',
   health: '<rect x="3" y="6" width="18" height="15" rx="3"/><path d="M8 6V3h8v3M12 10v7m-3.5-3.5h7"/>',
   bath: '<path d="M3 12h18v3a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5v-3Zm3 8v2m12-2v2M6 12V5a3 3 0 0 1 6 0v1m-2 0h4"/>',
