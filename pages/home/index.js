@@ -175,6 +175,9 @@ Page({
     saveStore({ favorites: favorites.includes(id) ? favorites.filter((v) => v !== id) : [...favorites, id] });
     this.filterPosts();
   },
+  openHalloween() {
+    wx.navigateTo({ url: '/pages/halloween/index', fail: () => wx.showToast({ title: '活动页面打开失败，请重试', icon: 'none' }) });
+  },
   goRelease() {
     this._reloadFeedOnShow = true;
     wx.navigateTo({ url: '/pages/release/index' });

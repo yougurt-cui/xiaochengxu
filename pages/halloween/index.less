@@ -1,0 +1,69 @@
+@import '../../styles/tokens.less';
+page { background: @halloween-background; }
+.activity-page { min-height: 100vh; box-sizing: border-box; padding-bottom: calc(36rpx + env(safe-area-inset-bottom)); background: @halloween-background; color: @colors-inverse; font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; }
+.activity-page button { margin: 0; padding: 0; border: 0; font-size: 26rpx; line-height: 1.45; }
+.activity-page button::after { border: none; }
+.activity-page text { line-height: 1.45; }
+.activity-body { padding: 32rpx 46rpx 0; }
+.brand-pill, .tag { display: inline-block; padding: 12rpx 30rpx; border-radius: 30rpx; font-size: 22rpx; background: @halloween-pill; }
+.hero-title { margin-top: 28rpx; font-size: 56rpx; font-weight: 900; line-height: 1.45; }
+.hero-title text { display: block; color: @halloween-orange; font-size: 72rpx; }
+.hero-photo { margin-top: 30rpx; position: relative; width: 100%; aspect-ratio: 342 / 174; }
+.hero-photo image { display: block; width: 100%; height: 335rpx; border-radius: 42rpx; }
+.hero-photo text { position: absolute; left: 30rpx; bottom: 28rpx; padding: 12rpx 32rpx; border-radius: 40rpx; background: @halloween-cream; color: @halloween-ink; font-size: 21rpx; }
+.claim-card { margin: 38rpx -16rpx 0; padding: 32rpx; border-radius: 46rpx; color: @halloween-ink; background: @halloween-cream; }
+.tag { padding: 12rpx 22rpx; background: @halloween-lavender; color: @halloween-ink; }
+.quota { display: flex; align-items: baseline; gap: 12rpx; margin: 4rpx 0 20rpx; }
+.quota text:first-child { font-size: 92rpx; font-weight: 900; }
+.quota text:last-child { font-size: 29rpx; font-weight: 700; }
+.task-card { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; min-height: 132rpx; box-sizing: border-box; padding: 20rpx 24rpx; border-radius: 24rpx; background: @halloween-task; }
+.task-description { display: block; margin-top: 14rpx; font-size: 20rpx; color: @halloween-muted; }
+.activity-page .task-action { flex-shrink: 0; width: auto; padding: 12rpx 18rpx; min-height: 64rpx; margin-top: 0; border-radius: 14rpx; background: @halloween-taskAction; color: @halloween-link; font-size: 24rpx; display: flex; align-items: center; justify-content: center; }
+.task-complete { background: @halloween-successSurface; }
+.task-complete .task-description, .task-done { color: @halloween-successText; }
+.activity-page .activity-primary, .activity-page .activity-secondary { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 96rpx; box-sizing: border-box; margin-top: 30rpx; padding: 20rpx; border-radius: 29rpx; background: @halloween-orange; color: @halloween-ink; font-size: 31rpx; font-weight: 700; }
+.activity-page .activity-primary[disabled] { background: @halloween-disabled; color: @halloween-muted; }
+.activity-page .activity-secondary { background: @halloween-lavender; }
+.activity-page .text-action { min-height: 64rpx; padding: 16rpx 0; background: transparent; color: @halloween-link; font-size: 24rpx; text-align: center; }
+.quick-links { display: flex; gap: 34rpx; margin: 34rpx 0 46rpx; }
+.quick-links button { flex: 1; padding: 14rpx; background: @halloween-pill; color: @colors-inverse; border-radius: 40rpx; font-size: 22rpx; }
+.block-title { display: block; font-size: 31rpx; font-weight: 700; }
+.activity-footer { display: block; margin: 60rpx 0 30rpx; text-align: center; color: @halloween-lightText; font-size: 21rpx; }
+.status-box, .activity-error { padding: 24rpx; background: @halloween-task; border-radius: 24rpx; font-size: 24rpx; line-height: 1.6; }
+.status-box > text { display: block; margin-bottom: 12rpx; }
+.activity-error { margin-top: 16rpx; color: @halloween-link; }
+.success-view { text-align: center; padding-top: 24rpx; }
+.success-title { display: block; font-size: 54rpx; font-weight: 900; margin: 38rpx 0 20rpx; }
+.success-caption { display: block; color: @halloween-lightText; font-size: 24rpx; margin: 30rpx 0; }
+.success-photo { display: block; width: 315rpx; height: 285rpx; margin: 52rpx auto; }
+.code-card { padding: 32rpx; border-radius: 42rpx; background: @halloween-cream; color: @halloween-ink; text-align: left; }
+.code-label { display: block; font-size: 25rpx; color: @halloween-muted; margin-top: 26rpx; }
+.code-value { display: block; font-size: 44rpx; font-weight: 700; overflow-wrap: anywhere; text-align: center; margin: 24rpx 0; }
+.success-view > .text-action { color: @halloween-lavender; margin-top: 18rpx; }
+.activity-light { background: @halloween-cream; color: @halloween-ink; }
+.activity-page .detail-body { padding: 46rpx; margin: 0; }
+.detail-title { display: block; font-size: 50rpx; font-weight: 900; margin-bottom: 24rpx; }
+.detail-caption { display: block; color: @halloween-muted; font-size: 24rpx; margin: 16rpx 0; line-height: 1.7 !important; }
+.guide-step { display: flex; gap: 24rpx; margin-top: 66rpx; }
+.guide-step > view { flex: 1; }
+.step-number { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 58rpx; height: 54rpx; border-radius: 30rpx; background: @halloween-lavender; font-size: 22rpx; }
+.website { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; padding: 24rpx; margin: 56rpx 0 36rpx; border-radius: 24rpx; background: @halloween-task; font-size: 28rpx; }
+.website > text { min-width: 0; word-break: break-all; }
+.website button { flex-shrink: 0; background: transparent; color: @halloween-link; min-height: 64rpx; font-size: 23rpx; }
+.warm { background: @halloween-warm; }
+.rule-item { padding: 42rpx 0; border-bottom: 1rpx solid @halloween-line; }
+.rule-item:last-of-type { margin-bottom: 32rpx; }
+.preview-banner { display: flex; align-items: center; justify-content: space-between; padding: 8rpx 30rpx; font-size: 21rpx; background: @halloween-task; color: @halloween-link; }
+.preview-banner button { padding: 8rpx; min-height: 56rpx; background: transparent; font-size: 21rpx; color: @halloween-link; }
+
+.activity-topline, .benefit-heading { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; }
+.activity-page .rules-link { background: transparent; color: @halloween-lightText; min-height: 56rpx; padding: 12rpx 0 12rpx 20rpx; font-size: 23rpx; }
+.activity-page .refresh-button { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; flex-shrink: 0; background: transparent; }
+.refresh-button image { display: block; width: 36rpx; height: 36rpx; }
+.refresh-button[disabled] { opacity: .45; }
+.is-refreshing image { animation: refresh-spin 1s linear infinite; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
+.task-copy { flex: 1; min-width: 0; }
+.task-title { display: block; font-size: 27rpx; font-weight: 500; }
+.task-done { flex-shrink: 0; font-size: 23rpx; }
+

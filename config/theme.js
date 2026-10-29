@@ -78,5 +78,23 @@ export default {
     "heading": 1.3,
     "body": 1.6,
     "compact": 1.4
+  },
+  "halloween": {
+    "background": "#281439",
+    "ink": "#271538",
+    "orange": "#ff942f",
+    "cream": "#fff5e8",
+    "pill": "#493057",
+    "lightText": "#dbcbe7",
+    "lavender": "#eee3fb",
+    "muted": "#85758e",
+    "task": "#f0e5f8",
+    "link": "#795091",
+    "taskAction": "#e1c9f2",
+    "successSurface": "#e9f1e6",
+    "successText": "#397043",
+    "disabled": "#ddd5de",
+    "warm": "#ffe1bc",
+    "line": "#eaddcb"
   }
 };

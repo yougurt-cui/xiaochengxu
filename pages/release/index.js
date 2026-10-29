@@ -16,6 +16,8 @@ Page({
     draftId: '',
   },
   onLoad(query) {
+    this._activity = query.activity || '';
+    this._activityAccount = accountKey('activity-publish');
     const draft = loadStore().posts.find((p) => p.id === query.id && p.status === 'draft');
     if (draft)
       this.setData({
@@ -160,6 +162,9 @@ Page({
       const post = mapPost(result.item);
       const s = loadStore();
       saveStore({ posts: [post, ...s.posts.filter((p) => p.id !== this.data.draftId && p.id !== post.id)] });
+      if (this._activity === 'halloween-2026' && this._activityAccount === accountKey('activity-publish')) {
+        this.getOpenerEventChannel().emit('activityPostPublished', { id: post.id, status: post.status });
+      }
       wx.showToast({ title: post.status === 'published' ? '发布成功' : '已提交审核' });
       wx.navigateBack();
     } catch (e) {

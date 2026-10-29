@@ -7,6 +7,11 @@
   },
   "subpackages": [
     {
+      "root": "pages/halloween",
+      "name": "halloween",
+      "pages": ["index"]
+    },
+    {
       "root": "pages/history",
       "name": "history",
       "pages": ["index"]
