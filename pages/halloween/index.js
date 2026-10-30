@@ -6,9 +6,9 @@ import { shareCard, timelineCard } from '../../utils/share';
 Page({
   data: {
     view: 'home', status: 'loading', record: null, loading: true, claiming: false,
-    error: '', claimedTime: '',
+    error: '', claimedTime: '', redeemUrl: REDEEM_URL,
     steps: [
-      { title: '复制你的兑换码', body: '领取成功后，点击「复制兑换码」。' },
+      { title: '复制你的兑换码', body: '领取成功后，点击「复制」。' },
       { title: '在浏览器打开网站', body: '复制下方网址，粘贴至手机浏览器打开。' },
       { title: '登录个人空间并兑换', body: '找到「Redeem event code」，输入兑换码，点击「Redeem」。' },
       { title: '开始你的萌宠创作', body: '兑换成功后查看钱包额度，上传宠物照片，创作万圣节造型。' },
@@ -23,7 +23,7 @@ Page({
   onLoad(query = {}) {
     const view = ['rules', 'guide'].includes(query.view) ? query.view : 'home';
     this.setData({ view });
-    wx.setNavigationBarColor({ frontColor: view === 'home' ? '#ffffff' : '#000000', backgroundColor: view === 'home' ? '#281439' : '#fff5e8' });
+    wx.setNavigationBarColor({ frontColor: view !== 'rules' ? '#ffffff' : '#000000', backgroundColor: view !== 'rules' ? '#281439' : '#fff5e8' });
   },
   onShow() {
     this._alive = true;
@@ -87,6 +87,12 @@ Page({
   },
   copyCode() {
     if (this.data.record && this.data.record.code) this.copy(this.data.record.code);
+  },
+  goRedeem() {
+    wx.navigateTo({
+      url: '/pages/halloween/redeem',
+      fail: () => wx.showToast({ title: '网页打开失败，请重试', icon: 'none' }),
+    });
   },
   copyUrl() { this.copy(REDEEM_URL); },
   copy(value) {

@@ -9,7 +9,7 @@
     {
       "root": "pages/halloween",
       "name": "halloween",
-      "pages": ["index"]
+      "pages": ["index", "redeem"]
     },
     {
       "root": "pages/history",

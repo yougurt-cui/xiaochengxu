@@ -1,5 +1,5 @@
-<view class="activity-page {{view !== 'home' ? 'activity-light' : ''}}">
-  <page-header title="万圣节萌宠变装" back inverse="{{view === 'home'}}" />
+<view class="activity-page {{view === 'rules' ? 'activity-light' : ''}} {{view === 'guide' ? 'activity-guide' : ''}}">
+  <page-header title="万圣节萌宠变装" back inverse="{{view !== 'rules'}}" />
 
   <view wx:if="{{view === 'home'}}" class="activity-body">
     <block wx:if="{{status !== 'claimed'}}">
@@ -25,19 +25,26 @@
       <text class="activity-footer">宠析 × aibubu 联合呈现</text>
     </block>
     <view wx:else class="success-view">
-      <text class="tag">已领取</text><text class="success-title">魔法兑换码，到手！</text><text class="success-caption">快为毛孩子生成一张万圣节大片吧</text>
+      <text class="success-title">魔法兑换码，到手！</text><text class="success-caption">快为毛孩子生成一张万圣节大片吧</text>
       <image class="success-photo" src="assets/success.png" mode="aspectFit" />
-      <view class="code-card"><text class="tag">已领取</text><text class="code-label">专属生图兑换码</text><text class="code-value" selectable>{{record.code}}</text><button class="activity-primary" bindtap="copyCode">复制兑换码</button></view>
-      <text class="success-caption">兑换码已保存，再次进入活动页即可查看</text>
+      <view class="code-card"><text class="code-value" selectable>{{record.code}}</text><view class="code-actions"><button class="activity-primary" bindtap="goRedeem">去使用</button><button class="activity-secondary" bindtap="copyCode">复制</button></view></view>
       <button class="activity-secondary" data-view="guide" bindtap="openView">查看使用方法 →</button>
     </view>
   </view>
 
-  <view wx:elif="{{view === 'guide'}}" class="detail-body">
-    <text class="detail-title">把魔法带到 aibubu</text><text class="detail-caption">兑换码在网站使用，小程序内领取与查看</text>
-    <view class="guide-step" wx:for="{{steps}}" wx:key="title"><text class="step-number">{{index + 1}}</text><view><text class="block-title">{{item.title}}</text><text class="detail-caption">{{item.body}}</text></view></view>
-    <view class="website"><text selectable>https://aibubu.cn/en</text><button bindtap="copyUrl">复制网址</button></view>
-    <text class="detail-caption">请在个人空间兑换；同一活动每人限兑换一次。</text><text class="detail-caption">兑换有效期与可获额度以活动说明为准。</text>
+  <view wx:elif="{{view === 'guide'}}" class="guide-body">
+    <view class="guide-hero"><image class="guide-art" src="assets/guide-reference.jpg" mode="scaleToFill" aria-label="把魔法带到 aibubu，上传你家毛孩子的万圣节造型，领取专属兑换码，生成萌宠大片" /></view>
+    <view class="guide-panel">
+      <view class="guide-step guide-step-{{index}}" wx:for="{{steps}}" wx:key="title">
+        <view class="step-rail"><text class="step-number">{{index + 1}}</text><view wx:if="{{index < 3}}" class="step-line"></view></view>
+        <view class="step-icon"><image class="guide-art" src="assets/guide-reference.jpg" mode="scaleToFill" /></view>
+        <view class="step-copy"><text class="block-title">{{item.title}}</text><text class="detail-caption">{{item.body}}</text></view>
+        <view wx:if="{{index > 0}}" class="step-preview"><image class="guide-art" src="assets/guide-reference.jpg" mode="scaleToFill" /></view>
+      </view>
+      <view class="guide-website"><view><text class="website-label">活动网址</text><text class="website-url" selectable>{{redeemUrl}}</text></view><button bindtap="copyUrl"><text class="copy-symbol">▢</text>复制网址</button></view>
+      <view class="guide-notes"><text class="notes-title">❕ 注意事项</text><text>•　请在个人空间兑换；同一活动每人限兑换一次。</text><text>•　兑换有效期与可获额度以活动说明为准。</text></view>
+    </view>
+    <view class="guide-bottom"><image class="guide-art" src="assets/guide-reference.jpg" mode="scaleToFill" /></view>
   </view>
   <view wx:elif="{{view === 'rules'}}" class="detail-body">
     <text class="detail-title">奇妙夜，先读小规则</text><text class="tag warm">限量 50 名 · 先到先得</text>

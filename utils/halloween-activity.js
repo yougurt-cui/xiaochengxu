@@ -3,7 +3,7 @@ import { api, hasSession } from '../api/miniprogram';
 
 export const HALLOWEEN_ID = 'halloween-2026';
 export const ACTIVITY_ID = 1001;
-export const REDEEM_URL = 'https://aibubu.cn/en';
+export const REDEEM_URL = 'https://aibubu.cn/zh';
 
 function storageKey() {
   return accountKey(`activity-post:${ACTIVITY_ID}`);

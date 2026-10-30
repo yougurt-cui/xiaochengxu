@@ -1,0 +1,7 @@
+<web-view wx:if="{{!failed}}" src="{{url}}" binderror="onWebError" />
+<view wx:else class="web-error">
+  <text>网页暂时无法打开</text>
+  <text>可复制网址，在浏览器中打开 aibubu。</text>
+  <text selectable>{{url}}</text>
+  <button bindtap="copyUrl">复制网址</button>
+</view>

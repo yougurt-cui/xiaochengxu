@@ -53,7 +53,7 @@ async function run() {
   let statusImpl = async () => ({ status: 'eligible', record: null });
   vm.runInNewContext(fs.readFileSync('pages/halloween/index.js', 'utf8').replace(/^import .*;$/gm, ''), {
     Page: p => { pageDef = p; }, requireSession() {}, accountKey: () => user,
-    HALLOWEEN_ID: 'halloween-2026', REDEEM_URL: 'https://aibubu.cn/en',
+    HALLOWEEN_ID: 'halloween-2026', REDEEM_URL: 'https://aibubu.cn/zh',
     getActivityStatus: () => statusImpl(), claimActivityCode: () => { claims++; return new Promise(resolve => { resolveClaim = resolve; }); },
     wx: { pageScrollTo() {}, setClipboardData: args => { copied = args.data; }, setNavigationBarColor() {} },
   });

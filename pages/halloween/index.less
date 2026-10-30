@@ -37,6 +37,8 @@ page { background: @halloween-background; }
 .success-caption { display: block; color: @halloween-lightText; font-size: 24rpx; margin: 30rpx 0; }
 .success-photo { display: block; width: 315rpx; height: 285rpx; margin: 52rpx auto; }
 .code-card { padding: 32rpx; border-radius: 42rpx; background: @halloween-cream; color: @halloween-ink; text-align: left; }
+.code-actions { display: flex; gap: 20rpx; margin-top: 30rpx; }
+.activity-page .code-actions button { flex: 1; width: 0; min-width: 0; margin-top: 0; }
 .code-label { display: block; font-size: 25rpx; color: @halloween-muted; margin-top: 26rpx; }
 .code-value { display: block; font-size: 44rpx; font-weight: 700; overflow-wrap: anywhere; text-align: center; margin: 24rpx 0; }
 .success-view > .text-action { color: @halloween-lavender; margin-top: 18rpx; }
@@ -44,12 +46,6 @@ page { background: @halloween-background; }
 .activity-page .detail-body { padding: 46rpx; margin: 0; }
 .detail-title { display: block; font-size: 50rpx; font-weight: 900; margin-bottom: 24rpx; }
 .detail-caption { display: block; color: @halloween-muted; font-size: 24rpx; margin: 16rpx 0; line-height: 1.7 !important; }
-.guide-step { display: flex; gap: 24rpx; margin-top: 66rpx; }
-.guide-step > view { flex: 1; }
-.step-number { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 58rpx; height: 54rpx; border-radius: 30rpx; background: @halloween-lavender; font-size: 22rpx; }
-.website { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; padding: 24rpx; margin: 56rpx 0 36rpx; border-radius: 24rpx; background: @halloween-task; font-size: 28rpx; }
-.website > text { min-width: 0; word-break: break-all; }
-.website button { flex-shrink: 0; background: transparent; color: @halloween-link; min-height: 64rpx; font-size: 23rpx; }
 .warm { background: @halloween-warm; }
 .rule-item { padding: 42rpx 0; border-bottom: 1rpx solid @halloween-line; }
 .rule-item:last-of-type { margin-bottom: 32rpx; }
@@ -64,3 +60,41 @@ page { background: @halloween-background; }
 .task-copy { flex: 1; min-width: 0; }
 .task-title { display: block; font-size: 27rpx; font-weight: 500; }
 .task-done { flex-shrink: 0; font-size: 23rpx; }
+
+// Display selected artwork from the supplied reference; all guide copy and actions remain native.
+.activity-guide { padding-bottom: env(safe-area-inset-bottom); background: @halloween-background; }
+.guide-body { overflow: hidden; }
+.guide-art { position: absolute; width: 750rpx; height: 1621.34rpx; max-width: none; }
+.guide-hero { position: relative; height: 320rpx; overflow: hidden; }
+.guide-hero .guide-art { top: -140rpx; left: 0; }
+.guide-panel { position: relative; z-index: 1; margin: -6rpx 17rpx 0; padding: 48rpx 26rpx 26rpx; border-radius: 36rpx; background: @colors-inverse; color: @halloween-ink; }
+.guide-step { position: relative; display: flex; align-items: flex-start; gap: 18rpx; min-height: 170rpx; }
+.step-rail { align-self: stretch; position: relative; width: 54rpx; flex-shrink: 0; }
+.step-number { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; background: @halloween-lavender; font-size: 30rpx; font-weight: 600; }
+.step-line { position: absolute; top: 68rpx; bottom: 12rpx; left: 26rpx; border-left: 3rpx dashed @halloween-taskAction; }
+.step-icon { position: relative; flex-shrink: 0; width: 88rpx; height: 100rpx; overflow: hidden; }
+.step-icon .guide-art { left: -130rpx; }
+.guide-step-0 .step-icon .guide-art { top: -500rpx; }
+.guide-step-1 .step-icon .guide-art { top: -642rpx; }
+.guide-step-2 .step-icon .guide-art { top: -808rpx; }
+.guide-step-3 .step-icon .guide-art { top: -981rpx; }
+.step-copy { flex: 1; min-width: 0; }
+.guide-step .block-title { font-size: 27rpx; line-height: 1.45; }
+.guide-step .detail-caption { margin: 10rpx 0 24rpx; font-size: 22rpx; }
+.step-preview { position: relative; flex-shrink: 0; width: 150rpx; height: 136rpx; overflow: hidden; border-radius: 18rpx; }
+.step-preview .guide-art { left: -539rpx; }
+.guide-step-1 .step-preview .guide-art { top: -622rpx; }
+.guide-step-2 .step-preview .guide-art { top: -795rpx; }
+.guide-step-3 .step-preview .guide-art { top: -965rpx; }
+.guide-step-3 { min-height: 158rpx; }
+.guide-website { display: flex; align-items: center; gap: 12rpx; justify-content: space-between; padding: 22rpx 24rpx; border-radius: 18rpx; background: @halloween-lavender; }
+.guide-website > view { min-width: 0; }
+.website-label { display: block; color: @halloween-link; font-size: 22rpx; }
+.website-url { display: block; margin-top: 6rpx; font-size: 27rpx; font-weight: 600; word-break: break-all; }
+.activity-page .guide-website button { display: flex; align-items: center; gap: 8rpx; flex-shrink: 0; min-height: 72rpx; background: transparent; color: @halloween-link; font-size: 23rpx; font-weight: 600; }
+.copy-symbol { font-size: 34rpx; }
+.guide-notes { margin-top: 20rpx; padding: 22rpx 24rpx; border-radius: 18rpx; background: @halloween-task; }
+.guide-notes text { display: block; color: @halloween-muted; font-size: 21rpx; line-height: 1.8; }
+.guide-notes .notes-title { margin-bottom: 8rpx; color: @halloween-link; font-size: 25rpx; font-weight: 700; }
+.guide-bottom { position: relative; height: 190rpx; margin-top: -12rpx; overflow: hidden; }
+.guide-bottom .guide-art { left: 0; top: -1431.34rpx; }
