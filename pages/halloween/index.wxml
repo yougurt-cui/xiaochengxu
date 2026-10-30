@@ -1,6 +1,5 @@
 <view class="activity-page {{view !== 'home' ? 'activity-light' : ''}}">
   <page-header title="万圣节萌宠变装" back inverse="{{view === 'home'}}" />
-  <view wx:if="{{preview}}" class="preview-banner">体验演示 · 示例兑换码不可兑换<button bindtap="previewStates">切换状态</button></view>
 
   <view wx:if="{{view === 'home'}}" class="activity-body">
     <block wx:if="{{status !== 'claimed'}}">
@@ -11,12 +10,13 @@
         <view class="benefit-heading"><text class="tag">联名限量福利</text><button class="refresh-button {{loading ? 'is-refreshing' : ''}}" bindtap="refreshStatus" disabled="{{loading || claiming}}" aria-label="刷新任务和领取状态"><image src="assets/refresh.svg" mode="aspectFit" /></button></view>
         <view class="quota"><text>50</text><text>个名额 · 先到先得</text></view>
         <view wx:if="{{loading}}" class="status-box">正在查询任务与领取状态…</view>
+        <view wx:elif="{{status === 'loginRequired'}}" class="status-box"><text>登录后查看任务与兑换码</text><button class="activity-secondary" bindtap="loginForActivity">登录参与活动</button></view>
         <view wx:elif="{{status === 'unavailable'}}" class="status-box"><text class="block-title">活动领取即将开放</text><text>开放后将自动检查任务与领取状态。</text></view>
         <view wx:elif="{{status === 'soldOut'}}" class="status-box"><text class="block-title">这次的魔法，已派送完</text><text>感谢参与，期待下次一起变萌！</text></view>
         <view wx:elif="{{status !== 'error'}}" class="task-card {{status === 'eligible' ? 'task-complete' : ''}}">
-          <view class="task-copy"><text class="task-title">发布 1 条活动帖子</text><text class="task-description">{{status === 'eligible' ? '已完成 1/1 项' : '完成 0/1 项 · 发帖后返回检查进度'}}</text></view>
+          <view class="task-copy"><text class="task-title">发布 1 条活动帖子</text><text class="task-description">{{status === 'eligible' ? '已发帖 1/1 项' : '完成 0/1 项 · 发帖后返回检查进度'}}</text></view>
           <button wx:if="{{status === 'incomplete'}}" class="task-action" bindtap="goPost">去发帖 →</button>
-          <text wx:else class="task-done">✓ 已达标</text>
+          <text wx:else class="task-done">✓ 已发帖</text>
         </view>
         <view wx:if="{{error}}" class="activity-error">{{error}}<button class="text-action" bindtap="refreshStatus" disabled="{{claiming}}">重新查询</button></view>
         <button wx:if="{{status !== 'soldOut'}}" class="activity-primary" bindtap="claim" loading="{{claiming}}" disabled="{{status !== 'eligible' || loading || claiming}}">{{claiming ? '领取中…' : loading ? '正在查询…' : status === 'unavailable' ? '即将开放' : status === 'error' ? '查询后可领取' : '立即领取兑换码'}}</button>
@@ -27,7 +27,7 @@
     <view wx:else class="success-view">
       <text class="tag">已领取</text><text class="success-title">魔法兑换码，到手！</text><text class="success-caption">快为毛孩子生成一张万圣节大片吧</text>
       <image class="success-photo" src="assets/success.png" mode="aspectFit" />
-      <view class="code-card"><text class="tag">已领取</text><text class="code-label">专属生图兑换码{{record.preview ? '（演示）' : ''}}</text><text class="code-value" selectable>{{record.code}}</text><button class="activity-primary" bindtap="copyCode">复制兑换码</button></view>
+      <view class="code-card"><text class="tag">已领取</text><text class="code-label">专属生图兑换码</text><text class="code-value" selectable>{{record.code}}</text><button class="activity-primary" bindtap="copyCode">复制兑换码</button></view>
       <text class="success-caption">兑换码已保存，再次进入活动页即可查看</text>
       <button class="activity-secondary" data-view="guide" bindtap="openView">查看使用方法 →</button>
     </view>

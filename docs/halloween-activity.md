@@ -1,23 +1,25 @@
 # 万圣节活动前端
 
-入口：`pages/home/index` 浮动按钮 → `pages/halloween/index`。同一活动页通过 `view=rules|guide` 展示规则和使用方法。领取后在活动主页直接展示兑换码，不设置领取记录入口或页面；旧的 `view=records` 链接回落到主页。沿用自定义 page-header、安全区与原生剪贴板。
+首页浮动入口 → `pages/halloween/index`；`view=rules|guide` 展示规则与使用方法。领取后活动主页直接展示并复制兑换码，不设置领取记录页。
 
-Figma：首页任务未完成 `16:97`、已达标 `12:92`、已领取 `12:127`、浮动入口 `18:94`（文件 dXX4qmudMEu1hgqaFkCsox）。摄影资源仅导出独立图片层，文字与按钮由原生 WXML 绘制。
+## 正式接口
 
-## 验收
+依据后端 `docs/activity-code-claim.md`，当前 `utils/halloween-activity.js` 中 `ACTIVITY_ID=1001`。文档当前将 1001 标为测试活动；更换正式活动时需同步此常量。UI 中 50 名是投放海报的总名额文案，不代表实时剩余库存。
 
-开发版或体验版有“体验演示”标识，点击“切换状态”选择未完成、已达标、已领取、名额领完或查询异常。示例码 `DEMO-XXXX-XXXX` 无法兑换；演示记录按活动、账号保存在当前设备。重置未完成会清除此账号演示记录。
+- 发帖沿用 `POST /moments`，不传 activity_id，避免发布成功自动消耗库存。
+- 发帖响应 `item.id`（服务端 32 位帖子 ID）通过 `saveActivityPost` 保存到 `activity-post:1001:<账号>`，字段为 post_id、status、saved_at。审核中帖子也保存 ID，但不显示可领取。保存不依赖一次性弹窗是否已经展示。
+- 进入活动页调用 `GET /activity/1001/my-code`。SUCCESS / ALREADY_CLAIMED 恢复原码，即使设备没有本地帖子 ID；NOT_CLAIMED 根据当前设备暂存的发帖凭据显示任务进度。
+- 点击领取调用 `POST /activity/claim`，传 activity_id 和暂存的 post_id；成功与已领取均直接展示服务端原码。不再生成、缓存或展示 DEMO 码，旧模拟数据不会迁移。
+- BUSY 可重试；OUT_OF_STOCK 展示领完；403 清理当前失效的帖子凭据并允许重新发帖；401 提示登录；其他错误展示后端信息或网络重试提示。重复点击在前端锁定，最终幂等由后端保证。
 
-刷新只查询，不会使任务自动达标。从活动页进入真实发帖页，成功发布且状态为 published 才通过 eventChannel 更新演示资格；取消、失败、保存草稿、待审核均不达标。开发验收可直接切换状态，无需发布真实帖子。
+后端没有独立的资格或用户可读库存查询接口，不能靠本地凭据保证已达标；UI 标记“已发帖”，领取时由服务端检查所属用户、帖子状态、话题、活动起止时间与库存。后端当前限制每活动每用户一码。换设备未领过码且无本地凭据时需发帖，已领用户可正常恢复。API 复用既有认证请求层，不调用运营接口。
 
-正式版环境禁用本地领取、状态切换和模拟记录，显示“即将开放”。当前不发放真实权益、不请求尚未定义的接口。
+## 一次性任务提示
 
-## 后端接入边界
+发帖成功且返回 published 后，在 `activity-task-prompt:halloween-2026:<账号>` 保存待提示状态。首页 onShow 显示“已完成发帖任务”，左“取消”、右“领取奖励”；确认进入活动页，不自动领取。取消、确认、再次发帖、重启均不重复。草稿、待审核、失败不触发；原生弹窗失败才恢复待提示。清除本地存储会重置。
 
-替换 `utils/halloween-activity.js` 的 `getActivityStatus`、`claimActivityCode` 为正式接口；页面消费统一模型：`status`（incomplete / eligible / claimed / soldOut / unavailable）、`record`（code、claimedAt、preview）、`preview`。查询失败抛出错误。领取接口必须原子校验资格与库存、按用户和活动幂等；已领取记录优先于库存状态。同一用户不同设备的记录必须由服务端返回。
+## 验证
 
-接入后移除本地发帖达标推断及演示开关，返回页面时查询服务端。每码额度、活动时间、发帖要求、审核规则、有效期和正式开放配置仍待运营与后端确认。页面不会推断网站端是否已兑换。
+`npm run test:halloween` 验证服务返回、发帖凭据隔离、恢复兑换码、请求参数、BUSY/OUT_OF_STOCK/403、重复点击、复制、过期响应和一次性提示。`npm run test:contracts` 验证共用认证请求层。测试使用替身接口，不发布真实帖子或消耗活动码。
 
-主题颜色新增在 `theme/tokens.json` 的 halloween 分组；运行 `npm run theme` 生成 LESS 和 JS。浮动入口固定在发布按钮上方，打开首页记录弹层时隐藏。
-
-运行 `node scripts/check-halloween.cjs` 验证任务门槛、账号隔离、重复领取、保存失败、库存优先级与页面交互；WXML/LESS 另需编译。微信开发者工具的服务端口未开启时无法自动运行模拟器验收。
+Figma 文件 dXX4qmudMEu1hgqaFkCsox。活动主题使用 theme/tokens.json 的 halloween 分组。WXML 与 LESS 需编译检查；微信开发者工具服务端口关闭时无法自动运行模拟器。

@@ -1,4 +1,6 @@
 import { categories, mapPost } from '../../utils/community';
+import { saveActivityPost } from '../../utils/halloween-activity';
+import { queueHalloweenTaskPrompt } from '../../utils/halloween-task-prompt';
 import { loadStore, saveStore, persistImage, accountKey } from '../../utils/pet-store';
 import { requireSession, api, login, uploadImage, errorText, hasSession, mediaUrl } from '../../api/miniprogram';
 Page({
@@ -139,6 +141,7 @@ Page({
     this.setData({ saving: true });
     try {
       const user = await login();
+      const publishAccount = accountKey('activity-publish');
       await this.loadPets();
       if (this.data.petsError) throw new Error(this.data.petsError);
       const images = [];
@@ -160,8 +163,15 @@ Page({
         author_avatar: user.avatarUrl,
       });
       const post = mapPost(result.item);
+      if (publishAccount === accountKey('activity-publish')) {
+        try { saveActivityPost(post); }
+        catch (_) { wx.showToast({ title: '帖子已发布，活动凭据保存失败', icon: 'none' }); }
+      }
       const s = loadStore();
       saveStore({ posts: [post, ...s.posts.filter((p) => p.id !== this.data.draftId && p.id !== post.id)] });
+      if (publishAccount === accountKey('activity-publish')) {
+        try { queueHalloweenTaskPrompt(post); } catch (_) { /* Local reminder failure must not fail publication. */ }
+      }
       if (this._activity === 'halloween-2026' && this._activityAccount === accountKey('activity-publish')) {
         this.getOpenerEventChannel().emit('activityPostPublished', { id: post.id, status: post.status });
       }

@@ -1,4 +1,5 @@
 import { deviceRequest } from '../../utils/device-api';
+import { showHalloweenTaskPrompt } from '../../utils/halloween-task-prompt';
 import { shareCard, timelineCard } from '../../utils/share';
 import { calendarDays, remindersOnDate, shiftDate, birthdayCountdown } from '../../utils/reminder-calendar';
 import { localDate, listReminders } from '../../utils/reminders';
@@ -57,6 +58,7 @@ Page({
       this._reloadFeedOnShow = false;
       this.loadFeed();
     }
+    showHalloweenTaskPrompt();
   },
   async syncPets() {
     if (!hasSession()) return;

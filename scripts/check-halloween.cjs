@@ -1,92 +1,97 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-let user = 'alice', env = 'develop', brokenStorage = false;
-const memory = new Map();
-const wx = {
-  getAccountInfoSync: () => ({ miniProgram: { envVersion: env } }),
-  getStorageSync: key => memory.get(key),
-  setStorageSync: (key, value) => { if (brokenStorage) throw new Error('disk full'); memory.set(key, value); },
-};
-const ctx = { wx, accountKey: key => `${key}:${user}` };
+let user = 'alice', authenticated = true, response, failure, requests = [];
+const storage = new Map();
+const wx = { getStorageSync: key => storage.get(key), setStorageSync: (key, value) => storage.set(key, value), removeStorageSync: key => storage.delete(key) };
+const ctx = { wx, accountKey: key => `${key}:${user}`, hasSession: () => authenticated,
+  api: async (path, method = 'GET', data) => { requests.push({ path, method, data }); if (failure) throw failure; return response; } };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync('utils/halloween-activity.js', 'utf8').replace(/^import .*;$/gm, '').replace(/export /g, ''), ctx);
+const postId = 'a'.repeat(32);
 async function run() {
+  authenticated = false;
+  assert.equal((await ctx.getActivityStatus()).status, 'loginRequired');
+  assert.equal(requests.length, 0);
+  authenticated = true;
+  response = { ok: true, status: 'NOT_CLAIMED', code: null };
   assert.equal((await ctx.getActivityStatus()).status, 'incomplete');
-  await assert.rejects(ctx.claimActivityCode(), /完成活动任务/);
-  ctx.markActivityPostPublished({ id: 'p1', status: 'pending' });
-  assert.equal((await ctx.getActivityStatus()).status, 'incomplete', 'pending moderation is not eligible');
-  ctx.markActivityPostPublished({ id: 'p1', status: 'published' });
+  assert.equal(requests[0].path, '/activity/1001/my-code');
+  ctx.saveActivityPost({ id: 'draft-1', status: 'published' });
+  assert.equal(ctx.getActivityPost(), null);
+  ctx.saveActivityPost({ id: postId, status: 'pending' });
+  assert.equal(ctx.getActivityPost().post_id, postId, 'persist server post ID even when moderation is pending');
+  assert.equal((await ctx.getActivityStatus()).status, 'incomplete');
+  ctx.saveActivityPost({ id: postId, status: 'published' });
   assert.equal((await ctx.getActivityStatus()).status, 'eligible');
-  brokenStorage = true;
-  await assert.rejects(ctx.claimActivityCode(), /disk full/);
-  brokenStorage = false;
-  assert.equal((await ctx.getActivityStatus()).status, 'eligible', 'failed persistence cannot report claimed');
-  const [first, second] = await Promise.all([ctx.claimActivityCode(), ctx.claimActivityCode()]);
-  assert.equal(first.claimedAt, second.claimedAt);
-  assert.equal(first.code, 'DEMO-XXXX-XXXX');
-  assert.equal((await ctx.getActivityStatus()).record.code, first.code);
+  response = { ok: true, status: 'SUCCESS', code: 'REAL-CODE' };
+  assert.equal((await ctx.claimActivityCode()).code, 'REAL-CODE');
+  assert.deepEqual(JSON.parse(JSON.stringify(requests.at(-1))), { path: '/activity/claim', method: 'POST', data: { activity_id: 1001, post_id: postId } });
+  response.status = 'ALREADY_CLAIMED';
+  assert.equal((await ctx.claimActivityCode()).code, 'REAL-CODE');
   user = 'bob';
-  assert.equal((await ctx.getActivityStatus()).status, 'incomplete', 'accounts cannot share codes or eligibility');
-  ctx.setActivityPreviewState('soldOut');
-  await assert.rejects(ctx.claimActivityCode(), /领完/);
+  assert.equal(ctx.getActivityPost(), null, 'post IDs are isolated by account');
+  assert.equal((await ctx.getActivityStatus()).record.code, 'REAL-CODE', 'server restores code without local post on another device');
+  await assert.rejects(ctx.claimActivityCode(), /发帖凭据/);
   user = 'alice';
-  const key = ctx.accountKey('activity-preview:halloween-2026');
-  memory.set(key, { ...memory.get(key), soldOut: true });
-  assert.equal((await ctx.getActivityStatus()).status, 'claimed', 'existing claim wins over stock');
-  ctx.setActivityPreviewState('error');
-  await assert.rejects(ctx.getActivityStatus(), /查询/);
-  ctx.setActivityPreviewState('incomplete');
-  assert.equal((await ctx.getActivityStatus()).status, 'incomplete');
-  env = 'release';
-  ctx.setActivityPreviewState('claimed');
-  assert.equal((await ctx.getActivityStatus()).status, 'unavailable');
-  await assert.rejects(ctx.claimActivityCode(), /即将开放/);
+  response = { ok: true, status: 'BUSY' };
+  await assert.rejects(ctx.claimActivityCode(), /领取人数较多/);
+  assert.ok(ctx.getActivityPost());
+  response = { ok: true, status: 'OUT_OF_STOCK' };
+  await assert.rejects(ctx.claimActivityCode(), error => error.activityStatus === 'soldOut');
+  failure = Object.assign(new Error('帖子不可用'), { statusCode: 403 });
+  await assert.rejects(ctx.claimActivityCode(), error => error.activityStatus === 'incomplete');
+  assert.equal(ctx.getActivityPost(), null);
+  failure = null;
+  ctx.saveActivityPost({ id: postId, status: 'published' });
+  response = { ok: true, status: 'SUCCESS', code: null };
+  await assert.rejects(ctx.claimActivityCode(), /返回异常/);
+  response = { ok: true, status: 'UNKNOWN' };
+  await assert.rejects(ctx.getActivityStatus(), /返回异常/);
 
-  let definition, resolveQuery, claimCount = 0, navigation, copied;
-  let statusImpl = async () => ({ status: 'incomplete', record: null });
-  const pageCtx = {
-    Page: value => { definition = value; },
-    getActivityStatus: () => statusImpl(),
-    claimActivityCode: async () => { claimCount++; return { code: 'DEMO-XXXX-XXXX', claimedAt: new Date().toISOString() }; },
-    isActivityPreview: () => true, markActivityPostPublished: ctx.markActivityPostPublished,
-    setActivityPreviewState: ctx.setActivityPreviewState,
-    accountKey: () => user, HALLOWEEN_ID: 'halloween-2026', REDEEM_URL: 'https://aibubu.cn/en',
-    shareCard() {}, timelineCard() {},
-    wx: { pageScrollTo() {}, showToast() {}, setNavigationBarColor() {},
-      navigateTo: args => { navigation = args; }, setClipboardData: args => { copied = args; } },
+  let pageDef, resolveClaim, resolveStatus, claims = 0, copied;
+  let statusImpl = async () => ({ status: 'eligible', record: null });
+  vm.runInNewContext(fs.readFileSync('pages/halloween/index.js', 'utf8').replace(/^import .*;$/gm, ''), {
+    Page: p => { pageDef = p; }, requireSession() {}, accountKey: () => user,
+    HALLOWEEN_ID: 'halloween-2026', REDEEM_URL: 'https://aibubu.cn/en',
+    getActivityStatus: () => statusImpl(), claimActivityCode: () => { claims++; return new Promise(resolve => { resolveClaim = resolve; }); },
+    wx: { pageScrollTo() {}, setClipboardData: args => { copied = args.data; }, setNavigationBarColor() {} },
+  });
+  const page = { ...pageDef, _alive: true, data: { ...pageDef.data }, setData(patch) { Object.assign(this.data, patch); } };
+  await page.refreshStatus();
+  const one = page.claim(), two = page.claim();
+  assert.equal(claims, 1);
+  resolveClaim({ code: 'REAL-CODE' }); await Promise.all([one, two]);
+  assert.equal(page.data.status, 'claimed');
+  page.copyCode(); assert.equal(copied, 'REAL-CODE');
+  statusImpl = () => new Promise(resolve => { resolveStatus = resolve; });
+  const pending = page.refreshStatus(); user = 'bob';
+  resolveStatus({ status: 'claimed', record: { code: 'private' } }); await pending;
+  assert.equal(page.data.record, null);
+  let releaseDef, savedPost, notified = 0;
+  const publishContext = {
+    Page: value => { releaseDef = value; }, categories: [], accountKey: () => user,
+    requireSession: () => true, login: async () => ({ name: 'Test' }),
+    api: async () => ({ item: { id: postId, status: 'active' } }),
+    mapPost: p => ({ id: p.id, status: p.status === 'active' ? 'published' : 'pending' }),
+    saveActivityPost: p => { savedPost = p; }, queueHalloweenTaskPrompt: () => notified++,
+    loadStore: () => ({ posts: [] }), saveStore() {}, errorText: e => e.message,
+    wx: { showToast() {}, navigateBack() {}, showModal() {} },
   };
-  vm.runInNewContext(fs.readFileSync('pages/halloween/index.js', 'utf8').replace(/^import .*;$/gm, ''), pageCtx);
-  const page = { ...definition, data: { ...definition.data }, _alive: true, setData(patch) { Object.assign(this.data, patch); } };
-  await page.refreshStatus();
-  await page.claim();
-  assert.equal(claimCount, 0);
-  page.goPost(); navigation.complete();
-  await page.refreshStatus();
-  assert.equal(page.data.status, 'incomplete', 'visiting composer or refreshing alone does not complete a task');
-  page.setData({ status: 'eligible' });
-  await Promise.all([page.claim(), page.claim()]);
-  assert.equal(claimCount, 1, 'rapid taps only issue one claim');
-  page.copyCode(); assert.equal(copied.data, 'DEMO-XXXX-XXXX');
-  page.copyUrl(); assert.equal(copied.data, 'https://aibubu.cn/en');
-  statusImpl = () => new Promise(resolve => { resolveQuery = resolve; });
-  const slow = page.refreshStatus();
-  user = 'other';
-  resolveQuery({ status: 'claimed', record: { code: 'private-code' } });
-  await slow;
-  assert.equal(page.data.record, null, 'stale response after account switch is ignored');
-  statusImpl = async () => { throw new Error('offline'); };
-  await page.refreshStatus();
-  assert.equal(page.data.status, 'error');
-  assert.equal(page.data.loading, false);
-  statusImpl = async () => ({ status: 'eligible', record: null });
-  await page.refreshStatus();
-  assert.equal(page.data.status, 'eligible', 'error can be retried');
-  for (const file of ['pages/halloween/assets/hero.png', 'pages/halloween/assets/success.png', 'static/activity/halloween-cat.png']) assert.ok(fs.statSync(file).size > 1000);
+  vm.runInNewContext(fs.readFileSync('pages/release/index.js', 'utf8').replace(/^import .*;$/gm, ''), publishContext);
+  const composer = { ...releaseDef, data: { ...releaseDef.data, body: 'hello', images: ['https://example.test/pet.png'] },
+    async loadPets() {}, setData(patch) { Object.assign(this.data, patch); } };
+  await composer.release();
+  assert.equal(savedPost.id, postId, 'posting persists the actual response item.id');
+  assert.equal(savedPost.status, 'published');
+  assert.equal(notified, 1);
+  savedPost = null;
+  publishContext.api = async () => { throw new Error('offline'); };
+  await composer.release();
+  assert.equal(savedPost, null, 'failed publication never replaces the local post credential');
   const markup = fs.readFileSync('pages/halloween/index.wxml', 'utf8');
-  for (const [, condition] of markup.matchAll(/wx:(?:if|elif)="([^"]*)"/g)) {
-    assert.ok(condition.startsWith('{{') && condition.endsWith('}}'), 'conditional attributes must bind expressions, not truthy literal strings');
-  }
-  console.log('PASS Halloween: task gating, moderation, persistence failure, idempotency, account isolation, stock priority, release guard, refresh, clipboard and retry');
+  assert.ok(!markup.includes('previewStates') && !markup.includes('DEMO-'));
+  for (const [, condition] of markup.matchAll(/wx:(?:if|elif)="([^"]*)"/g)) assert.ok(condition.startsWith('{{') && condition.endsWith('}}'));
+  console.log('PASS activity API: server post persistence, account isolation, login, recovery, claim payload, idempotent result, stock/busy/403, duplicate taps, clipboard and stale responses');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

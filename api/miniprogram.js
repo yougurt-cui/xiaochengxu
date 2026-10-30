@@ -28,7 +28,11 @@ export function api(path, method = 'GET', data = {}) {
           return;
         }
         if (res.statusCode >= 200 && res.statusCode < 300 && body.ok === true) resolve(body);
-        else reject(new Error(body.error || body.message || '服务暂时不可用，请重试'));
+        else {
+          const error = new Error(body.error || body.message || '服务暂时不可用，请重试');
+          error.statusCode = res.statusCode;
+          reject(error);
+        }
       },
       fail: () => reject(new Error('连接失败，请检查网络后重试')),
     }),
