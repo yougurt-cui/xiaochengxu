@@ -41,7 +41,7 @@
         <view class="step-copy"><text class="block-title">{{item.title}}</text><text class="detail-caption">{{item.body}}</text></view>
         <view wx:if="{{index > 0}}" class="step-preview"><image class="guide-art" src="assets/guide-reference.jpg" mode="scaleToFill" /></view>
       </view>
-      <view class="guide-website"><view><text class="website-label">活动网址</text><text class="website-url" selectable>{{redeemUrl}}</text></view><button bindtap="copyUrl"><text class="copy-symbol">▢</text>复制网址</button></view>
+      <view class="guide-website"><view><text class="website-label">活动网址</text><text class="website-url" selectable>{{redeemUrl}}</text></view><button bindtap="copyUrl">复制网址</button></view>
       <view class="guide-notes"><text class="notes-title">❕ 注意事项</text><text>•　请在个人空间兑换；同一活动每人限兑换一次。</text><text>•　兑换有效期与可获额度以活动说明为准。</text></view>
     </view>
     <view class="guide-bottom"><image class="guide-art" src="assets/guide-reference.jpg" mode="scaleToFill" /></view>

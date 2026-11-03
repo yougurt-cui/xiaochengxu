@@ -168,7 +168,11 @@ Page({
         catch (_) { wx.showToast({ title: '帖子已发布，活动凭据保存失败', icon: 'none' }); }
       }
       const s = loadStore();
-      saveStore({ posts: [post, ...s.posts.filter((p) => p.id !== this.data.draftId && p.id !== post.id)] });
+      saveStore({
+        posts: [post, ...s.posts.filter((p) => p.id !== this.data.draftId && p.id !== post.id)],
+        ...(post.status === 'published' && publishAccount === accountKey('activity-publish')
+          ? { showLatestFeedAfterPublish: true } : {}),
+      });
       if (publishAccount === accountKey('activity-publish')) {
         try { queueHalloweenTaskPrompt(post); } catch (_) { /* Local reminder failure must not fail publication. */ }
       }

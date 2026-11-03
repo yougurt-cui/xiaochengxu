@@ -68,14 +68,14 @@ async function run() {
   const pending = page.refreshStatus(); user = 'bob';
   resolveStatus({ status: 'claimed', record: { code: 'private' } }); await pending;
   assert.equal(page.data.record, null);
-  let releaseDef, savedPost, notified = 0;
+  let releaseDef, savedPost, savedPatch, notified = 0;
   const publishContext = {
     Page: value => { releaseDef = value; }, categories: [], accountKey: () => user,
     requireSession: () => true, login: async () => ({ name: 'Test' }),
     api: async () => ({ item: { id: postId, status: 'active' } }),
     mapPost: p => ({ id: p.id, status: p.status === 'active' ? 'published' : 'pending' }),
     saveActivityPost: p => { savedPost = p; }, queueHalloweenTaskPrompt: () => notified++,
-    loadStore: () => ({ posts: [] }), saveStore() {}, errorText: e => e.message,
+    loadStore: () => ({ posts: [] }), saveStore(patch) { savedPatch = patch; }, errorText: e => e.message,
     wx: { showToast() {}, navigateBack() {}, showModal() {} },
   };
   vm.runInNewContext(fs.readFileSync('pages/release/index.js', 'utf8').replace(/^import .*;$/gm, ''), publishContext);
@@ -85,9 +85,12 @@ async function run() {
   assert.equal(savedPost.id, postId, 'posting persists the actual response item.id');
   assert.equal(savedPost.status, 'published');
   assert.equal(notified, 1);
+  assert.equal(savedPatch.showLatestFeedAfterPublish, true);
+  savedPatch = null;
   savedPost = null;
   publishContext.api = async () => { throw new Error('offline'); };
   await composer.release();
+  assert.equal(savedPatch, null, 'failed publication must not request latest feed');
   assert.equal(savedPost, null, 'failed publication never replaces the local post credential');
   const markup = fs.readFileSync('pages/halloween/index.wxml', 'utf8');
   assert.ok(!markup.includes('previewStates') && !markup.includes('DEMO-'));

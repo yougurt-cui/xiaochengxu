@@ -50,23 +50,50 @@ vm.runInNewContext(source('pages/assistant/index.js'), { Page: value => definiti
   await community.reportMomentView('p2'); assert.equal(calls.at(-1).data.visitor_id, first);
   assert.match(first, /^[a-f0-9]{32}$/);
 
-  vm.runInNewContext(source('pages/home/index.js'), { Page: value => definition = value, categories: [],
+  vm.runInNewContext(source('pages/home/index.js'), { Page: value => definition = value, categories: [{ id: 'all' }, { id: 'CHIN' }], accountKey: key => key + ':guest',
+    loadStore: () => store, saveStore: patch => Object.assign(store, patch),
     getFeedPosts: () => [{ id: 'b', category: 'CHIN' }, { id: 'a', category: 'FUNNY' }],
     fetchPosts: async (mine, options) => { calls.push(options); }, errorText: error => error.message });
   const home = page(definition);
+  home.restoreFeedPreference();
+  assert.equal(home.data.feedModeIndex, 0, 'first visit defaults to all');
   await home.loadFeed(); assert.equal(calls.at(-1).sort, 'popular');
   assert.deepEqual(plain(home.data.posts.map(p => p.id)), ['b', 'a']);
   home.selectCategory({ currentTarget: { dataset: { id: 'CHIN' } } }); await turn();
   assert.equal(calls.at(-1).sort, 'latest'); assert.equal(calls.at(-1).categoryCode, 'CHIN');
   assert.deepEqual(plain(home.data.posts.map(p => p.id)), ['b']);
+  home.selectCategory({ currentTarget: { dataset: { id: 'all' } } }); await turn();
+  home.selectFeedMode({ detail: { value: '2' } }); await turn();
+  assert.equal(calls.at(-1).sort, 'latest');
+  home.selectFeedMode({ detail: { value: '1' } }); await turn();
+  assert.equal(calls.at(-1).sort, 'popular');
+  const restored = page(definition); restored.restoreFeedPreference();
+  assert.equal(restored.data.feedModeIndex, 1, 'manual preference survives page recreation');
+  home.selectCategory({ currentTarget: { dataset: { id: 'CHIN' } } }); await turn();
+  restored.restoreFeedPreference(); assert.equal(restored.data.category, 'CHIN');
+  home.data.category = 'CHIN'; home.data.query = 'unrelated search';
+  home.applyPublishedFeed();
+  assert.equal(home.data.category, 'CHIN', 'cancelled publication must preserve filters');
+  store.showLatestFeedAfterPublish = true;
+  home.applyPublishedFeed();
+  assert.equal(home.data.category, 'all'); assert.equal(home.data.query, '');
+  assert.equal(home.data.feedSort, 'latest'); assert.equal(home._reloadFeedOnShow, true);
+  restored.restoreFeedPreference();
+  assert.equal(restored.data.category, 'all'); assert.equal(restored.data.feedModeIndex, 2);
+  store.homeFeedPreference = { category: 'invalid', feedModeIndex: 99 };
+  restored.restoreFeedPreference();
+  assert.equal(restored.data.category, 'all'); assert.equal(restored.data.feedModeIndex, 0);
+  assert.equal(store.showLatestFeedAfterPublish, false, 'publish intent is consumed once');
+  await home.loadFeed(); assert.equal(calls.at(-1).sort, 'latest');
   let resolveOld;
   const pending = new Promise(resolve => resolveOld = resolve);
   // Exercise the real home race guard with a slow first request.
   const requests = [];
-  vm.runInNewContext(source('pages/home/index.js'), { Page: value => definition = value, categories: [],
+  vm.runInNewContext(source('pages/home/index.js'), { Page: value => definition = value, categories: [{ id: 'all' }, { id: 'CHIN' }], accountKey: key => key + ':guest',
     getFeedPosts: () => [], fetchPosts: async (mine, options) => { requests.push(options); if (requests.length === 1) await pending; }, errorText: e => e.message });
   const race = page(definition);
-  const old = race.loadFeed(); race.data.category = 'STOOL'; await race.loadFeed(); resolveOld(); await old;
+  const old = race.loadFeed(); race.data.feedSort = 'latest'; await race.loadFeed(); resolveOld(); await old;
+  assert.equal(requests[0].sort, 'popular'); assert.equal(requests[1].sort, 'latest');
   assert.equal(requests[0].isCurrent(), false); assert.equal(requests[1].isCurrent(), true);
 
   let fail = false, views = 0;

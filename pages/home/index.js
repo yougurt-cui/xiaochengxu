@@ -20,6 +20,9 @@ Page({
   data: {
     categories,
     category: 'all',
+    feedSort: 'popular',
+    feedModes: ['全部', '热门', '最新'],
+    feedModeIndex: 0,
     query: '',
     posts: [],
     loading: false,
@@ -35,12 +38,18 @@ Page({
     form: { water: '', food: '', litter: '', litterShape: '' },
   },
   onLoad() {
+    this.restoreFeedPreference();
     this.loadFeed();
   },
   onShow() {
     syncModalTabBar(this);
     this.loadDeviceSummary();
     if (this.getTabBar()) this.getTabBar().setData({ value: 'home' });
+    if (this._feedPreferenceAccount !== accountKey('home-feed')) {
+      this.restoreFeedPreference();
+      this._reloadFeedOnShow = true;
+    }
+    this.applyPublishedFeed();
     const store = loadStore();
     cachePetList(store.pets || (store.pet ? [store.pet] : []));
     this.refreshData();
@@ -84,7 +93,7 @@ Page({
     if (!silent) this.setData({ loading: true, feedError: '' });
     try {
       await fetchPosts(false, {
-        sort: category === 'all' ? 'popular' : 'latest',
+        sort: category === 'all' ? this.data.feedSort : 'latest',
         categoryCode: category === 'all' ? '' : category, isCurrent,
       });
       if (!isCurrent()) return;
@@ -157,10 +166,36 @@ Page({
       ),
     });
   },
+  restoreFeedPreference() {
+    const preference = loadStore().homeFeedPreference || {};
+    const feedModeIndex = [0, 1, 2].includes(preference.feedModeIndex) ? preference.feedModeIndex : 0;
+    const category = categories.some((item) => item.id === preference.category) ? preference.category : 'all';
+    this._feedPreferenceAccount = accountKey('home-feed');
+    this.setData({ category, feedModeIndex, feedSort: feedModeIndex === 2 ? 'latest' : 'popular', posts: [], query: '', feedError: '' });
+  },
+  saveFeedPreference() {
+    const { category, feedModeIndex } = this.data;
+    saveStore({ homeFeedPreference: { category, feedModeIndex } });
+  },
+  applyPublishedFeed() {
+    if (!loadStore().showLatestFeedAfterPublish) return;
+    this.setData({ category: 'all', feedModeIndex: 2, feedSort: 'latest', query: '', posts: [], feedError: '' });
+    saveStore({ showLatestFeedAfterPublish: false, homeFeedPreference: { category: 'all', feedModeIndex: 2 } });
+    this._reloadFeedOnShow = true;
+  },
+  selectFeedMode(e) {
+    const feedModeIndex = Number(e.detail.value);
+    if (![0, 1, 2].includes(feedModeIndex)) return;
+    if (this.data.category === 'all' && feedModeIndex === this.data.feedModeIndex) return;
+    this.setData({ category: 'all', feedModeIndex, feedSort: feedModeIndex === 2 ? 'latest' : 'popular', posts: [], feedError: '' });
+    this.saveFeedPreference();
+    this.loadFeed();
+  },
   selectCategory(e) {
     const category = e.currentTarget.dataset.id;
-    if (category === this.data.category) return;
-    this.setData({ category, posts: [] });
+    if (!categories.some((item) => item.id === category) || category === this.data.category) return;
+    this.setData({ category, posts: [], feedError: '' });
+    this.saveFeedPreference();
     this.loadFeed();
   },
   onSearch(e) {
