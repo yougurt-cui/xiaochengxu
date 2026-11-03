@@ -80,12 +80,30 @@
     <rich-text wx:else nodes="{{card.nodes}}" user-select class="knowledge-content" />
   </view>
   <text wx:if="{{item.knowledgeNote}}" class="knowledge-review-note">❗ {{item.knowledgeNote}}</text>
+</view><view wx:elif="{{item.result.ingredient_guide.sections}}" class="ingredient-guide-card">
+  <text class="section-title">先看结论</text><text selectable>{{item.result.ingredient_guide.intro}}</text>
+  <view wx:for="{{item.result.ingredient_guide.sections}}" wx:for-item="section" wx:key="title" class="ingredient-guide-section">
+    <text class="section-title">0{{index + 1}}　{{section.title}}</text><text selectable>{{section.text}}</text>
+    <text wx:if="{{section.example}}" class="caption" selectable>例如：{{section.example}}</text>
+  </view>
+  <view wx:if="{{item.result.ingredient_guide.summary}}" class="ingredient-guide-section"><text class="section-title">简单来说</text><text selectable>{{item.result.ingredient_guide.summary}}</text></view>
 </view><view wx:elif="{{item.blocks.length}}" class="assistant-blocks"><view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="index" class="assistant-block"><text selectable><text wx:if="{{block.marker}}">{{block.marker}} </text><text wx:for="{{block.segments}}" wx:for-item="segment" wx:key="index" class="{{segment.strong ? 'assistant-emphasis' : ''}}">{{segment.text}}</text></text></view></view><text wx:else selectable>{{item.text}}</text><text wx:if="{{item.riskReasons}}" class="risk-reasons">需要留意：{{item.riskReasons}}</text>
 <text wx:if="{{item.limitedInfo}}" class="chat-limited">信息有限，可补充情况让回答更准确。</text>
 <view wx:if="{{item.response_type === 'processing'}}" class="chat-limited">正在识别食品投稿，可在投稿页查看自动更新的结果。</view>
 </view>
-<view wx:if="{{item.canInteract || item.interaction.options.length}}" class="chat-options">
-<button size="mini" wx:for="{{item.interaction.options}}" wx:for-item="option" wx:for-index="optionIndex" wx:key="value" hover-class="chat-option-hover" class="chat-option {{option.selected ? 'selected' : ''}}" data-id="{{item.id}}" data-index="{{optionIndex}}" bindtap="chooseChatOption" disabled="{{sending || !item.canInteract}}">{{option.label}}</button>
+<view wx:if="{{item.result.ingredient_guide.reupload}}" class="ingredient-guide-upload">
+  <image src="/static/assistant/ingredient-example.jpg" mode="aspectFill" bindtap="previewIngredientExample" aria-label="查看完整配料表拍摄示例" />
+  <button class="chat-option" bindtap="openFoodSubmission" disabled="{{sending || !item.canInteract}}">重新上传配料表</button>
+</view>
+<view wx:if="{{item.result.ingredient_guide.stage === 'entry'}}" class="ingredient-guide-heading">
+  <text class="section-title">{{item.result.ingredient_guide.reupload ? '暂时不方便上传？' : '等待核对时也可以聊聊'}}</text>
+  <text class="caption">也可以先了解猫粮配方知识，看看哪些营养特点值得关注。</text>
+</view><text wx:elif="{{item.result.ingredient_guide}}" class="caption">你还可以问</text>
+<view wx:if="{{item.canInteract || item.interaction.options.length}}" class="chat-options {{item.result.ingredient_guide ? 'ingredient-guide-options' : ''}}">
+<button size="mini" wx:for="{{item.interaction.options}}" wx:for-item="option" wx:for-index="optionIndex" wx:key="value" hover-class="chat-option-hover" class="chat-option {{option.selected ? 'selected' : ''}}" data-id="{{item.id}}" data-index="{{optionIndex}}" bindtap="chooseChatOption" disabled="{{sending || !item.canInteract}}">
+  <view wx:if="{{option.subtitle}}" class="ingredient-guide-entry"><p-icon name="{{option.icon}}" size="36" /><view><text>{{option.label}}</text><text class="caption">{{option.subtitle}}</text></view><text>›</text></view>
+  <block wx:else>{{option.label}}</block>
+</button>
 <button wx:if="{{item.canInteract && item.response_type === 'multi_select'}}" size="mini" hover-class="chat-option-hover" class="chat-option selected" data-id="{{item.id}}" bindtap="submitChatOptions" disabled="{{sending || !item.selectedValues.length}}">确认选择</button>
 <button wx:if="{{item.canInteract && (item.response_type === 'food_select' || item.response_type === 'text_or_select' || item.response_type === 'ingredient_source')}}" size="mini" hover-class="chat-option-hover" class="chat-option" bindtap="openFoodSubmission" disabled="{{sending}}">手动补充</button>
 </view>

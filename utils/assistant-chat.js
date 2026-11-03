@@ -531,7 +531,7 @@ export const chatMethods = {
           this.setData({ composerImages: [] });
           this.sendCloudMessage(
             { attachments: [{ type: 'food_submission', submission_id: item.id }] },
-            `看看这款粮/零食怎么样：${item.title || item.claimed_product_name}`,
+            item.canAskGuardian ? '这次配料表没分析出来，接下来怎么看？' : `看看这款粮/零食怎么样：${item.title || item.claimed_product_name}`,
           );
         },
       },

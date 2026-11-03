@@ -247,13 +247,13 @@ Page({
   },
   analyzeResult() {
     const item = this.data.selected;
-    if (!item || !item.resultReady) return;
+    if (!item || !(item.resultReady || item.canAskGuardian)) return;
     if (this._chatEntry) {
       const channel = this.getOpenerEventChannel();
       if (channel && channel.emit) channel.emit('foodSelected', item);
       wx.navigateBack();
     } else {
-      wx.setStorageSync(accountKey('pending-food-submission'), item.id);
+      wx.setStorageSync(accountKey('pending-food-submission'), item.canAskGuardian ? { id: item.id, needsHelp: true } : item.id);
       wx.switchTab({ url: '/pages/assistant/index' });
     }
   },

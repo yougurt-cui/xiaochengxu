@@ -107,6 +107,7 @@ export function submissionView(item) {
   return {
     ...item,
     resultReady: ready, provisional, dimensions,
+    canAskGuardian: !cancelled && !ready && !!item.failure_node,
     resultLabel: ready ? (provisional ? '初算结果 · 待核对' : '正式结果') : '正在分析',
     resultNote: item.result_updating && ready ? '结果更新中，当前显示上一版计算结果。' : provisional ? '基于当前上传资料计算，核对后可能更新。' : ready ? '已核对的计算结果。' : '',
     nutritionRows: Object.values(bundle.nutrition || {}).filter((n) => n.value !== null && n.value !== undefined).map((n) => ({ ...n, display: `${n.operator || ''} ${n.value}${n.unit || ''}` })),
@@ -116,6 +117,7 @@ export function submissionView(item) {
     isProcessing,
     recognitionMessage: ready ? (item.result_updating ? '已有结果可查看，新版本正在计算。' : provisional ? '初算已完成，资料核对中，可先查看结果。' : '正式结果已更新。') : cancelled ? '这次投稿已撤销。' : isProcessing
       ? (status === 'success' ? '正在生成分析结果，完成后会自动更新。' : '正在读取包装资料，结果会自动更新。')
+      : item.failure_node && item.failure_node !== 'ocr_formula' ? '分析暂未完成，可以请管家协助核对。'
       : needsConfirmation ? messages[status] || '请确认投稿信息，必要时重新上传清晰照片。'
       : '识别已完成，可以查看结果或交给管家分析。',
     canAnalyze: !cancelled && status === 'success' && !!(item.ingredient_composition || '').trim(),

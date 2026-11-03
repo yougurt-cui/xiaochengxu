@@ -52,6 +52,7 @@
         </view>
         <text wx:if="{{selected.resultReady}}" class="caption">各维度含义不同，分数不代表综合优劣。</text>
         <button wx:if="{{selected.resultReady}}" class="text-button" bindtap="analyzeResult">交给管家，与当前口粮对比 ›</button>
+        <button wx:elif="{{selected.canAskGuardian}}" class="text-button" bindtap="analyzeResult">问问管家，接下来怎么看 ›</button>
         <button class="text-button" bindtap="load">刷新结果</button>
       </view>
       <view wx:if="{{selected.ingredient_composition || selected.guaranteeText}}" class="form-card">
