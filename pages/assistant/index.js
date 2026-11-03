@@ -215,10 +215,11 @@ Page({
     this._bindingPet = false;
     this.refreshChatPet().then(() => {
       const pendingKey = accountKey('pending-food-submission');
-      const submissionId = wx.getStorageSync(pendingKey);
+      const pending = wx.getStorageSync(pendingKey);
+      const submissionId = typeof pending === 'string' ? pending : pending?.id;
       if (submissionId && account === accountKey('assistant') && this.data.boundPet?.id && !this.data.sending) {
         wx.removeStorageSync(pendingKey);
-        this.sendCloudMessage({ attachments: [{ type: 'food_submission', submission_id: submissionId }] }, '请分析这次上传的食物，并与当前口粮对比');
+        this.sendCloudMessage({ attachments: [{ type: 'food_submission', submission_id: submissionId }] }, pending?.needsHelp ? '这次配料表没分析出来，接下来怎么看？' : '请分析这次上传的食物，并与当前口粮对比');
       }
       if (this._pendingStatusGuide && this.data.boundPet?.id) {
         this._pendingStatusGuide = false;
