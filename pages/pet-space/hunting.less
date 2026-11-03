@@ -32,11 +32,156 @@
   min-width: 0;
   font-size: @type-caption;
 }
-.hunting-search { flex-wrap: nowrap; overflow: hidden; }
-.hunting-search input { height: 100%; padding: 0; background: transparent; border-radius: 0; font-weight: @weight-regular; }
+.hunting-search {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.hunting-search input {
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-weight: @weight-regular;
+}
 
-.food-detail-sheet { display: flex; flex-direction: column; height: 78vh; overflow: hidden; }
-.food-detail-sheet .sheet-heading { flex-shrink: 0; }
-.food-detail-content { flex: 1; min-height: 0; height: 0; }
-.food-detail-actions { flex-shrink: 0; padding-top: @space-md; }
-.food-detail-actions .caption { display: block; margin-bottom: @space-sm; text-align: center; }
+.food-detail-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 78vh;
+  overflow: hidden;
+}
+.food-detail-sheet .sheet-heading {
+  flex-shrink: 0;
+}
+.food-detail-content {
+  flex: 1;
+  min-height: 0;
+  height: 0;
+}
+.food-detail-actions {
+  flex-shrink: 0;
+  padding-top: @space-md;
+}
+.food-detail-actions .caption {
+  display: block;
+  margin-bottom: @space-sm;
+  text-align: center;
+}
+
+.food-detail-sheet {
+  height: 86vh;
+  background: @colors-page;
+}
+.food-product-heading {
+  display: flex;
+  align-items: center;
+  gap: @space-lg;
+  margin: @space-md 0 @space-lg;
+}
+.food-product-icon,
+.food-product-photo {
+  flex-shrink: 0;
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: @radius-medium;
+}
+.food-product-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: @colors-primarySoft;
+}
+.food-product-icon image {
+  width: 68rpx;
+  height: 68rpx;
+}
+.food-product-copy {
+  min-width: 0;
+}
+.food-product-title {
+  display: block;
+  font-size: @type-hero;
+  font-weight: @weight-semibold;
+  overflow-wrap: anywhere;
+}
+.food-info-card {
+  padding: @space-lg;
+  margin-bottom: @space-lg;
+  background: @colors-surface;
+  border-radius: @radius-medium;
+  display: flex;
+  flex-direction: column;
+  gap: @space-md;
+}
+.food-info-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: @space-sm;
+  font-size: @type-title;
+  font-weight: @weight-semibold;
+}
+.food-info-heading .text-button {
+  min-height: 56rpx;
+  padding: 0;
+}
+.food-ingredients {
+  display: block;
+  line-height: @leading-body;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.food-ingredients.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.food-expand {
+  margin: 0;
+  padding: 0;
+  align-self: flex-start;
+  background: transparent;
+  min-height: 64rpx;
+  color: @colors-primary;
+  font-size: @type-small;
+}
+.food-detail-actions {
+  padding-top: @space-md;
+  background: @colors-surface;
+}
+.food-detail-actions .primary-button {
+  margin-top: 0;
+}
+.food-info-card .secondary-button {
+  margin: 0;
+}
+.food-confirm-mask {
+  z-index: 102;
+}
+.food-confirm-sheet {
+  z-index: 103;
+  background: @colors-surface;
+  display: flex;
+  flex-direction: column;
+  gap: @space-lg;
+}
+.food-confirm-title {
+  font-size: 40rpx;
+  font-weight: @weight-semibold;
+}
+.food-confirm-name {
+  color: @colors-primary;
+  font-weight: @weight-semibold;
+}
+.food-confirm-pet {
+  display: flex;
+  align-items: center;
+  gap: @space-md;
+  padding: @space-lg;
+  border-radius: @radius-small;
+  background: @colors-page;
+}
+.food-confirm-sheet .primary-button {
+  margin: 0;
+}

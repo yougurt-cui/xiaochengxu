@@ -1,89 +1,97 @@
 @import '../../styles/tokens.less';
 
+.submission-header {
+  background: @colors-surface;
+}
+.submission-page .screen-body {
+  padding: @space-roomy @layout-gutter;
+}
 .form-card,
 .submission {
   box-sizing: border-box;
+  width: 100%;
   background: @colors-surface;
   border-radius: @radius-medium;
   padding: @space-lg;
-  margin: 0 0 @space-md;
-}
-.form-card {
+  margin: 0 0 @space-lg;
   display: flex;
   flex-direction: column;
   gap: @space-md;
-  border: 2rpx solid transparent;
+  text-align: left;
+  line-height: @leading-body;
+}
+.submission-form {
+  gap: @space-xl;
 }
 .form-card .form-field {
   margin: 0;
+  width: 100%;
+}
+.field-label {
+  display: flex;
+  gap: @space-xs;
+  align-items: baseline;
+  font-size: @type-body;
+  font-weight: @weight-semibold;
+  line-height: @leading-body;
+}
+.required,
+.field-error {
+  color: @colors-danger;
 }
 .form-field input,
 .form-field textarea {
+  box-sizing: border-box;
+  width: 100%;
   border: 2rpx solid @colors-line;
-  border-radius: @radius-small;
+  border-radius: 20rpx;
   background: @colors-page;
+  padding: 0 @space-md;
+  margin-top: @space-sm;
+  font-size: @type-body;
 }
 .form-field input {
   height: @control-inputHeight;
-  padding: 0 @space-md;
+}
+.form-field textarea {
+  height: 180rpx;
+  padding: @space-md;
 }
 .input-placeholder {
   color: @colors-secondary;
 }
-.field-invalid > text {
-  color: @colors-danger;
-}
 .field-invalid input,
-.photos-invalid {
-  border-color: @colors-danger;
-  background: mix(@colors-danger, @colors-surface, 5%);
+.photos-invalid .add-photo {
+  border: 2rpx solid @colors-danger;
 }
-.photos-invalid .section-title {
-  color: @colors-danger;
-}
-.remark-field textarea {
-  height: 120rpx;
-  min-height: 120rpx;
-  padding: @space-xs 0;
-  background: transparent;
-  border: 0;
-}
-.section-title {
+.field-error {
   display: block;
-  font-size: @type-cardTitle;
-  font-weight: @weight-semibold;
-  line-height: @leading-heading;
-}
-.caption {
-  display: block;
-  color: @colors-secondary;
-  line-height: @leading-body;
-}
-.photo-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: @space-sm;
-}
-.photo-heading .text-button {
-  padding: 0;
+  margin-top: @space-xs;
+  font-size: @type-small;
 }
 .photos {
   display: flex;
   flex-wrap: wrap;
-  gap: @space-roomy;
+  gap: @space-md;
   align-items: flex-start;
 }
+.photo-field .photos {
+  margin-top: @space-roomy;
+}
 .photo-wrap {
-  width: 180rpx;
+  position: relative;
+  width: 186rpx;
+  height: 186rpx;
 }
 .photo,
 .add-photo {
-  width: 180rpx;
-  height: 180rpx;
-  border-radius: @radius-small;
+  display: block;
+  width: 186rpx;
+  height: 186rpx;
+  border-radius: 20rpx;
 }
 .add-photo {
+  box-sizing: border-box;
   background: @colors-primarySoft;
   color: @colors-primary;
   display: flex;
@@ -91,34 +99,202 @@
   justify-content: center;
   align-items: center;
   gap: @space-sm;
-  font-size: @type-caption;
+  font-size: @type-small;
   padding: 0;
   margin: 0;
 }
 .remove-photo {
+  position: absolute;
+  right: -8rpx;
+  top: -8rpx;
   margin: 0;
   padding: 0;
-  min-height: @layout-touch;
-  line-height: @layout-touch;
-  background: transparent;
-  color: @colors-secondary;
-  font-size: @type-caption;
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 40rpx;
+  border-radius: 50%;
+  background: @colors-text;
+  color: @colors-inverse;
+  font-size: 30rpx;
 }
-.submission {
+.photo-heading,
+.card-heading,
+.source-row {
   display: flex;
-  flex-direction: column;
-  gap: @space-roomy;
-  width: 100%;
-  text-align: left;
-  line-height: @leading-body;
+  align-items: center;
+  justify-content: space-between;
+  gap: @space-sm;
 }
-.submission-link {
+.photo-limit {
+  font-size: @type-caption;
+  font-weight: @weight-regular;
+  color: @colors-secondary;
+}
+.photo-heading .inline-link {
+  flex-shrink: 0;
+  margin: 0;
+}
+.design-icon {
+  flex-shrink: 0;
+  display: block;
+  width: 48rpx;
+  height: 48rpx;
+}
+.small-icon {
+  flex-shrink: 0;
+  display: block;
+  width: 40rpx;
+  height: 40rpx;
+}
+.inline-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: flex-start;
+  min-height: 64rpx;
+  margin: 0;
+  padding: 0;
+  background: transparent;
   color: @colors-primary;
   font-size: @type-small;
+  line-height: @leading-body;
+}
+.section-title {
+  display: block;
+  font-size: @type-title;
+  font-weight: @weight-semibold;
+  line-height: @leading-heading;
+  overflow-wrap: anywhere;
+}
+.caption {
+  display: block;
+  font-size: @type-small;
+  color: @colors-secondary;
+  line-height: @leading-body;
 }
 .body-copy {
+  display: block;
+  font-size: @type-body;
   white-space: pre-wrap;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  line-height: @leading-body;
+}
+.ingredients-collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.detail-summary {
+  margin: 0 0 @space-lg;
+  display: flex;
+  flex-direction: column;
+  gap: @space-sm;
+}
+.detail-title {
+  display: block;
+  font-size: @type-hero;
+  font-weight: @weight-bold;
+  line-height: @leading-heading;
+  overflow-wrap: anywhere;
+}
+.summary-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: @space-xs;
+}
+.food-summary {
+  flex-direction: row;
+  align-items: center;
+  gap: @space-lg;
+}
+.food-icon {
+  flex-shrink: 0;
+  padding: @space-lg;
+  background: @colors-primarySoft;
+  border-radius: @radius-medium;
+}
+.food-icon .design-icon {
+  width: 68rpx;
+  height: 68rpx;
+}
+.status-badge {
+  align-self: flex-start;
+  font-size: @type-small;
+  color: @colors-secondary;
+}
+.attention-card {
+  background: #fff5e5;
+}
+.warning-text {
+  color: #94601f;
+}
+.success-text {
+  color: @colors-success;
+}
+.capture-guide {
+  background: @colors-primarySoft;
+}
+.capture-guide .section-title {
+  color: @colors-primary;
+}
+.check-row {
+  padding-bottom: @space-md;
+  border-bottom: 1rpx solid @colors-line;
+  font-size: @type-body;
+}
+.submission-tabs {
+  display: flex;
+  gap: @space-sm;
+  margin-bottom: @space-md;
+}
+.filter-tab {
+  margin: 0;
+  min-height: 64rpx;
+  display: flex;
+  align-items: center;
+  padding: @space-xs @space-sm;
+  border-radius: @radius-small;
+  color: @colors-secondary;
+  background: @colors-surface;
+  font-size: @type-small;
+}
+.filter-tab.active {
+  color: @colors-primary;
+  background: @colors-primarySoft;
+  font-weight: @weight-semibold;
+}
+.submission-title,
+.processing-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: @space-md;
+}
+.submission-title .section-title {
+  min-width: 0;
+  flex: 1;
+}
+.submission-link {
+  padding-top: @space-md;
+  border-top: 1rpx solid @colors-line;
+  color: @colors-primary;
+  font-size: @type-body;
+}
+.secondary-button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: @control-primaryHeight;
+  padding: @space-sm @space-md;
+  margin: 0;
+  background: @colors-primarySoft;
+  color: @colors-primary;
+  font-size: @type-body;
+  border-radius: @radius-medium;
   line-height: @leading-body;
 }
 .notice {
@@ -129,11 +305,39 @@
   font-size: @type-small;
   line-height: @leading-body;
 }
-// Keep the shared control sizes and safe area, without a separate footer panel.
 .page-action-footer.submission-footer {
-  background: transparent;
+  background: @colors-surface;
+  padding-top: @space-lg;
 }
-
-.result-progress { gap: 16rpx; }
-.result-dimensions { margin: 16rpx 0; }
-.result-dimension { display: flex; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid #edf0ed; font-size: 26rpx; color: #34483e; }
+.result-dimension {
+  display: flex;
+  justify-content: space-between;
+  gap: @space-md;
+  padding: @space-sm 0;
+  border-bottom: 1rpx solid @colors-line;
+  font-size: @type-body;
+}
+.diet-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: @space-lg;
+  background: @colors-surface;
+}
+.diet-confirmation .detail-title {
+  font-size: 40rpx;
+}
+.diet-confirmation .primary-button {
+  margin: 0;
+}
+.food-name {
+  font-weight: @weight-semibold;
+  color: @colors-primary;
+}
+.pet-confirmation {
+  display: flex;
+  align-items: center;
+  gap: @space-md;
+  padding: @space-lg;
+  background: @colors-page;
+  border-radius: @radius-small;
+}

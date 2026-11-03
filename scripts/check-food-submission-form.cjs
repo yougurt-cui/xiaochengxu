@@ -9,7 +9,9 @@ let definition,
   account = 'one',
   response;
 const context = {
-  setTimeout, clearTimeout, hasSession: () => true,
+  setTimeout,
+  clearTimeout,
+  hasSession: () => true,
   Page: (d) => {
     definition = d;
   },
@@ -89,7 +91,7 @@ function page() {
   assert.equal(sent, before, 'block duplicate requests');
   resolve({ id: 'new' });
   await pending;
-  assert.equal(p.data.selected.id, 'new', 'successful submission opens its result progress');
+  assert.equal(p.data.selected, null, 'successful submission returns to the list');
   assert.equal(p.data.creating, false);
   assert.equal(p.data.items[0].id, 'new');
   assert.equal(back, 0, 'inline form returns to its own list');
@@ -99,8 +101,15 @@ function page() {
   direct.data.form = { brand: '卫仕', product: 'LA20', images: ['local.png'] };
   response = { id: 'direct' };
   await direct.submit();
-  assert.equal(back, 0, 'direct entry waits on result page until the user chooses analysis');
-  assert.equal(direct.data.selected.id, 'direct');
+  assert.equal(back, 0, 'direct entry returns to the submission list');
+  assert.equal(direct.data.selected, null);
+  assert.equal(direct.data.items[0].id, 'direct');
+  const list = page();
+  list.data.items = [{ id: 'done' }, { id: 'needs', needsInput: true }];
+  list.updateList();
+  assert.equal(list.data.visibleItems[0].id, 'needs');
+  list.selectFilter({ currentTarget: { dataset: { filter: 'needsInput' } } });
+  assert.equal(list.data.visibleItems.length, 1);
   const stale = page();
   stale.data.form = { brand: '卫仕', product: 'LA20', images: ['local.png'] };
   response = new Promise((r) => {
@@ -113,7 +122,7 @@ function page() {
   assert.equal(stale.data.items.length, 0);
   assert.equal(back, 0, 'stale account response cannot navigate');
   console.log(
-    'PASS: missing-field feedback, highlight clearing, photo validation, failure retention, duplicate prevention, result page after submit, account isolation',
+    'PASS: missing-field feedback, highlight clearing, photo validation, failure retention, duplicate prevention, list after submit, account isolation',
   );
 })().catch((e) => {
   console.error(e);

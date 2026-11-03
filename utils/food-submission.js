@@ -55,7 +55,11 @@ export async function submitFood({ brand, product, remark = '', images = [] }) {
   }
   const boundary = `petFood${Date.now()}${Math.random().toString(36).slice(2)}`;
   const data = multipartFood(
-    { brand_name: brand.trim(), product_name: product.trim(), remark: remark.trim() },
+    {
+      brand_name: brand.trim(),
+      product_name: product.trim(),
+      remark: remark.trim(),
+    },
     files,
     boundary,
   );
@@ -73,7 +77,7 @@ export async function submitFood({ brand, product, remark = '', images = [] }) {
           resolve(res.data.item);
         else reject(new Error((res.data && res.data.error) || '投稿失败，请重试'));
       },
-      fail: () => reject(new Error('网络异常，请先刷新投稿记录确认是否已提交')),
+      fail: () => reject(new Error('网络异常，请到我的投稿确认提交状态')),
     }),
   );
 }
@@ -83,51 +87,120 @@ export function submissionView(item) {
       ? 'unrecognized'
       : item.recognition_status;
   const cancelled = item.status === 'cancelled' || item.processing_status === 'cancelled';
-  const needsConfirmation = ['unrecognized', 'needs_review', 'failed'].includes(status) ||
-    ['waiting_input', 'need_review', 'failed'].includes(item.processing_status) || item.review_status === 'rejected';
-  const completed = cancelled || item.result_available === true ||
-    ['done', 'completed', 'success'].includes(item.processing_status) || item.publish_status === 'published' ||
+  const needsConfirmation =
+    ['unrecognized', 'needs_review', 'failed'].includes(status) ||
+    ['waiting_input', 'need_review', 'failed'].includes(item.processing_status) ||
+    item.review_status === 'rejected';
+  const completed =
+    cancelled ||
+    item.result_available === true ||
+    ['done', 'completed', 'success'].includes(item.processing_status) ||
+    item.publish_status === 'published' ||
     (!item.processing_status && status === 'success');
   const isProcessing = !needsConfirmation && !completed;
   const bundle = item.calculation_result || {};
-  const ready = item.result_available === true && !!bundle.portrait;
+  const ready = !cancelled && item.review_status !== 'rejected' && item.result_available === true && !!bundle.portrait;
   const provisional = ready && item.result_stage === 'provisional';
   const portraitDimensions = (bundle.portrait || {}).dimensions || {};
-  const dimensions = ['protein_quality', 'protein', 'fat', 'fiber', 'carbohydrate', 'prebiotic'].filter((key) => portraitDimensions[key]).map((key) => {
-    const value = portraitDimensions[key];
-    return {
-      key, ...value, name: ({ protein_quality: '蛋白质量', protein: '蛋白压力', fat: '脂肪负担', fiber: '纤维缓冲', carbohydrate: '碳水负担', prebiotic: '菌群支持' })[key] || key, scoreText: typeof value.score === 'number' ? `${value.score} / ${value.scale_max}` : '资料不足',
-    };
-  });
+  const dimensions = ['protein_quality', 'protein', 'fat', 'fiber', 'carbohydrate', 'prebiotic']
+    .filter((key) => portraitDimensions[key])
+    .map((key) => {
+      const value = portraitDimensions[key];
+      return {
+        key,
+        ...value,
+        name:
+          {
+            protein_quality: '蛋白质量',
+            protein: '蛋白压力',
+            fat: '脂肪负担',
+            fiber: '纤维缓冲',
+            carbohydrate: '碳水负担',
+            prebiotic: '菌群支持',
+          }[key] || key,
+        scoreText: typeof value.score === 'number' ? `${value.score} / ${value.scale_max}` : '资料不足',
+      };
+    });
   const messages = {
-    unrecognized: '没有读到完整配料表，请拍包装背面的配料表近照，让文字完整、清晰、不反光。',
-    needs_review: '请确认包装上的配料表和营养成分保证值，必要时重新上传清晰照片。',
+    unrecognized: '未识别到完整配料表，请补拍包装背面的清晰近照。',
+    needs_review: '配料表内容待核对，请补拍完整、清晰的包装照片。',
     failed: '暂未完成识别，请重新上传照片。',
   };
+  const needsInput = !cancelled && needsConfirmation && (!item.failure_node || item.failure_node === 'ocr_formula');
+  const isPublished = !cancelled && item.review_status !== 'rejected' && item.publish_status === 'published';
+  let displayStatus = '正在处理';
+  if (cancelled) displayStatus = '已撤销';
+  else if (needsInput) displayStatus = '待核对';
+  else if (isPublished) displayStatus = '已收录';
+  else if (ready) displayStatus = provisional ? '初算可查看' : '分析完成';
+  else if (item.failure_node) displayStatus = '处理中断';
+  else if (completed) displayStatus = '已完成';
   return {
     ...item,
-    resultReady: ready, provisional, dimensions,
+    needsInput,
+    isPublished,
+    canSetDiet: isPublished && !!item.standard_product_id && !!item.formula_id,
+    showIngredients: !cancelled && status === 'success' && !!(item.ingredient_composition || '').trim(),
+    displayStatus,
+    submittedDate: (item.created_at || '').replace(/-/g, '.').slice(0, 16),
+    resultReady: ready,
+    provisional,
+    dimensions,
     canAskGuardian: !cancelled && !ready && !!item.failure_node,
     resultLabel: ready ? (provisional ? '初算结果 · 待核对' : '正式结果') : '正在分析',
-    resultNote: item.result_updating && ready ? '结果更新中，当前显示上一版计算结果。' : provisional ? '基于当前上传资料计算，核对后可能更新。' : ready ? '已核对的计算结果。' : '',
-    nutritionRows: Object.values(bundle.nutrition || {}).filter((n) => n.value !== null && n.value !== undefined).map((n) => ({ ...n, display: `${n.operator || ''} ${n.value}${n.unit || ''}` })),
+    resultNote:
+      item.result_updating && ready
+        ? '结果更新中，当前显示上一版计算结果。'
+        : provisional
+        ? '基于当前上传资料计算，核对后可能更新。'
+        : ready
+        ? '已核对的计算结果。'
+        : '',
+    nutritionRows: Object.values(bundle.nutrition || {})
+      .filter((n) => n.value !== null && n.value !== undefined)
+      .map((n) => ({ ...n, display: `${n.operator || ''} ${n.value}${n.unit || ''}` })),
     partialResult: !ready && !!bundle.partial,
-    needsRefresh: !cancelled && item.review_status !== 'rejected' && (isProcessing || !!item.result_updating || provisional || item.processing_status === 'need_review'),
+    needsRefresh:
+      !cancelled &&
+      item.review_status !== 'rejected' &&
+      (isProcessing || !!item.result_updating || provisional || item.processing_status === 'need_review'),
     recognition_status: status,
     isProcessing,
-    recognitionMessage: ready ? (item.result_updating ? '已有结果可查看，新版本正在计算。' : provisional ? '初算已完成，资料核对中，可先查看结果。' : '正式结果已更新。') : cancelled ? '这次投稿已撤销。' : isProcessing
-      ? (status === 'success' ? '正在生成分析结果，完成后会自动更新。' : '正在读取包装资料，结果会自动更新。')
-      : item.failure_node && item.failure_node !== 'ocr_formula' ? '分析暂未完成，可以请管家协助核对。'
-      : needsConfirmation ? messages[status] || '请确认投稿信息，必要时重新上传清晰照片。'
+    recognitionMessage: ready
+      ? item.result_updating
+        ? '已有结果可查看，新版本正在计算。'
+        : provisional
+        ? '初算已完成，资料核对中，可先查看结果。'
+        : '正式结果已更新。'
+      : cancelled
+      ? '这次投稿已撤销。'
+      : isProcessing
+      ? status === 'success'
+        ? '正在生成分析结果，完成后会自动更新。'
+        : '正在读取包装资料，结果会自动更新。'
+      : item.failure_node && item.failure_node !== 'ocr_formula'
+      ? '分析暂未完成，可以请管家协助核对。'
+      : needsConfirmation
+      ? messages[status] || '请确认投稿信息，必要时重新上传清晰照片。'
       : '识别已完成，可以查看结果或交给管家分析。',
     canAnalyze: !cancelled && status === 'success' && !!(item.ingredient_composition || '').trim(),
     canReupload: !cancelled && needsConfirmation,
     title: `${item.claimed_brand || ''} ${item.claimed_product_name || ''}`.trim(),
-    statusText: ready ? (provisional ? '初算可查看' : '分析完成') : cancelled ? '已撤销' : needsConfirmation ? '需要确认' : isProcessing ? (status === 'success' ? '分析中' : '识别中') : '已完成',
+    statusText: ready
+      ? provisional
+        ? '初算可查看'
+        : '分析完成'
+      : cancelled
+      ? '已撤销'
+      : needsConfirmation
+      ? '需要确认'
+      : isProcessing
+      ? status === 'success'
+        ? '分析中'
+        : '识别中'
+      : '已完成',
     canCancel:
-      !cancelled &&
-      !['approved', 'rejected'].includes(item.review_status) &&
-      item.publish_status !== 'published',
+      !cancelled && !['approved', 'rejected'].includes(item.review_status) && item.publish_status !== 'published',
     guaranteeText: Object.entries(item.guarantee || {})
       .map(([k, v]) => `${k}：${typeof v === 'object' ? JSON.stringify(v) : v}`)
       .join('\n'),

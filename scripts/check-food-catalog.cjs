@@ -106,6 +106,10 @@ vm.runInContext(
     name: '猎鸟乳鸽2.0',
   };
   await page.setCurrentDiet();
+  assert.equal(write, undefined, 'first tap only opens confirmation');
+  assert.equal(page.data.confirmDiet, true);
+  await page.setCurrentDiet();
+  assert.equal(page.data.dietSaved, true);
   assert.deepEqual(JSON.parse(JSON.stringify(write)), {
     path: '/cat-profiles/pet-1',
     method: 'PATCH',

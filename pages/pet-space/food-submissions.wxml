@@ -1,74 +1,242 @@
-<view class="page has-page-actions">
-  <page-header title="{{creating ? '添加食物' : selected ? '投稿详情' : '我的投稿'}}" back custom-back bind:back="back" />
+<view
+  class="page submission-page {{creating || !selected || selected.canSetDiet ? 'has-page-actions' : ''}} {{selected.canSetDiet ? 'has-stacked-actions' : ''}}"
+>
+  <view class="submission-header"
+    ><page-header
+      title="{{creating ? '添加食品' : selected ? (selected.isPublished ? '食品详情' : '投稿详情') : '我的投稿'}}"
+      back
+      custom-back
+      bind:back="back"
+  /></view>
   <view class="screen-body">
-    <view wx:if="{{error && !creating}}" class="notice">{{error}}<button wx:if="{{signedOut}}" class="text-button" bindtap="signIn">登录后查看</button><button wx:else class="text-button" bindtap="load">重试</button></view>
+    <view wx:if="{{error && !creating}}" class="notice"
+      >{{error}}<button wx:if="{{signedOut}}" class="text-button" bindtap="signIn">登录后查看</button
+      ><button wx:else class="text-button" bindtap="load">重试</button></view
+    >
     <block wx:if="{{creating}}">
-      <view class="form-card">
-        <view id="field-brand" class="form-field {{invalid.brand ? 'field-invalid' : ''}}">
-          <text>品牌 *</text>
-          <input value="{{form.brand}}" data-key="brand" bindinput="input" maxlength="255" disabled="{{saving}}" placeholder="请输入品牌" placeholder-class="input-placeholder" aria-label="品牌，必填" />
-        </view>
-        <view id="field-product" class="form-field {{invalid.product ? 'field-invalid' : ''}}">
-          <text>系列 / 产品名称 *</text>
-          <input value="{{form.product}}" data-key="product" bindinput="input" maxlength="512" disabled="{{saving}}" placeholder="请输入系列 / 产品名称" placeholder-class="input-placeholder" aria-label="系列或产品名称，必填" />
-        </view>
-      </view>
-      <view id="field-images" class="form-card {{invalid.images ? 'photos-invalid' : ''}}">
-        <view class="photo-heading"><text class="section-title">包装照片 *</text><button class="text-button" bindtap="previewIngredientExample">拍摄示例 ›</button></view>
-        <text class="caption">配料表必拍，营养成分表选拍</text>
-        <view class="photos">
-          <view wx:for="{{form.images}}" wx:key="*this" class="photo-wrap">
-            <p-image image-class="photo" src="{{item}}" data-url="{{item}}" bindtap="preview" />
-            <button class="remove-photo" data-index="{{index}}" bindtap="removeImage" disabled="{{saving}}" aria-label="删除第{{index + 1}}张照片">删除</button>
+      <view class="form-card submission-form">
+        <block>
+          <view id="field-brand" class="form-field {{invalid.brand ? 'field-invalid' : ''}}">
+            <view class="field-label"><text class="required">*</text><text>品牌</text></view>
+            <input
+              value="{{form.brand}}"
+              data-key="brand"
+              bindinput="input"
+              maxlength="255"
+              disabled="{{saving}}"
+              placeholder="请输入品牌"
+              placeholder-class="input-placeholder"
+              aria-label="品牌，必填"
+            />
           </view>
-          <button wx:if="{{form.images.length < 3}}" class="add-photo" bindtap="chooseImages" disabled="{{saving}}"><p-icon name="plus" tone="primary" size="44" /><text>添加照片</text></button>
+          <view id="field-product" class="form-field {{invalid.product ? 'field-invalid' : ''}}">
+            <view class="field-label"><text class="required">*</text><text>系列 / 产品名称</text></view>
+            <input
+              value="{{form.product}}"
+              data-key="product"
+              bindinput="input"
+              maxlength="512"
+              disabled="{{saving}}"
+              placeholder="请输入系列 / 产品名称"
+              placeholder-class="input-placeholder"
+              aria-label="系列或产品名称，必填"
+            />
+          </view>
+        </block>
+        <view id="field-images" class="form-field photo-field {{invalid.images ? 'photos-invalid' : ''}}">
+          <view class="photo-heading">
+            <view class="field-label"
+              ><text class="required">*</text><text>成分照片</text><text class="photo-limit">支持1~3张</text></view
+            >
+            <button class="inline-link" bindtap="previewIngredientExample">拍摄示例</button>
+          </view>
+          <view class="photos">
+            <view wx:for="{{form.images}}" wx:key="*this" class="photo-wrap">
+              <p-image image-class="photo" src="{{item}}" data-url="{{item}}" bindtap="preview" />
+              <button
+                class="remove-photo"
+                data-index="{{index}}"
+                catchtap="removeImage"
+                disabled="{{saving}}"
+                aria-label="删除第{{index + 1}}张照片"
+                >×</button
+              >
+            </view>
+            <button wx:if="{{form.images.length < 3}}" class="add-photo" bindtap="chooseImages" disabled="{{saving}}"
+              ><image class="design-icon" src="/static/submission/plus.svg" /><text>添加照片</text></button
+            >
+          </view>
+          <text wx:if="{{invalid.images}}" class="field-error">请上传成分照片</text>
         </view>
-        <text class="caption">已上传 {{form.images.length}}/3 张 · 单张不超过 10MB</text>
-      </view>
-      <view class="form-card">
-        <view class="form-field remark-field"><text>备注（选填）</text><textarea value="{{form.remark}}" data-key="remark" bindinput="input" maxlength="1000" disabled="{{saving}}" placeholder="补充包装信息…" placeholder-class="input-placeholder" /></view>
+        <view class="form-field">
+          <view class="field-label"><text>备注</text></view>
+          <input
+            value="{{form.remark}}"
+            data-key="remark"
+            bindinput="input"
+            maxlength="1000"
+            disabled="{{saving}}"
+            placeholder="请输入备注"
+            placeholder-class="input-placeholder"
+            aria-label="备注，选填"
+          />
+        </view>
       </view>
     </block>
     <block wx:elif="{{selected}}">
-      <view class="form-card">
-        <text class="section-title">{{selected.title}}</text>
-        <text wx:if="{{selected.created_at}}" class="caption">提交时间 {{selected.created_at}}</text>
-        <view class="photos"><p-image wx:for="{{selected.images}}" wx:key="id" image-class="photo" src="{{item.url}}" data-url="{{item.url}}" bindtap="preview" /></view>
-        <text wx:if="{{selected.remark}}" class="body-copy">{{selected.remark}}</text>
+      <view class="detail-summary {{selected.isPublished ? 'food-summary' : ''}}">
+        <view wx:if="{{selected.isPublished}}" class="food-icon"
+          ><image class="design-icon" src="/static/submission/food.svg"
+        /></view>
+        <view class="summary-copy">
+          <text wx:if="{{!selected.isPublished}}" class="status-badge {{selected.needsInput ? 'warning-text' : ''}}"
+            >{{selected.displayStatus}}</text
+          >
+          <text wx:if="{{selected.isPublished}}" class="caption"
+            >{{selected.recognized_brand || selected.claimed_brand}}</text
+          >
+          <text class="detail-title"
+            >{{selected.isPublished ? (selected.recognized_product_name || selected.claimed_product_name) :
+            selected.title}}</text
+          >
+          <text class="caption {{selected.isPublished ? 'success-text' : ''}}"
+            >{{selected.isPublished ? (dietSaved ? '当前口粮' : '已收录') : selected.submittedDate}}</text
+          >
+        </view>
       </view>
-      <view class="form-card result-progress" aria-live="polite">
-        <text class="section-title">{{selected.resultReady ? selected.resultLabel : selected.statusText}}</text>
-        <text class="body-copy">{{selected.recognitionMessage}}</text>
-        <text wx:if="{{selected.isProcessing && selected.processing_stage}}" class="caption">{{selected.processing_stage}}</text>
+      <view wx:if="{{selected.needsInput}}" class="form-card attention-card"
+        ><text class="section-title">配料表未能识别</text
+        ><text class="body-copy">{{selected.recognitionMessage}}</text></view
+      >
+      <view wx:elif="{{selected.isProcessing}}" class="form-card processing-card" aria-live="polite"
+        ><image class="small-icon" src="/static/submission/clock.svg" /><text>正在处理，结果自动更新</text></view
+      >
+      <view wx:if="{{selected.images.length && !selected.isPublished}}" class="form-card"
+        ><text class="section-title">你上传的照片</text
+        ><view class="photos"
+          ><p-image
+            wx:for="{{selected.images}}"
+            wx:key="id"
+            image-class="photo"
+            src="{{item.url}}"
+            data-url="{{item.url}}"
+            bindtap="preview" /></view
+        ><text wx:if="{{selected.remark}}" class="caption">{{selected.remark}}</text></view
+      >
+      <view wx:if="{{selected.showIngredients}}" class="form-card">
+        <view class="card-heading"><text class="section-title">配料表</text></view>
+        <text class="body-copy {{ingredientsExpanded ? '' : 'ingredients-collapsed'}}"
+          >{{selected.ingredient_composition}}</text
+        >
+        <button wx:if="{{selected.ingredient_composition.length > 80}}" class="inline-link" bindtap="toggleIngredients"
+          >{{ingredientsExpanded ? '收起配料' : '展开全部配料'}}</button
+        >
+      </view>
+      <view wx:if="{{selected.isPublished || selected.guaranteeText}}" class="form-card"
+        ><text class="section-title">营养成分</text
+        ><text wx:if="{{selected.guaranteeText}}" class="body-copy">{{selected.guaranteeText}}</text
+        ><block wx:else><text class="caption">尚未提供营养成分表</text></block></view
+      >
+      <view wx:if="{{selected.needsInput}}" class="form-card"
+        ><text class="section-title">资料检查</text><text class="check-row">✓ 品牌与产品名称已保存</text
+        ><text class="check-row warning-text">! 配料表未能识别</text
+        ><text wx:if="{{!selected.guaranteeText}}" class="caption">营养成分表尚未提供（选填）</text></view
+      >
+      <view
+        wx:if="{{selected.resultReady || selected.partialResult || selected.canAskGuardian}}"
+        class="form-card result-progress"
+        aria-live="polite"
+      >
+        <text class="section-title">{{selected.resultReady ? selected.resultLabel : '分析结果'}}</text>
         <text wx:if="{{selected.resultNote}}" class="caption">{{selected.resultNote}}</text>
-        <view wx:if="{{selected.partialResult}}">
-          <text class="caption">已读取以下营养保证值；配方画像和风险结果尚未就绪。</text>
-          <view wx:for="{{selected.nutritionRows}}" wx:key="name" class="result-dimension"><text>{{item.name}}</text><text>{{item.display}}</text></view>
-        </view>
-        <view wx:if="{{selected.resultReady}}" class="result-dimensions">
-          <view wx:for="{{selected.dimensions}}" wx:key="key" class="result-dimension">
-            <text>{{item.name || item.label || item.key}}</text><text>{{item.scoreText}}</text>
-          </view>
-        </view>
+        <block wx:if="{{selected.partialResult}}"
+          ><text class="caption">已读取营养保证值</text
+          ><view wx:for="{{selected.nutritionRows}}" wx:key="name" class="result-dimension"
+            ><text>{{item.name}}</text><text>{{item.display}}</text></view
+          ></block
+        >
+        <view wx:if="{{selected.resultReady}}" class="result-dimensions"
+          ><view wx:for="{{selected.dimensions}}" wx:key="key" class="result-dimension"
+            ><text>{{item.name || item.label || item.key}}</text><text>{{item.scoreText}}</text></view
+          ></view
+        >
         <text wx:if="{{selected.resultReady}}" class="caption">各维度含义不同，分数不代表综合优劣。</text>
-        <button wx:if="{{selected.resultReady}}" class="text-button" bindtap="analyzeResult">交给管家，与当前口粮对比 ›</button>
-        <button wx:elif="{{selected.canAskGuardian}}" class="text-button" bindtap="analyzeResult">问问管家，接下来怎么看 ›</button>
-        <button class="text-button" bindtap="load">刷新结果</button>
+        <button class="secondary-button" bindtap="analyzeResult"
+          >{{selected.resultReady ? '交给管家分析' : '请管家协助核对'}}</button
+        >
       </view>
-      <view wx:if="{{selected.ingredient_composition || selected.guaranteeText}}" class="form-card">
-        <block wx:if="{{selected.ingredient_composition}}"><text class="section-title">配料表</text><text class="body-copy">{{selected.ingredient_composition}}</text></block>
-        <block wx:if="{{selected.guaranteeText}}"><text class="section-title">营养成分</text><text class="body-copy">{{selected.guaranteeText}}</text></block>
-      </view>
+      <view wx:if="{{selected.isPublished}}" class="source-row"
+        ><text class="caption">资料来自用户投稿</text
+        ><button
+          wx:if="{{selected.images.length}}"
+          class="inline-link"
+          data-url="{{selected.images[0].url}}"
+          bindtap="preview"
+          >查看包装照片</button
+        ></view
+      >
     </block>
     <block wx:else>
+      <view class="submission-tabs" wx:if="{{items.length}}"
+        ><button class="filter-tab {{filter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="selectFilter"
+          >全部 {{items.length}}</button
+        ><button
+          class="filter-tab {{filter === 'needsInput' ? 'active' : ''}}"
+          data-filter="needsInput"
+          bindtap="selectFilter"
+          >待核对 {{needsInputCount}}</button
+        ></view
+      >
       <view wx:if="{{loading && !items.length}}" class="empty-state">正在加载…</view>
-      <view wx:if="{{!loading && !error && !items.length}}" class="empty-state">还没有投稿</view>
-      <button wx:for="{{items}}" wx:key="id" class="submission" data-id="{{item.id}}" bindtap="open"><text class="section-title">{{item.title}}</text><text class="caption">提交时间 {{item.created_at}}</text><text class="caption">{{item.statusText}}</text><text class="submission-link">查看结果与投稿内容 ›</text></button>
+      <view wx:if="{{!loading && !error && !visibleItems.length}}" class="empty-state"
+        >{{filter === 'needsInput' ? '暂无待核对的投稿' : '还没有投稿'}}</view
+      >
+      <button
+        wx:for="{{visibleItems}}"
+        wx:key="id"
+        class="submission {{item.needsInput ? 'attention-card' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="open"
+      >
+        <view class="card-heading"
+          ><text class="status-badge {{item.needsInput ? 'warning-text' : item.isPublished ? 'success-text' : ''}}"
+            >{{item.displayStatus}}</text
+          ><text class="caption">{{item.submittedDate}}</text></view
+        >
+        <view class="submission-title"
+          ><image wx:if="{{item.isProcessing}}" class="small-icon" src="/static/submission/clock.svg" /><image
+            wx:elif="{{item.isPublished}}"
+            class="design-icon"
+            src="/static/submission/food.svg"
+          /><text class="section-title">{{item.title}}</text></view
+        >
+        <text wx:if="{{item.needsInput}}" class="body-copy">{{item.recognitionMessage}}</text>
+        <text wx:if="{{item.isPublished}}" class="submission-link">查看食品详情</text>
+      </button>
     </block>
   </view>
 </view>
-<view class="page-action-footer submission-footer">
-  <button wx:if="{{creating}}" class="primary-button" bindtap="submit" loading="{{saving}}" disabled="{{saving}}">{{saving ? '提交中' : '提交投稿'}}</button>
-  <button wx:elif="{{selected}}" class="primary-button" bindtap="closeDetail">返回列表</button>
-  <button wx:else class="primary-button" bindtap="create">＋ 添加食物</button>
+<view wx:if="{{creating || !selected || selected.canSetDiet}}" class="page-action-footer submission-footer">
+  <button wx:if="{{creating}}" class="primary-button" bindtap="submit" loading="{{saving}}" disabled="{{saving}}"
+    >{{saving ? '正在提交…' : '提交投稿'}}</button
+  >
+  <block wx:elif="{{selected.canSetDiet}}"
+    ><button
+      class="primary-button"
+      bindtap="prepareDiet"
+      loading="{{savingDiet}}"
+      disabled="{{savingDiet || dietSaved}}"
+      >{{dietSaved ? '已设为当前口粮' : '设置为当前口粮'}}</button
+    ><button class="text-button" open-type="share">分享食品</button></block
+  >
+  <button wx:else class="primary-button" bindtap="create">＋ 投稿食品</button>
 </view>
+<view wx:if="{{confirmDiet}}" class="sheet-mask" bindtap="dismissDiet"></view>
+<view wx:if="{{confirmDiet}}" class="bottom-sheet diet-confirmation"
+  ><text class="detail-title">设为{{pet.name}}的当前口粮？</text><text class="food-name">{{selected.title}}</text
+  ><view class="pet-confirmation"><text>{{pet.name}}</text><text class="caption">当前宠物</text></view
+  ><text class="caption">设置后将替换当前口粮，原口粮记录会保留在历史口粮中。</text
+  ><button class="primary-button" loading="{{savingDiet}}" disabled="{{savingDiet}}" bindtap="confirmCurrentDiet"
+    >确认设置</button
+  ><button class="text-button" disabled="{{savingDiet}}" bindtap="dismissDiet">暂不设置</button></view
+>

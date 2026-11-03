@@ -19,6 +19,12 @@ const FOODS = {
   ],
 };
 
+const WELCOME_PROMPT_GROUPS = [
+  ['这款猫粮的配方怎么样？', '猫咪最近软便，选粮要注意什么？', '我家猫活泼好动，有什么玩具推荐？'],
+  ['换粮时怎么安排过渡？', '猫咪最近食欲下降，要留意什么？', '幼猫适合玩什么玩具？'],
+  ['怎么判断猫粮是否适合它？', '猫咪总抓耳朵，需要注意什么？', '狗狗独自在家，可以玩什么？'],
+];
+
 const SYMPTOMS = ['软便敏感', '偶尔黑下巴', '下巴出油', '挑食', '泪痕', '无明显异常'];
 
 const INGREDIENT_META = {
@@ -117,13 +123,13 @@ Page({
     statusBarHeight: 20,
     compactWelcome: false,
     welcomeShortcuts: [
-      { id: 'diet', label: '饮食建议', iconWidth: 39.74, iconHeight: 41.76, prompt: '想了解适合我家宠物的日常饮食建议。' },
-      { id: 'health', label: '状态解读', iconWidth: 44.04, iconHeight: 40.24, prompt: '想聊聊我家宠物最近的状态，需要补充哪些信息？' },
-      { id: 'food', label: '选粮避坑', iconWidth: 35.70, iconHeight: 39.74, prompt: '怎样给我家宠物选粮，有哪些需要注意的地方？' },
-      { id: 'toy', label: '玩具推荐', iconWidth: 39.74, iconHeight: 39.74, prompt: '想给我家宠物选合适的玩具，有什么建议？' },
-      { id: 'photo', label: '拍照问问', iconWidth: 39.74, iconHeight: 35.70 },
-      { id: 'guide', label: '养宠攻略', iconWidth: 35.70, iconHeight: 39.74, prompt: '日常养宠有哪些饮食、清洁和陪伴方面的注意事项？' },
+      { id: 'diet', label: '饮食与选粮', description: '选粮分析 · 营养建议', iconWidth: 39.06, iconHeight: 41.04, prompt: '想了解适合我家宠物的选粮和日常饮食建议。' },
+      { id: 'health', label: '健康与状态', description: '症状咨询 · 状态解读', iconWidth: 41.04, iconHeight: 37.51, prompt: '想聊聊我家宠物最近的健康和状态，需要补充哪些信息？' },
+      { id: 'photo', label: '拍照问一问', description: '配料表 · 便便 · 皮肤', iconWidth: 41.04, iconHeight: 36.87 },
+      { id: 'toy', label: '玩具推荐', description: '按年龄与性格选玩具', iconWidth: 41.04, iconHeight: 41.04, prompt: '想给我家宠物选合适的玩具，有什么建议？' },
     ],
+    welcomePromptIndex: 0,
+    welcomePrompts: WELCOME_PROMPT_GROUPS[0],
     chatMessages: [],
     keyboardHeight: 0,
     currentFood: FOODS.current[0],
@@ -345,6 +351,17 @@ Page({
     } } });
   },
 
+  rotateWelcomePrompts() {
+    const index = (this.data.welcomePromptIndex + 1) % WELCOME_PROMPT_GROUPS.length;
+    this.setData({ welcomePromptIndex: index, welcomePrompts: WELCOME_PROMPT_GROUPS[index] });
+  },
+
+  fillWelcomePrompt(event) {
+    if (this.data.sending) return;
+    this.setData({ inputMessage: event.currentTarget.dataset.message || '' });
+    this.focusComposer();
+  },
+
   useKeyboardVoice() {
     this.focusComposer();
     wx.showToast({ title: '请使用系统键盘的语音输入', icon: 'none' });
@@ -400,7 +417,7 @@ Page({
         setModalData(this, {
           showIngredientSheet: false,
           composerImages: next,
-          inputMessage: this.data.inputMessage || '请帮我分析配料表',
+          inputMessage: this.data.inputMessage || '请帮我看看这张图片',
         });
       },
       fail: (error) => {

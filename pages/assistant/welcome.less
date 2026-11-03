@@ -1,4 +1,4 @@
-// Figma 5:2 — scoped page palette and responsive 402px composition.
+// Figma 137:60 — scoped page palette and responsive 402px composition.
 @welcome-ink: #302846;
 @welcome-primary: #7460d9;
 @welcome-muted: #a296aa;
@@ -12,7 +12,7 @@
   border-radius: 0;
 }
 .welcome-mode .content {
-  padding: 4rpx 37rpx 30rpx;
+  padding: 4rpx 37rpx 0;
 }
 .welcome-mode .chat-welcome {
   padding: 0;
@@ -74,80 +74,74 @@
 .welcome-star-right { right: 48rpx; top: 250rpx; color: #c99cbf; font-size: 43rpx; }
 .welcome-shortcuts {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 19rpx;
   margin-top: 22rpx;
 }
 .shortcut-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 9rpx;
-  height: 164rpx;
+  align-items: flex-start;
+  gap: 7.5rpx;
+  height: 220rpx;
+  box-sizing: border-box;
   margin: 0;
-  padding: 0;
+  padding: 22rpx;
   min-width: 0;
   width: 100%;
-  border-radius: 37rpx;
+  border-radius: 34rpx;
   background: @colors-surface;
   color: @welcome-ink;
-  box-shadow: @welcome-shadow;
-  font-size: 26rpx;
-  font-weight: 500;
-  line-height: 41rpx;
+  text-align: left;
 }
-.shortcut-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 71rpx;
-  height: 71rpx;
-  border-radius: 24rpx;
-}
+.shortcut-heading { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.shortcut-icon { display: flex; align-items: center; justify-content: center; width: 56rpx; height: 56rpx; border-radius: 19rpx; }
 .shortcut-icon-diet { background: #f3e9cf; }
 .shortcut-icon-health { background: #ffe5e9; }
-.shortcut-icon-food { background: #e6e0fc; }
 .shortcut-icon-toy { background: #ddf1ee; }
 .shortcut-icon-photo { background: #e2edff; }
-.shortcut-icon-guide { background: #f7e6da; }
-.welcome-suggestions { margin-top: 41rpx; }
+.shortcut-arrow { width: 30rpx; height: 30rpx; }
+.shortcut-title { font-size: 30rpx; font-weight: 700; line-height: 45rpx; }
+.shortcut-description { max-width: 100%; font-size: 22rpx; font-weight: 400; line-height: 34rpx; white-space: nowrap; color: #82758e; }
+.welcome-suggestions { margin-top: 26rpx; }
 .suggestion-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 41rpx;
-  font-size: 26rpx;
-  font-weight: 500;
-  color: #594a68;
+  height: 37rpx;
+  padding: 0 22rpx;
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #82758e;
 }
-.suggestion-hint { font-size: 21rpx; font-weight: 400; color: #9a88a1; }
-.welcome-suggestions .quick-prompts { margin-top: 19rpx; gap: 19rpx; }
+.suggestion-refresh { margin: 0; padding: 0; background: transparent; color: inherit; font-size: inherit; font-weight: 400; line-height: 37rpx; }
+.welcome-suggestions .quick-prompts { margin-top: 6rpx; gap: 6rpx; }
 .welcome-suggestions .quick-prompts button {
   justify-content: space-between;
-  height: 60rpx;
-  min-height: 60rpx;
-  padding: 0 24rpx;
+  height: 49rpx;
+  min-height: 49rpx;
+  padding: 0 22rpx;
   border-radius: @radius-pill;
   background: rgba(255, 255, 255, 0.72);
-  font-size: 22rpx;
-  line-height: 34rpx;
-  color: #6a5878;
+  font-size: 21rpx;
+  font-weight: 400;
+  line-height: 30rpx;
+  color: @welcome-ink;
 }
 .welcome-suggestions .quick-prompts text { margin: 0; color: inherit; }
-.welcome-suggestions .quick-prompts image { width: 20.77rpx; height: 15.80rpx; flex-shrink: 0; }
+.welcome-suggestions .quick-prompts .suggestion-arrow { flex-shrink: 0; color: #82758e; font-size: 30rpx; line-height: 34rpx; }
 .welcome-pressed { opacity: 0.75; transform: translateY(2rpx); }
 
 .chat-layout .chat-input-dock {
-  padding: 22rpx 30rpx 14rpx;
+  padding: 28rpx 37rpx 14rpx;
   background: transparent;
 }
 .chat-layout .chat-input-box {
-  padding: 22rpx 19rpx 22rpx 26rpx;
-  border-radius: 43rpx;
+  padding: 19rpx 15rpx;
+  border-radius: 45rpx;
   box-shadow: @welcome-shadow;
 }
-.composer-row { display: flex; align-items: center; gap: 18rpx; min-height: 67rpx; }
+.composer-row { display: flex; align-items: center; gap: 7.5rpx; min-height: 82rpx; }
 .chat-layout .chat-textarea {
   flex: 1;
   min-width: 0;
@@ -159,7 +153,7 @@
   margin: 0;
   box-sizing: border-box;
   font-family: inherit;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 400;
   line-height: 43rpx;
   color: @welcome-ink;
@@ -169,7 +163,7 @@
   padding: 0;
   margin: 0;
   font-family: inherit;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 400;
   line-height: 43rpx;
   color: @welcome-muted;
@@ -180,16 +174,18 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 45rpx;
-  height: 67rpx;
+  width: 82rpx;
+  height: 82rpx;
   padding: 0;
   margin: 0;
   background: transparent;
 }
 .composer-camera image { width: 36.94rpx; height: 33.21rpx; }
 .composer-voice image { width: 26.21rpx; height: 36.01rpx; }
-.chat-layout .input-actions { gap: 18rpx; margin: 0; min-height: 67rpx; flex-shrink: 0; }
-.chat-layout .input-actions button.send-button { width: 67rpx; min-width: 67rpx; height: 67rpx; background: @welcome-primary; }
+.chat-layout .input-actions { gap: 7.5rpx; margin: 0; min-height: 82rpx; flex-shrink: 0; }
+.chat-layout .input-actions button.send-button { width: 82rpx; min-width: 82rpx; height: 82rpx; background: @welcome-primary; }
+.chat-layout .input-actions button.send-button[disabled] { opacity: 0.35; }
+.chat-layout .send-button::before { display: none; }
 .send-arrow { width: 22.95rpx; height: 26.21rpx; }
 .chat-layout .chat-disclaimer { padding-top: 13rpx; font-size: 19rpx; line-height: 28rpx; color: #9e8ca5; }
 .composer-pet-select {
@@ -208,12 +204,9 @@
 }
 .composer-pet-select text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-// Leave room for native status/navigation bars and the home-indicator safe area.
+// Fit all three suggestions above the composer on shorter devices.
 .compact-welcome {
-  .welcome-hero { height: 416rpx; }
-  .welcome-pets { left: 122rpx; width: 506rpx; height: 330rpx; }
-  .welcome-hero .welcome-copy { top: 285rpx; }
-  .welcome-shortcuts .shortcut-card { height: 154rpx; }
-  .welcome-suggestions { margin-top: 32rpx; }
-  .welcome-suggestions .quick-prompts { gap: 15rpx; margin-top: 15rpx; }
+  .welcome-shortcuts { margin-top: 10rpx; }
+  .welcome-shortcuts .shortcut-card { height: 196rpx; }
+  .welcome-suggestions { margin-top: 18rpx; }
 }

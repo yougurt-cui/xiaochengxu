@@ -11,7 +11,18 @@ Page({
   onShareTimeline() {
     return timelineCard(this.onShareAppMessage());
   },
-  data: { query: '', items: [], loading: false, error: '', selected: null, savingDiet: false, petName: '' },
+  data: {
+    query: '',
+    items: [],
+    loading: false,
+    error: '',
+    selected: null,
+    savingDiet: false,
+    petName: '',
+    confirmDiet: false,
+    dietSaved: false,
+    ingredientsExpanded: false,
+  },
   onLoad(query = {}) {
     this.petId = query.petId || '';
     this._sharedItemId = query.id || '';
@@ -44,11 +55,18 @@ Page({
   },
   openItem(e) {
     this.setData({ petName: (this.petId ? '' : currentPet()?.name) || '' });
+    this.setData({ dietSaved: false, ingredientsExpanded: false, confirmDiet: false });
     this.setData({ selected: this.data.items.find((p) => p.id === e.currentTarget.dataset.id) || null });
   },
   closeDetail() {
     if (this.data.savingDiet) return;
-    this.setData({ selected: null });
+    this.setData({ selected: null, confirmDiet: false });
+  },
+  toggleIngredients() {
+    this.setData({ ingredientsExpanded: !this.data.ingredientsExpanded });
+  },
+  dismissDiet() {
+    if (!this.data.savingDiet) this.setData({ confirmDiet: false });
   },
   async setCurrentDiet() {
     if (this.data.savingDiet || !this.data.selected || !requireSession()) return;
@@ -78,12 +96,18 @@ Page({
         return;
       }
       this.setData({ petName: pet.name });
+      if (!this.data.confirmDiet || this._confirmedPetId !== pet.id || this._confirmedAccount !== account) {
+        this._confirmedPetId = pet.id;
+        this._confirmedAccount = account;
+        this.setData({ confirmDiet: true });
+        return;
+      }
       const diet = { product_id: food.product_id, formula_id: food.formula_id };
       const saved = await api('/cat-profiles/' + encodeURIComponent(pet.id), 'PATCH', { diet });
       if (this._disposed || account !== accountKey('hunting')) return;
       const updated = mapPet(saved.item);
       cachePetList(store.pets.map((p) => (p.id === pet.id ? updated : p)));
-      this.setData({ selected: null });
+      this.setData({ confirmDiet: false, dietSaved: true });
       wx.showToast({ title: '已设置为当前口粮', icon: 'success' });
     } catch (e) {
       if (!this._disposed && account === accountKey('hunting')) wx.showToast({ title: errorText(e), icon: 'none' });
@@ -92,7 +116,13 @@ Page({
     }
   },
   contribute() {
-    wx.navigateTo({ url: '/pages/pet-space/food-submissions?create=1' });
+    const food = this.data.selected;
+    wx.navigateTo({
+      url: `/pages/pet-space/food-submissions?create=1&petId=${encodeURIComponent(this.petId || '')}`,
+      success: ({ eventChannel }) => {
+        if (food) eventChannel.emit('prefill', { brand: food.brand, product: food.name });
+      },
+    });
   },
   onUnload() {
     this._disposed = true;

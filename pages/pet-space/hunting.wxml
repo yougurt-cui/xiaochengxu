@@ -1,13 +1,84 @@
 <view class="page hunting-page">
-  <page-header title="狩猎广场" back search><view slot="search" class="hunting-search"><p-icon name="search" size="30" /><input value="{{query}}" bindinput="input" bindconfirm="search" confirm-type="search" placeholder="查询品牌或系列名称" placeholder-style="font-weight:400;" maxlength="128" /></view></page-header>
+  <page-header title="狩猎广场" back search
+    ><view slot="search" class="hunting-search"
+      ><p-icon name="search" size="30" /><input
+        value="{{query}}"
+        bindinput="input"
+        bindconfirm="search"
+        confirm-type="search"
+        placeholder="查询品牌或系列名称"
+        placeholder-style="font-weight:400;"
+        maxlength="128" /></view
+  ></page-header>
   <view class="screen-body">
-
     <view wx:if="{{loading}}" class="empty-state">正在寻找食物…</view>
-    <view wx:elif="{{error}}" class="empty-state">{{error}}<button class="text-button" bindtap="search">重新加载</button></view>
+    <view wx:elif="{{error}}" class="empty-state"
+      >{{error}}<button class="text-button" bindtap="search">重新加载</button></view
+    >
     <view wx:elif="{{!items.length}}" class="empty-state">暂未找到相关食物，试试品牌名称，或投稿补充。</view>
-    <view class="catalog-grid"><button wx:for="{{items}}" wx:key="id" class="catalog-card" data-id="{{item.id}}" bindtap="openItem"><view class="catalog-media"><p-image wx:if="{{item.image}}" image-class="catalog-image" src="{{item.image}}" /><view wx:else class="catalog-placeholder food"><p-icon name="food" tone="accentText" size="80" /></view><text wx:if="{{item.brand}}" class="catalog-brand">{{item.brand}}</text></view><view class="catalog-copy"><text class="card-title">{{item.name}}</text><text class="card-note">{{item.displayText}}</text></view></button></view>
+    <view class="catalog-grid"
+      ><button wx:for="{{items}}" wx:key="id" class="catalog-card" data-id="{{item.id}}" bindtap="openItem"
+        ><view class="catalog-media"
+          ><p-image wx:if="{{item.image}}" image-class="catalog-image" src="{{item.image}}" /><view
+            wx:else
+            class="catalog-placeholder food"
+            ><p-icon name="food" tone="accentText" size="80" /></view
+          ><text wx:if="{{item.brand}}" class="catalog-brand">{{item.brand}}</text></view
+        ><view class="catalog-copy"
+          ><text class="card-title">{{item.name}}</text><text class="card-note">{{item.displayText}}</text></view
+        ></button
+      ></view
+    >
   </view>
 </view>
-<view wx:if="{{!selected}}" class="page-action-footer"><button class="primary-button" bindtap="contribute">投稿</button></view>
+<view wx:if="{{!selected}}" class="page-action-footer"
+  ><button class="primary-button" bindtap="contribute">投稿</button></view
+>
 <view wx:if="{{selected}}" class="sheet-mask" bindtap="closeDetail"></view>
-<view wx:if="{{selected}}" class="bottom-sheet food-detail-sheet"><view class="sheet-heading"><text>食品详情</text><button bindtap="closeDetail" aria-label="关闭"><p-icon name="close" /></button></view><scroll-view scroll-y class="food-detail-content"><p-image wx:if="{{selected.image}}" image-class="detail-image" src="{{selected.image}}" mode="widthFix" /><text class="tag">{{selected.brand}}</text><view class="section-heading">{{selected.name}}</view><text class="detail-note">{{selected.displayText || '暂无配料信息'}}</text></scroll-view><view class="food-detail-actions"><text wx:if="{{petName}}" class="caption">为 {{petName}} 设置口粮</text><button class="text-button" open-type="share" aria-label="分享给朋友">分享</button><button class="primary-button" bindtap="setCurrentDiet" loading="{{savingDiet}}" disabled="{{savingDiet}}">设置为当前口粮</button></view></view>
+<view wx:if="{{selected}}" class="bottom-sheet food-detail-sheet">
+  <view class="sheet-heading"
+    ><text>食品详情</text><button bindtap="closeDetail" aria-label="关闭"><p-icon name="close" /></button
+  ></view>
+  <scroll-view scroll-y class="food-detail-content">
+    <view class="food-product-heading"
+      ><p-image wx:if="{{selected.image}}" image-class="food-product-photo" src="{{selected.image}}" /><view
+        wx:else
+        class="food-product-icon"
+        ><image src="/static/submission/food.svg" /></view
+      ><view class="food-product-copy"
+        ><text class="caption">{{selected.brand}}</text><text class="food-product-title">{{selected.name}}</text></view
+      ></view
+    >
+    <view class="food-info-card"
+      ><view class="food-info-heading"><text>配料表</text></view
+      ><text class="food-ingredients {{ingredientsExpanded ? '' : 'collapsed'}}"
+        >{{selected.displayText || '暂无配料信息'}}</text
+      ><button wx:if="{{selected.displayText.length > 80}}" class="food-expand" bindtap="toggleIngredients"
+        >{{ingredientsExpanded ? '收起配料' : '展开全部配料'}}</button
+      ></view
+    >
+    <view class="food-info-card"
+      ><text class="food-info-heading">营养成分</text><text class="caption">尚未提供营养成分表</text></view
+    >
+  </scroll-view>
+  <view class="food-detail-actions"
+    ><text wx:if="{{petName}}" class="caption">为 {{petName}} 设置口粮</text
+    ><button
+      class="primary-button"
+      bindtap="setCurrentDiet"
+      loading="{{savingDiet}}"
+      disabled="{{savingDiet || dietSaved}}"
+      >{{dietSaved ? '已设为当前口粮' : '设置为当前口粮'}}</button
+    ><button class="text-button" open-type="share" aria-label="分享给朋友">分享食品</button></view
+  >
+</view>
+<view wx:if="{{confirmDiet}}" class="sheet-mask food-confirm-mask" bindtap="dismissDiet"></view>
+<view wx:if="{{confirmDiet}}" class="bottom-sheet food-confirm-sheet"
+  ><text class="food-confirm-title">设为{{petName}}的当前口粮？</text
+  ><text class="food-confirm-name">{{selected.brand}} · {{selected.name}}</text
+  ><view class="food-confirm-pet"><text>{{petName}}</text><text class="caption">当前宠物</text></view
+  ><text class="caption">设置后将替换当前口粮，原口粮记录会保留在历史口粮中。</text
+  ><button class="primary-button" bindtap="setCurrentDiet" loading="{{savingDiet}}" disabled="{{savingDiet}}"
+    >确认设置</button
+  ><button class="text-button" bindtap="dismissDiet" disabled="{{savingDiet}}">暂不设置</button></view
+>
