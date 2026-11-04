@@ -377,7 +377,7 @@ Page({
   },
 
   previewIngredientExample() {
-    previewIngredientExample();
+    previewIngredientExample('static/assistant/reply-example.png');
   },
 
   onIngredientFound() {
