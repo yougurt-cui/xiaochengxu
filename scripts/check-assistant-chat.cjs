@@ -81,9 +81,18 @@ function page() {
     scrollChat() {},
     saveConversation() {},
     closeHistory() {},
+    openFoodSubmission() { throw new Error('image messages must not open food submission'); },
   };
 }
 (async () => {
+  for (const response_type of ['food_select', 'text_or_select', 'ingredient_source']) {
+    const uploadPrompt = mapper({ role: 'assistant', response_type, content: '请上传配料表', result: { food_candidates: [] } });
+    assert.equal(uploadPrompt.canInteract, false);
+    assert.equal(uploadPrompt.canUploadFood, true, 'explicit upload entry must not depend on an interaction slot');
+  }
+  assert.equal(mapper({ role: 'assistant', response_type: 'text', content: '普通回复' }).canUploadFood, false);
+  assert.equal(mapper({ role: 'user', response_type: 'food_select' }).canUploadFood, false);
+
   let guest = page();
   hasSessionValue = false;
   const guestDraft = guest.data.inputMessage;
@@ -153,6 +162,12 @@ function page() {
   await p.sendMessage();
   assert.equal(requests.length, 0);
   assert.ok(p.data.inputMessage);
+  assert.equal(p.data.composerImages.length, 1);
+  assert.equal(calls.length, 0, 'unsupported images must not create a conversation');
+  assert.equal(navigated, '', 'unsupported images must not navigate');
+  p.data.inputMessage = '';
+  await p.sendMessage();
+  assert.equal(requests.length, 0, 'image-only draft must not be sent as an empty message');
   assert.equal(p.data.composerImages.length, 1);
   p = page();
   petList = [{ id: 'pet1', name: '豆豆' }, { id: 'pet2', name: '团团', image: '/photo.jpg' }];

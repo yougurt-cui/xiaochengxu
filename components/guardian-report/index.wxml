@@ -39,8 +39,8 @@
         <view wx:if="{{pair.status === 'comparable'}}" wx:for="{{pair.dimensions}}" wx:for-item="dimension" wx:key="key" class="dimension">
           <text class="point-heading">{{dimension.title}}</text>
           <view class="dimension-columns">
-            <view class="dimension-side"><text class="dimension-value">{{showScores && dimension.left.score !== null ? dimension.left.score + ' / ' + dimension.left.scale_max : dimension.left.label}}</text><view class="bar"><view class="bar-fill" style="width: {{dimension.leftWidth}}%;"></view></view></view>
-            <view class="dimension-side"><text class="dimension-value">{{showScores && dimension.right.score !== null ? dimension.right.score + ' / ' + dimension.right.scale_max : dimension.right.label}}</text><view class="bar"><view class="bar-fill alternate" style="width: {{dimension.rightWidth}}%;"></view></view></view>
+            <view class="dimension-side"><text wx:if="{{showScores}}" class="dimension-value">{{dimension.left.score !== null && dimension.left.score !== undefined ? dimension.left.score + ' / ' + dimension.left.scale_max : '暂无分值'}}</text><view class="bar"><view class="bar-fill" style="width: {{dimension.leftWidth}}%;"></view></view></view>
+            <view class="dimension-side"><text wx:if="{{showScores}}" class="dimension-value">{{dimension.right.score !== null && dimension.right.score !== undefined ? dimension.right.score + ' / ' + dimension.right.scale_max : '暂无分值'}}</text><view class="bar"><view class="bar-fill alternate" style="width: {{dimension.rightWidth}}%;"></view></view></view>
           </view>
         </view>
         <text class="note" selectable>{{pair.note}}</text>

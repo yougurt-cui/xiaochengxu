@@ -1,0 +1,33 @@
+// Figma 152:162 — two compact cards, scaled from the 402px homepage.
+.home-overview {
+  display: flex;
+  gap: 18.7rpx;
+  margin-bottom: 32rpx;
+  color: #292b42;
+  button { box-sizing: border-box; margin: 0; padding: 0; min-height: 0; background: transparent; border: 0; line-height: 1.5; }
+  button::after { border: 0; }
+  .overview-card { flex: 1; min-width: 0; box-sizing: border-box; height: auto; padding: 22.4rpx; border-radius: 33.6rpx; background: #fff; display: flex; flex-direction: column; gap: 14.9rpx; }
+  .overview-heading { width: 100%; height: 37.3rpx; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; text-align: left; }
+  .overview-title { font-size: 26.1rpx; line-height: 37.3rpx; font-weight: 700; color: #292b42; white-space: nowrap; }
+  .overview-meta { font-size: 20.5rpx; line-height: 33.6rpx; font-weight: 400; color: #747487; white-space: nowrap; }
+  .overview-body { height: 82.1rpx; flex-shrink: 0; width: 100%; min-width: 0; }
+  &.has-records .overview-body { height: 138rpx; }
+  .overview-week { display: flex; justify-content: space-between; height: 82.1rpx; }
+  .overview-day { position: relative; width: 13.2%; height: 82.1rpx; border-radius: 7.5rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 33.6rpx; }
+  .overview-weekday { font-size: 18.7rpx; color: #747487; }
+  .overview-date { font-size: 22.4rpx; }
+  .overview-day.is-today { background: #eeebfa; color: #6253d8; .overview-weekday { color: #6253d8; } .overview-date { font-weight: 700; } }
+  .overview-dot { position: absolute; bottom: 3rpx; width: 4rpx; height: 4rpx; border-radius: 50%; background: #6253d8; }
+  .overview-action { display: flex; justify-content: center; align-items: center; height: 59.7rpx; border-radius: 18.7rpx; background: #eeebfa; color: #6253d8; font-size: 22.4rpx; font-weight: 400; white-space: nowrap; }
+  .overview-reminder-action { width: 100%; }
+  .overview-empty { box-sizing: border-box; display: flex; align-items: flex-start; justify-content: space-between; padding: 3.75rpx 7.5rpx 0; }
+  .overview-icon-tile { width: 74.6rpx; height: 74.6rpx; border-radius: 14.9rpx; background: #f8f8fb; display: flex; align-items: center; justify-content: center; }
+  .overview-icon-tile image { display: block; width: 52.2rpx; height: 52.2rpx; }
+  .overview-values { display: flex; flex-direction: column; gap: 0; }
+  .overview-value-row { width: 100%; height: 44.8rpx; display: flex; align-items: center; justify-content: space-between; color: #747487; font-size: 22.4rpx; }
+  .overview-value { font-size: 24.3rpx; color: #292b42; }
+  .overview-footer { width: 100%; height: 59.7rpx; display: flex; align-items: center; justify-content: space-between; gap: 11.2rpx; }
+  .overview-record-action, .overview-device { flex: none; width: calc(50% - 5.6rpx); min-width: 0; height: 59.7rpx; display: flex; align-items: center; justify-content: center; border-radius: 18.7rpx; font-size: 22.4rpx; font-weight: 400; white-space: nowrap; }
+  .overview-record-action { background: transparent; border: 1rpx solid #6253d8; color: #6253d8; }
+  .overview-device { background: #eeebfa; color: #6253d8; }
+}

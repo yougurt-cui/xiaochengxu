@@ -1,7 +1,7 @@
 import { deviceRequest } from '../../utils/device-api';
 import { showHalloweenTaskPrompt } from '../../utils/halloween-task-prompt';
 import { shareCard, timelineCard } from '../../utils/share';
-import { calendarDays, remindersOnDate, shiftDate, birthdayCountdown } from '../../utils/reminder-calendar';
+import { calendarDays, remindersOnDate, weekStart } from '../../utils/reminder-calendar';
 import { localDate, listReminders } from '../../utils/reminders';
 import { refreshCloudReminders } from '../../utils/reminder-api';
 import { getReminderPrompt } from '../../utils/reminder-prompts';
@@ -112,6 +112,10 @@ Page({
     this.setData({ hasReminders });
     wx.navigateTo({ url: hasReminders ? '/pages/pet-space/reminders' : '/pages/pet-space/reminder-types' });
   },
+  openReminderAction() {
+    if (this.data.calendarCount) this.openCalendar();
+    else wx.navigateTo({ url: '/pages/pet-space/reminder-types' });
+  },
   chooseCalendarDay(e) {
     this.setData({ calendarDate: e.currentTarget.dataset.date });
     this.refreshData();
@@ -123,7 +127,7 @@ Page({
     wx.navigateTo({ url: `/pages/pet-space/reminders?date=${  this.data.calendarDate || localDate()}` });
   },
   refreshData() {
-    const calendarDate = this.data.calendarDate || localDate();
+    const calendarDate = localDate();
     const pet = currentPet();
     const reminders = listReminders().filter((r) => !r.petId || r.petId === pet?.id);
     const calendarItems = remindersOnDate(reminders, calendarDate);
@@ -135,10 +139,10 @@ Page({
       recordUpdated: record?.time ? `${record.time} 更新 · 手动记录` : '今天还没有记录',
       pet: currentPet(),
       calendarDate,
-      calendarDays: calendarDays(shiftDate(localDate(), -1), 7, calendarDate, reminders),
-      calendarSummary: calendarItems.length
-        ? calendarItems.map((r) => r.title).join(' · ')
-        : ['当天暂无提醒', birthdayCountdown(pet?.birthday)].filter(Boolean).join(' · '),
+      calendarMonth: Number(calendarDate.slice(5, 7)),
+      calendarDays: calendarDays(weekStart(calendarDate), 7, calendarDate, reminders)
+        .map((item) => ({ ...item, day: Number(item.key.slice(8, 10)) })),
+      hasDailyRecords: ['water', 'food', 'litter'].some((key) => record && record[key] !== undefined && record[key] !== null && record[key] !== ''),
       calendarCount: calendarItems.length,
       hasReminders: (loadStore().reminders || []).length > 0,
       reminderPrompt: getReminderPrompt(),

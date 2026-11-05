@@ -1,14 +1,26 @@
 <view class="page tab-page home-page"><page-header title="宠物日常" /><view class="screen-body"><view class="home-hero"><image src="/static/design/home-hero.png" mode="aspectFit" /><text class="home-hero-title">每个日常，
 都值得好好照顾</text><text class="caption">记录陪伴，也分享生活</text></view>
-  <view class="pet-calendar">
-  <view class="calendar-heading"><button class="calendar-pet" bindtap="openPetPage"><view class="daily-pet-button"><view class="daily-pet-image"><p-image wx:if="{{pet.image}}" image-class="daily-pet-photo" src="{{pet.image}}" /><p-icon wx:else name="{{pet.type === '狗狗' ? 'dog' : 'cat'}}" size="28" /></view></view><view class="calendar-pet-copy"><text>{{pet.name ? pet.name + '的陪伴日历' : '添加爱宠'}}</text></view></button><button class="text-button calendar-more" bindtap="openAllReminders">全部提醒<p-icon name="arrow" size="22" /></button></view>
-  <view class="home-calendar-days"><button wx:for="{{calendarDays}}" wx:key="key" class="calendar-day {{!item.count ? 'no-reminder' : ''}} {{item.selected ? 'selected' : ''}} {{item.today ? 'today' : ''}} {{item.today && item.count ? 'today-reminder' : ''}}" hover-class="{{item.count ? 'button-hover' : 'none'}}" data-date="{{item.key}}" bindtap="chooseCalendarDay"><view class="calendar-day-inner"><text class="calendar-week">周{{item.week}}</text><text class="calendar-number">{{item.day}}</text><view class="calendar-dot {{item.count ? 'has-reminder' : ''}}"></view></view></button></view>
-  <button class="calendar-summary" bindtap="openCalendar"><p-icon name="alarm" size="26" /><text>{{calendarSummary}}</text><p-icon name="arrow" size="22" /></button>
-</view>
-<view class="daily-card"><view class="daily-head"><text class="daily-title">今日状态</text><view class="daily-head-actions"><button class="text-button" bindtap="goHealthAttention">健康关注</button><button class="text-button" bindtap="goHistory">历史<p-icon name="arrow" size="22" /></button></view></view>  <view class="daily-metrics"><button wx:for="{{metrics}}" wx:key="key" class="metric" hover-class="metric-pressed" aria-label="{{'记录' + item.label + (item.hasValue ? '，今日累计' + item.value + item.unit : '，尚未记录')}}" data-key="{{item.key}}" bindtap="openRecord"><view class="metric-label"><text>{{item.label}}</text></view><view class="metric-number {{!item.hasValue ? 'metric-empty' : ''}}">{{item.hasValue ? item.value : '未记录'}}<text wx:if="{{item.hasValue}}">{{item.unit}}</text><text wx:if="{{item.hasValue && item.status}}" class="metric-status">{{item.status}}</text></view></button></view><view class="daily-foot daily-device-foot">
-    <view class="device-connect-group"><button class="device-bind-button" hover-class="device-bind-pressed" bindtap="openDevices" aria-label="打开智能设备页面">绑定智能设备</button><view class="device-connect-status"><image class="device-status-dot" src="/static/design/device-disconnected.svg" mode="aspectFit" /><text>{{deviceLoading ? '查询中' : deviceError ? '待查询' : deviceCount ? '已绑定 ' + deviceCount + ' 台' : '未连接'}}</text></view></view>
-    <button class="text-button manual-record-link" bindtap="openRecord" aria-label="手动记录今日饮水、进食和排便">手动记录</button>
-  </view></view>
+  <view class="home-overview {{hasDailyRecords ? 'has-records' : ''}}">
+    <view class="overview-card">
+      <button class="overview-heading" bindtap="openAllReminders" aria-label="打开提醒日历"><text class="overview-title">提醒日历</text><text class="overview-meta">{{calendarMonth}}月</text></button>
+      <view class="overview-body">
+        <view class="overview-week" bindtap="openCalendar" role="button" aria-label="查看完整日历">
+          <view wx:for="{{calendarDays}}" wx:key="key" class="overview-day {{item.today ? 'is-today' : ''}}"><text class="overview-weekday">{{item.week}}</text><text class="overview-date">{{item.day}}</text><view wx:if="{{item.count}}" class="overview-dot"></view></view>
+        </view>
+      </view>
+      <button class="overview-action overview-reminder-action" bindtap="openReminderAction">{{calendarCount ? '查看提醒 · ' + calendarCount + '项' : '＋ 添加提醒'}}</button>
+    </view>
+    <view class="overview-card">
+      <view class="overview-heading"><button class="overview-title" bindtap="goHealthAttention" aria-label="今日状态，查看健康关注">今日状态</button><button class="overview-meta" bindtap="goHistory">历史 ›</button></view>
+      <view wx:if="{{!hasDailyRecords}}" class="overview-body overview-empty">
+        <button wx:for="{{metrics}}" wx:key="key" class="overview-icon-tile" data-key="{{item.key}}" bindtap="openRecord" aria-label="{{'记录' + item.label}}"><image src="/static/theme/{{item.key}}-muted.svg" mode="aspectFit" /></button>
+      </view>
+      <view wx:else class="overview-body overview-values">
+        <button wx:for="{{metrics}}" wx:key="key" class="overview-value-row" data-key="{{item.key}}" bindtap="openRecord" aria-label="{{'记录' + item.label}}"><text>{{item.label}}</text><text class="overview-value">{{item.hasValue ? item.value + ' ' + item.unit : '—'}}</text></button>
+      </view>
+      <view class="overview-footer"><button class="overview-action overview-record-action" bindtap="openRecord">手动记录</button><button class="overview-device" bindtap="openDevices">{{deviceLoading || deviceError ? '查看设备' : deviceCount ? '我的设备' : '绑定设备'}}</button></view>
+    </view>
+  </view>
   <view class="section-heading"><text>大家都在聊</text><text>真实经历，相互陪伴</text></view><view class="search-box"><image class="search-image" src="/static/design/search.svg" /><input placeholder="搜一搜，宠物遇到的小问题" value="{{query}}" bindinput="onSearch" /></view><view class="category-tabs"><block wx:for="{{categories}}" wx:key="id"><picker wx:if="{{item.id === 'all'}}" class="feed-mode-picker" mode="selector" range="{{feedModes}}" value="{{feedModeIndex}}" bindchange="selectFeedMode"><view class="category-tab feed-mode-trigger {{category === 'all' ? 'active' : ''}}" aria-label="切换全部、热门或最新">{{feedModes[feedModeIndex]}}<text class="feed-mode-arrow">▾</text></view></picker><button wx:else class="category-tab {{category === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectCategory">{{item.label}}</button></block></view><view wx:if="{{loading}}" class="empty-state">正在加载大家的分享…</view><view wx:if="{{feedError}}" class="empty-state">{{feedError}}<button class="text-button" bindtap="loadFeed">重新加载</button></view><post-feed appearance="airy" posts="{{posts}}" bind:open="openPost" bind:save="toggleSave" /><view wx:if="{{!posts.length && !loading && !feedError}}" class="empty-state">没有找到相关帖子，试试其他关键词。</view>
 </view><button wx:if="{{!showRecord}}" class="halloween-float" bindtap="openHalloween" aria-label="万圣节活动，领取生图兑换码"><image src="/static/activity/halloween-cat.png" mode="aspectFill" /><text class="halloween-float-label">领生图码</text></button><button class="floating-publish" bindtap="goRelease" aria-label="发布瞬间"><view class="publish-disc">＋ 瞬间</view></button></view>
 <view wx:if="{{showRecord}}" class="sheet-mask" bindtap="closeSheet"></view>

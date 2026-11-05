@@ -149,6 +149,8 @@ export function mapChatMessage(message) {
       options: (interaction.options || []).map((option) => ({ ...option, selected: false })),
     },
     canInteract: !!interaction.slot,
+    canUploadFood: message.role === 'assistant' &&
+      ['food_select', 'text_or_select', 'ingredient_source'].includes(message.response_type),
     selectedValues: [],
     riskReasons: (((message.result || {}).risk || {}).reasons || []).join('、'),
     limitedInfo: !!(message.result && message.result.limited_info),
@@ -479,6 +481,10 @@ export const chatMethods = {
     if (!requireSession()) return;
     if (this.data.sending || this._checkingPet || (!this.data.inputMessage.trim() && !this.data.composerImages.length))
       return;
+    if (this.data.composerImages.length) {
+      wx.showToast({ title: '当前对话暂不支持图片，请移除图片后发送文字', icon: 'none' });
+      return;
+    }
     this._checkingPet = true;
     try {
       await this.refreshChatPet();
@@ -492,10 +498,6 @@ export const chatMethods = {
           return;
         }
         // Chat requires a server-side pet profile; cancelling keeps the draft intact.
-        return;
-      }
-      if (this.data.composerImages.length) {
-        this.openFoodSubmission();
         return;
       }
       return this.sendCloudMessage({
