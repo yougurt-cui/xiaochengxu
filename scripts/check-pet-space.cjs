@@ -30,6 +30,7 @@ const context = {
   },
   clearTimeout: () => {},
   api: async (url, method, data) => {
+    if (url === '/pet-breeds') return { breeds: { cat: [{ id: 'cat_persian', name: '波斯猫' }], dog: [{ id: 'dog_bichon', name: '比熊犬' }] } };
     requests++;
     calls.push({ url, method, data });
     return method === 'POST' ? { item: { id: 'cat-1', ...data } } : { items: [] };
@@ -123,6 +124,27 @@ const page = {
   assert.equal(createCalls[0].method, 'POST');
   assert.equal(createCalls[0].data.is_default, false);
   assert.equal(saved.selectedPetId, 'cat-1');
+  recognition = { image: { id: 'photo-identity' }, recognition_status: 'success', suggestions: {
+    animal_type: { value: 'cat' }, breed: { value: '猫品种待确认', candidates: [{ value: '波斯猫', confidence: 0.5 }] },
+    appearance: { color: { value: '黑白橘' }, pattern: { value: '三花' }, length: { value: '长毛' } }
+  } };
+  page.recognize();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(page.data.form.breed, '猫品种待确认');
+  assert.equal(page.data.breedCandidates[0].value, '波斯猫');
+  assert.equal(page.data.appearanceRecognitionText, '黑白橘 · 三花 · 长毛');
+  page.confirmBreedCandidate({ currentTarget: { dataset: { value: '不存在的候选' } } });
+  assert.equal(page.data.form.breed, '猫品种待确认');
+  page.confirmBreedCandidate({ currentTarget: { dataset: { value: '波斯猫' } } });
+  assert.equal(page.data.form.breed, '波斯猫');
+  assert.equal(page.data.breedCandidates.length, 0);
+  page.changeType({ detail: { value: '1' } });
+  assert.equal(page.data.form.breed, '');
+  assert.equal(page.data.appearanceRecognitionText, '');
+  assert.equal(page.data.breedOptions[0].name, '比熊犬');
+  page.chooseBreed({ detail: { value: '0' } });
+  assert.equal(page.data.form.breed, '比熊犬');
+  console.log('PASS: shared breed catalog, explicit candidate confirmation, separate coat traits and species switching');
   console.log('PASS: recognition suggestions, nullable estimates, entered measurements, upload failure, editable save and avatar binding');
 })().catch((e) => {
   console.error(e);

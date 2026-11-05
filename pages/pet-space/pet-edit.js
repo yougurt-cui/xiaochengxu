@@ -2,6 +2,7 @@ import { syncCloudBirthday } from '../../utils/reminder-api';
 import { birthdayAge, profileForm, profilePayload } from '../../utils/pet-profile-form';
 import { requireSession, api, login, hasSession, mapPet, errorText, recognizePetImage } from '../../api/miniprogram';
 import { loadStore, saveStore, cachePetList, accountKey } from '../../utils/pet-store';
+
 Page({
   data: {
     form: profileForm({}),
@@ -15,6 +16,10 @@ Page({
     deleting: false,
     recognizing: false,
     recognitionNote: '',
+    breedCatalog: {},
+    breedOptions: [],
+    breedCandidates: [],
+    appearanceRecognitionText: '',
     animalTypes: ['猫咪', '狗狗', '未知'],
     photo: '',
     error: '',
@@ -29,10 +34,30 @@ Page({
         '0',
       )}`,
     });
-    const pet = loadStore().pet;
+    const { pet } = loadStore();
     if (pet && !this._creating && (!this._profileId || pet.id === this._profileId))
       this.setData({ form: profileForm(pet) });
     if (hasSession() && !this._creating) this.loadPet();
+    this.loadBreedCatalog();
+  },
+  async loadBreedCatalog() {
+    try {
+      const result = await api('/pet-breeds');
+      if (this._disposed) return;
+      const breedCatalog = result.breeds || {};
+      this.setData({ breedCatalog, breedOptions: breedCatalog[this.data.form.animal_type] || [] });
+    } catch (_) {
+      // The manual breed field remains usable while older servers lack the catalog.
+    }
+  },
+  chooseBreed(e) {
+    const selected = this.data.breedOptions.find((_, index) => index === Number(e.detail.value));
+    if (selected) this.setData({ 'form.breed': selected.name, breedCandidates: [] });
+  },
+  confirmBreedCandidate(e) {
+    const { value } = e.currentTarget.dataset;
+    if (this.data.recognizing || !this.data.breedCandidates.some((item) => item.value === value)) return;
+    this.setData({ 'form.breed': value, breedCandidates: [] });
   },
   async loadPet() {
     this.setData({ loading: true, error: '' });
@@ -42,7 +67,10 @@ Page({
       const p = summary ? (await api(`/cat-profiles/${encodeURIComponent(summary.id)}`)).item : null;
       if (p) {
         saveStore({ pet: mapPet(p) });
-        this.setData({ form: profileForm(mapPet(p)) });
+        this.setData({
+          form: profileForm(mapPet(p)),
+          breedOptions: this.data.breedCatalog[p.animal_type || 'cat'] || [],
+        });
       }
     } catch (e) {
       this.setData({ error: errorText(e) });
@@ -58,7 +86,15 @@ Page({
   },
   changeType(e) {
     const index = Number(e.detail.value);
-    this.setData({ 'form.animal_type': ['cat', 'dog', 'unknown'][index], 'form.type': this.data.animalTypes[index] });
+    const kind = ['cat', 'dog', 'unknown'][index];
+    this.setData({
+      'form.animal_type': kind,
+      'form.type': this.data.animalTypes[index],
+      'form.breed': '',
+      breedOptions: this.data.breedCatalog[kind] || [],
+      breedCandidates: [],
+      appearanceRecognitionText: '',
+    });
   },
   changeSex(e) {
     this.setData({ 'form.sex': ['unknown', 'male', 'female'][Number(e.detail.value)] });
@@ -120,12 +156,14 @@ Page({
           wx.showToast({ title: '请选择不超过 10MB 的照片', icon: 'none' });
           return;
         }
-        this.setData({ recognizing: true, recognitionNote: '' });
+        this.setData({ recognizing: true, recognitionNote: '', breedCandidates: [], appearanceRecognitionText: '' });
         try {
           const result = await recognizePetImage(file.tempFilePath);
           if (this._disposed) return;
           const form = { ...this.data.form, avatar_image_id: result.image.id };
           const suggestions = result.suggestions || {};
+          let breedCandidates = [];
+          let appearanceRecognitionText = '';
           if (result.recognition_status === 'success') {
             const kind = suggestions.animal_type && suggestions.animal_type.value;
             if (['cat', 'dog', 'unknown'].includes(kind)) {
@@ -133,6 +171,17 @@ Page({
               form.type = { cat: '猫咪', dog: '狗狗', unknown: '未知' }[kind];
             }
             if (suggestions.breed && suggestions.breed.value) form.breed = suggestions.breed.value;
+            breedCandidates = ((suggestions.breed && suggestions.breed.candidates) || []).filter(
+              (item) => item && typeof item.value === 'string' && item.value,
+            );
+            const appearance = suggestions.appearance || {};
+            appearanceRecognitionText = [
+              ...new Set(
+                ['color', 'pattern', 'length']
+                  .map((key) => (appearance[key] && appearance[key].value) || '')
+                  .filter(Boolean),
+              ),
+            ].join(' · ');
             const weight = suggestions.weight && suggestions.weight.estimated_kg;
             if (
               (form.weight === '' || form.weight == null) &&
@@ -146,13 +195,16 @@ Page({
           this.setData({
             photo: file.tempFilePath,
             form,
+            breedOptions: this.data.breedCatalog[form.animal_type] || [],
+            breedCandidates,
+            appearanceRecognitionText,
             recognitionNote:
               result.recognition_status === 'success'
-                ? '已填入识别建议，请核对品种。体重仅为照片估算，请核对；年龄将根据生日自动计算。'
+                ? '已填入识别建议，品种请核对或从候选中选择。花色、毛长单独展示，不代表品种或血统；体重仅为照片估算，请按实际填写。'
                 : '照片已上传，可作为头像。暂未识别出档案信息，请手动填写，或点击上方更换照片重试。',
           });
         } catch (e) {
-          if (!this._disposed) this.setData({ recognitionNote: errorText(e) + '，可点击上方重试，或继续手动填写。' });
+          if (!this._disposed) this.setData({ recognitionNote: `${errorText(e)}，可点击上方重试，或继续手动填写。` });
         } finally {
           if (!this._disposed) this.setData({ recognizing: false });
         }
@@ -172,11 +224,11 @@ Page({
     if (!requireSession()) return;
     if (!this.data.form.id || this.data.saving || this.data.deleting || this.data.loading || this.data.recognizing)
       return;
-    const id = this.data.form.id;
+    const { id } = this.data.form;
     const account = accountKey('pet-edit');
     this.setData({ deleting: true });
     try {
-      const choice = await new Promise((resolve) =>
+      const choice = await new Promise((resolve) => {
         wx.showModal({
           title: '删除宠物档案',
           content: `确定删除“${this.data.form.name}”的档案吗？删除后将无法在宠物列表中选择它。`,
@@ -184,8 +236,8 @@ Page({
           cancelText: '保留',
           success: resolve,
           fail: () => resolve({ confirm: false }),
-        }),
-      );
+        });
+      });
       if (!choice.confirm || this._disposed || account !== accountKey('pet-edit')) return;
       await api(`/cat-profiles/${encodeURIComponent(id)}`, 'DELETE');
       if (account !== accountKey('pet-edit')) return;
@@ -213,7 +265,7 @@ Page({
     this.setData({ saving: true });
     try {
       await login();
-      let id = f.id;
+      const { id } = f;
       if (!id && !this._creating) {
         const r = await api('/cat-profiles');
         const p = r.items.find((v) => v.is_default) || r.items[0];
