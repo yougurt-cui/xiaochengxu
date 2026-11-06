@@ -1,6 +1,7 @@
 import { shareCard, timelineCard } from '../../utils/share';
 import { previewIngredientExample } from '../../utils/preview-ingredient-example';
 import { setModalData, syncModalTabBar } from '../../utils/modal-layout';
+import { downloadPetImage } from '../../api/miniprogram';
 import { chatMethods } from '../../utils/assistant-chat';
 import { accountKey } from '../../utils/pet-store';
 import config from '../../config';
@@ -196,6 +197,8 @@ Page({
     const account = accountKey('assistant');
     if (this._account && this._account !== account) {
       this._cloudConversationId = '';
+      this._lastCloudPayload = null;
+      this._lastCloudImages = [];
       this._cloudPetId = '';
       this._selectedChatPetId = '';
       this._pendingStatusGuide = false;
@@ -380,10 +383,6 @@ Page({
     this.setData({ inputMessage: message }, () => this.sendMessage({ entryPoint: event.currentTarget.dataset.entryPoint }));
   },
 
-  openIngredientSheet() {
-    this.openFoodSubmission();
-  },
-
   previewIngredientExample() {
     previewIngredientExample('static/assistant/reply-example.png');
   },
@@ -425,7 +424,6 @@ Page({
         setModalData(this, {
           showIngredientSheet: false,
           composerImages: next,
-          inputMessage: this.data.inputMessage || '请帮我看看这张图片',
         });
       },
       fail: (error) => {
@@ -436,12 +434,17 @@ Page({
     });
   },
 
-  previewComposerImage(event) {
+  async previewComposerImage(event) {
     const current = event.currentTarget.dataset.current;
     if (!current) return;
     const fromMessage = this.data.chatMessages.find((item) => (item.images || []).includes(current));
     const urls = (fromMessage && fromMessage.images) || this.data.composerImages;
-    wx.previewImage({ current, urls: urls.length ? urls : [current] });
+    try {
+      const paths = await Promise.all(urls.map(downloadPetImage));
+      wx.previewImage({ current: paths[urls.indexOf(current)] || current, urls: paths });
+    } catch (_) {
+      wx.showToast({ title: '图片加载失败，请重试', icon: 'none' });
+    }
   },
 
   removeComposerImage(event) {
