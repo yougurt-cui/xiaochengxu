@@ -128,6 +128,35 @@ export const isPrivatePetImage = (url) => {
       /^[a-zA-Z0-9_-]+\/images\/[a-zA-Z0-9_-]+$/.test(full.slice(`${origin}/api/miniprogram/food-submissions/`.length)))
   );
 };
+export function uploadChatImage(conversationId, path) {
+  const token = wx.getStorageSync('miniprogram_token');
+  let task;
+  const promise = new Promise((resolve, reject) => {
+    task = wx.uploadFile({
+      url: `${origin}/api/miniprogram/chat/conversations/${encodeURIComponent(conversationId)}/images`,
+      filePath: path,
+      name: 'image',
+      timeout: 90000,
+      header: { Authorization: `Bearer ${token}` },
+      success(res) {
+        try {
+          const body = JSON.parse(res.data);
+          if (res.statusCode === 201 && body.ok && body.image?.id) resolve(body.image.id);
+          else {
+            const error = new Error(body.error || '照片上传失败');
+            error.statusCode = res.statusCode;
+            reject(error);
+          }
+        } catch (_) {
+          reject(new Error('照片上传失败，请重试'));
+        }
+      },
+      fail: () => reject(new Error('照片上传失败，请检查网络并重试')),
+    });
+  });
+  promise.abort = () => task && task.abort();
+  return promise;
+}
 export async function recognizePetImage(path) {
   await login();
   return new Promise((resolve, reject) =>

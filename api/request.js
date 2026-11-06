@@ -2,7 +2,7 @@ import config from '~/config';
 
 const { baseUrl } = config;
 const delay = config.isMock ? 500 : 0;
-function request(url, method = 'GET', data = {}) {
+function request(url, method = 'GET', data = {}, timeout = 30000) {
   const header = {
     'content-type': 'application/json',
     // 有其他content-type需求加点逻辑判断处理即可
@@ -16,7 +16,7 @@ function request(url, method = 'GET', data = {}) {
   const promise = new Promise((resolve, reject) => {
     task = wx.request({
       url: /^https?:\/\//.test(url) ? url : baseUrl + url,
-      timeout: 30000,
+      timeout,
       method,
       data,
       dataType: 'json', // 微信官方文档中介绍会对数据进行一次JSON.parse

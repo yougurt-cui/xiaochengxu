@@ -33,6 +33,7 @@ vm.runInNewContext(code + '\nexpose(chatMethods, mapChatMessage);', {
     return replies;
   },
   requireSession: () => { if (hasSessionValue) return true; navigated = '/pages/my/info-edit/index?auth=1'; return false; },
+  uploadChatImage: async (conversation, path) => { assert.equal(conversation, 'c1'); assert.equal(path, 'local.jpg'); return 'abc'; },
   login: async () => ({}),
   hasSession: () => hasSessionValue,
   mapPet: (p) => p,
@@ -160,15 +161,18 @@ function page() {
   p = page();
   p.data.composerImages = ['local.jpg'];
   await p.sendMessage();
-  assert.equal(requests.length, 0);
-  assert.ok(p.data.inputMessage);
-  assert.equal(p.data.composerImages.length, 1);
-  assert.equal(calls.length, 0, 'unsupported images must not create a conversation');
-  assert.equal(navigated, '', 'unsupported images must not navigate');
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].data.attachments[0].image_id, 'abc');
+  assert.equal(requests[0].data.attachments[0].type, 'chat_image');
+  assert.ok(requests[0].data.message);
+  assert.equal(navigated, '');
+  assert.equal(p.data.composerImages.length, 0);
   p.data.inputMessage = '';
+  p.data.composerImages = ['local.jpg'];
   await p.sendMessage();
-  assert.equal(requests.length, 0, 'image-only draft must not be sent as an empty message');
-  assert.equal(p.data.composerImages.length, 1);
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1].data.message, '');
+  assert.equal(requests[1].data.attachments.length, 1);
   p = page();
   petList = [{ id: 'pet1', name: '豆豆' }, { id: 'pet2', name: '团团', image: '/photo.jpg' }];
   await p.openChatPetPicker();
@@ -220,7 +224,7 @@ function page() {
   assert.equal(navigated, '/pages/pet-space/pet-edit');
   assert.ok(p.data.inputMessage);
   console.log(
-    'PASS: mandatory pet gate, cancel/bind preserve draft, bound chat API, typed options, multi-select, risk mapping, unsupported image retention',
+    'PASS: mandatory pet gate, cancel/bind preserve draft, bound chat API, typed options, multi-select, risk mapping, photo-only and captioned messages',
   );
 })().catch((e) => {
   console.error(e);

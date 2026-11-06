@@ -1,5 +1,5 @@
 import { setModalData } from './modal-layout';
-import { requireSession, api, login, hasSession, mapPet, errorText } from '../api/miniprogram';
+import { requireSession, api, login, hasSession, mapPet, errorText, uploadChatImage } from '../api/miniprogram';
 import { loadStore, saveStore, accountKey } from './pet-store';
 import config from '../config';
 import request from '../api/request';
@@ -139,6 +139,8 @@ export function mapChatMessage(message) {
   } : null;
   return {
     ...message,
+    images: (message.attachments || []).filter((a) => a.type === 'chat_image' && /^[a-f0-9]{32}$/.test(a.image_id))
+      .map((a) => `/api/miniprogram/pet-images/${a.image_id}`),
     guardianReport,
     text: message.content || message.reply || '',
     blocks: messageBlocks(message),
@@ -481,10 +483,6 @@ export const chatMethods = {
     if (!requireSession()) return;
     if (this.data.sending || this._checkingPet || (!this.data.inputMessage.trim() && !this.data.composerImages.length))
       return;
-    if (this.data.composerImages.length) {
-      wx.showToast({ title: '当前对话暂不支持图片，请移除图片后发送文字', icon: 'none' });
-      return;
-    }
     this._checkingPet = true;
     try {
       await this.refreshChatPet();
@@ -500,10 +498,11 @@ export const chatMethods = {
         // Chat requires a server-side pet profile; cancelling keeps the draft intact.
         return;
       }
+      const images = this.data.composerImages.slice();
       return this.sendCloudMessage({
         message: this.data.inputMessage.trim(),
         ...(entryPoint === 'diet_advice' ? { client_context: { entry_point: 'diet_advice' } } : {}),
-      }, this.data.inputMessage.trim());
+      }, this.data.inputMessage.trim() || '发来照片', images);
     } finally {
       this._checkingPet = false;
     }
@@ -542,13 +541,14 @@ export const chatMethods = {
       },
     });
   },
-  async sendCloudMessage(payload, displayText) {
+  async sendCloudMessage(payload, displayText, images = []) {
     if (!requireSession()) return;
     if (this.data.sending) return;
     const version = (this._sendVersion || 0) + 1;
     this._sendVersion = version;
     this._lastCloudPayload = payload;
     this._lastCloudText = displayText;
+    this._lastCloudImages = images;
     const pet = this.data.boundPet;
     if (!pet || !pet.id) {
       this.addChatPet();
@@ -564,9 +564,23 @@ export const chatMethods = {
         this._cloudConversationId = created.conversation.id;
         this._cloudPetId = created.conversation.pet_id || pet.id;
       }
+      const attachments = [];
+      if (!this._uploadedDraft || this._uploadedDraft.conversation !== this._cloudConversationId) {
+        this._uploadedDraft = { conversation: this._cloudConversationId, ids: new Map() };
+      }
+      for (const path of images) {
+        let id = this._uploadedDraft.ids.get(path);
+        if (!id) {
+          this._sendRequest = uploadChatImage(this._cloudConversationId, path);
+          id = await this._sendRequest;
+          if (version !== this._sendVersion) return;
+          this._uploadedDraft.ids.set(path, id);
+        }
+        attachments.push({ type: 'chat_image', image_id: id });
+      }
       const messages = this.data.chatMessages.map((m) => ({ ...m, canInteract: false }));
       this.setData({
-        chatMessages: [...messages, { id: `user-${Date.now()}`, role: 'user', text: displayText }],
+        chatMessages: [...messages, { id: `user-${Date.now()}`, role: 'user', text: displayText, images }],
         inputMessage: payload.message ? '' : this.data.inputMessage,
         userMessage: displayText,
       });
@@ -578,11 +592,13 @@ export const chatMethods = {
         'POST',
         {
           ...payload,
+          ...(attachments.length ? { attachments } : {}),
           client_context: {
             ...(payload.client_context || {}),
-            recent_daily_records: recentDailyRecords(pet.id), capabilities: { cloud_reminders_v1: true },
+            recent_daily_records: recentDailyRecords(pet.id), capabilities: { cloud_reminders_v1: true, scene_router_v1: true },
           },
         },
+        120000,
       );
       const response = await this._sendRequest;
       if (version !== this._sendVersion) return;
@@ -591,7 +607,10 @@ export const chatMethods = {
         Array.isArray(body.messages) && body.messages.length ? body.messages : body.message ? [body.message] : [];
       if (!body.ok || !incoming.length) throw new Error(body.error || '暂时无法获得回复');
       const replies = incoming.map(mapChatMessage);
-      this.setData({ chatMessages: [...this.data.chatMessages, ...replies], sending: false });
+      this._uploadedDraft = null;
+      this.setData({ chatMessages: [...this.data.chatMessages, ...replies], sending: false,
+        ...(images.length ? { composerImages: [] } : {}),
+      });
       this.scrollChat();
     } catch (error) {
       if (version !== this._sendVersion) return;
@@ -600,6 +619,7 @@ export const chatMethods = {
       if (error.statusCode === 404) this._cloudConversationId = '';
       this.setData({
         sending: false,
+        ...(images.length ? { composerImages: images } : {}),
         inputMessage: this.data.inputMessage || payload.message || '',
         chatMessages: [
           ...this.data.chatMessages,
@@ -651,7 +671,7 @@ export const chatMethods = {
     this.sendCloudMessage({ interaction: { slot: message.interaction.slot, value: message.selectedValues } }, text);
   },
   retryCloudMessage() {
-    if (this._lastCloudPayload) this.sendCloudMessage(this._lastCloudPayload, this._lastCloudText);
+    if (this._lastCloudPayload) this.sendCloudMessage(this._lastCloudPayload, this._lastCloudText, this._lastCloudImages);
   },
   openConversationHistory() {
     if (this._openingHistory) return;
