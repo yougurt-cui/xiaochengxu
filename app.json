@@ -80,6 +80,11 @@
       "root": "pages/devices",
       "name": "devices",
       "pages": ["index", "policy"]
+    },
+    {
+      "root": "pages/goods",
+      "name": "goods",
+      "pages": ["detail"]
     }
   ],
   "window": {

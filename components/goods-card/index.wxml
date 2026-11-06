@@ -1,0 +1,10 @@
+<view class="goods-card" bindtap="open" role="button" aria-label="{{'查看商品：' + item.name}}">
+  <p-image image-class="goods-photo" src="{{item.image}}" alt="{{item.name}}" />
+  <view class="goods-copy">
+    <text class="goods-source">商家好物</text>
+    <text class="goods-name">{{item.name}}</text>
+    <text class="goods-price">{{item.price !== '' ? '¥' + item.price : '价格待确认'}}</text>
+    <text wx:if="{{item.merchantType}}" class="goods-note">{{item.merchantType}}</text>
+    <button class="goods-ask" catchtap="ask">问问管家</button>
+  </view>
+</view>

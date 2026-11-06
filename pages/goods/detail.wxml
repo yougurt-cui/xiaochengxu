@@ -1,0 +1,33 @@
+<view class="page goods-detail has-page-actions">
+  <page-header title="商品详情" back />
+  <view class="screen-body goods-detail-body">
+    <view wx:if="{{loading}}" class="empty-state">正在加载商品…</view>
+    <view wx:elif="{{error}}" class="empty-state"><text>{{unavailable ? '商品不存在或已下架' : error}}</text><button wx:if="{{!unavailable}}" class="text-button" bindtap="loadGoods">重新加载</button></view>
+    <block wx:elif="{{goods}}">
+      <view class="goods-gallery">
+        <swiper wx:if="{{goods.images.length}}" class="goods-swiper" current="{{imageIndex}}" bindchange="changeImage">
+          <swiper-item wx:for="{{goods.images}}" wx:key="*this"><view class="goods-slide" bindtap="previewImage"><p-image image-class="goods-hero" src="{{item}}" alt="{{goods.name}}" lazy-load="{{false}}" /></view></swiper-item>
+        </swiper>
+        <p-image wx:else image-class="goods-hero" alt="暂无商品图片" />
+        <text wx:if="{{goods.images.length}}" class="goods-counter">{{imageIndex + 1}} / {{goods.images.length}}</text>
+      </view>
+      <view class="goods-panel">
+        <text class="goods-source">商家好物</text><text class="goods-title">{{goods.name}}</text>
+        <view class="goods-price-row"><text class="goods-detail-price">{{goods.price !== '' ? '¥' + goods.price : '价格待确认'}}</text><button class="goods-save" bindtap="toggleSave" aria-label="{{goods.saved ? '取消收藏' : '收藏商品'}}"><p-icon name="{{goods.saved ? 'heart-filled' : 'heart'}}" tone="{{goods.saved ? 'primary' : 'muted'}}" size="44" /><text>{{goods.saved ? '已收藏' : '收藏'}}</text></button></view>
+      </view>
+      <view class="goods-panel"><text class="goods-section-title">商品介绍</text><text class="goods-description" selectable>{{goods.content || '商家暂未补充商品介绍。'}}</text></view>
+      <button class="goods-merchant" bindtap="openContact"><image class="shop-icon" src="/static/goods/shop.svg" mode="aspectFit" /><view class="merchant-copy"><text>认证商家</text><text class="merchant-note">{{goods.merchantType || '查看商家店铺信息'}}</text></view><p-icon name="arrow" tone="muted" size="32" /></button>
+    </block>
+  </view>
+  <view wx:if="{{goods && !loading && !error}}" class="page-action-footer goods-actions"><button class="goods-secondary" bindtap="ask">问问管家</button><button class="primary-button" bindtap="openContact">查看商家店铺</button></view>
+</view>
+<view wx:if="{{showContact}}" class="sheet-mask" bindtap="closeContact" catchtouchmove="stopTouch"></view>
+<view wx:if="{{showContact && goods}}" class="bottom-sheet goods-contact" catchtouchmove="stopTouch">
+  <view class="sheet-handle"></view><view class="sheet-heading"><text>商家店铺</text><button bindtap="closeContact" aria-label="关闭"><p-icon name="close" tone="muted" /></button></view>
+  <view class="contact-merchant"><image class="shop-icon" src="/static/goods/shop.svg" mode="aspectFit" /><view class="merchant-copy"><text>认证商家</text><text class="merchant-note">{{goods.merchantType}}</text></view></view>
+  <view class="contact-product"><p-image image-class="contact-photo" src="{{goods.image}}" /><view class="merchant-copy"><text>{{goods.name}}</text><text class="contact-price">{{goods.price !== '' ? '参考价 ¥' + goods.price : '价格待确认'}}</text></view></view>
+  <view wx:if="{{goods.shopLink}}" class="contact-link"><text class="merchant-note">{{goods.jumpType === 'mini_program' ? '小程序店铺地址' : '店铺地址'}}</text><text selectable>{{goods.shopLink}}</text></view>
+  <text wx:else class="merchant-note">商家暂未提供店铺地址。</text>
+  <button wx:if="{{goods.shopLink}}" class="primary-button" bindtap="copyShopLink">复制店铺地址</button>
+  <text class="contact-hint">{{goods.jumpType === 'web' ? '复制后可在浏览器打开店铺，咨询商品详情。' : '复制店铺地址后，可在微信中查找商家。'}}</text>
+</view>

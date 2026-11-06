@@ -219,6 +219,14 @@ Page({
     this._returningFromLogin = false;
     this._account = account;
     this._bindingPet = false;
+    const goodsQuestionKey = accountKey('pending-goods-question');
+    const goodsQuestion = wx.getStorageSync(goodsQuestionKey);
+    if (typeof goodsQuestion === 'string' && goodsQuestion && !this.data.sending) {
+      // Keep any existing draft; entering from a product never sends a message automatically.
+      const inputMessage = [this.data.inputMessage, goodsQuestion].filter(Boolean).join('\n').slice(0, 4000);
+      this.setData({ inputMessage });
+      wx.removeStorageSync(goodsQuestionKey);
+    }
     this.refreshChatPet().then(() => {
       const pendingKey = accountKey('pending-food-submission');
       const pending = wx.getStorageSync(pendingKey);

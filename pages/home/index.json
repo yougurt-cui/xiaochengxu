@@ -2,6 +2,10 @@
   "navigationStyle": "custom",
   "navigationBarTextStyle": "black",
   "usingComponents": {
-    "p-image": "/components/p-image"
-  }
+    "p-image": "/components/p-image",
+    "goods-card": "/components/goods-card"
+  },
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "backgroundColor": "#f8f8fb"
 }

@@ -1,3 +1,4 @@
+import { listCommunityGoods, askAboutGoods } from '../../utils/goods';
 import { deviceRequest } from '../../utils/device-api';
 import { showHalloweenTaskPrompt } from '../../utils/halloween-task-prompt';
 import { shareCard, timelineCard } from '../../utils/share';
@@ -18,6 +19,14 @@ Page({
     return timelineCard(this.onShareAppMessage());
   },
   data: {
+    homeTab: 'community',
+    headerHeight: 84,
+    goodsQuery: '',
+    goods: [],
+    goodsColumns: [[], []],
+    goodsLoading: false,
+    goodsError: '',
+    goodsSort: 'latest',
     categories,
     category: 'all',
     feedSort: 'popular',
@@ -38,6 +47,10 @@ Page({
     form: { water: '', food: '', litter: '', litterShape: '' },
   },
   onLoad() {
+    const info = wx.getWindowInfo();
+    const capsule = wx.getMenuButtonBoundingClientRect();
+    const top = info.statusBarHeight || 20;
+    this.setData({ headerHeight: top + ((capsule.top - top) * 2 + capsule.height || 44) });
     this.restoreFeedPreference();
     this.loadFeed();
   },
@@ -106,6 +119,70 @@ Page({
     } finally {
       if (isCurrent()) this.setData({ loading: false });
     }
+  },
+  selectHomeTab(e) {
+    const homeTab = e.currentTarget.dataset.tab;
+    if (!['community', 'goods'].includes(homeTab) || homeTab === this.data.homeTab) return;
+    this.setData({ homeTab });
+    if (homeTab === 'goods' && !this._goodsLoaded && !this.data.goodsLoading) this.loadGoods();
+  },
+  async onPullDownRefresh() {
+    if (this._pullRefreshing) return;
+    this._pullRefreshing = true;
+    try {
+      if (this.data.homeTab === 'goods') await this.loadGoods({ silent: this.data.goods.length > 0 });
+      else await this.loadFeed();
+    } finally {
+      this._pullRefreshing = false;
+      wx.stopPullDownRefresh();
+    }
+  },
+  async loadGoods({ silent = false } = {}) {
+    const version = this._goodsLoadVersion = (this._goodsLoadVersion || 0) + 1;
+    this.setData({ goodsLoading: !silent, goodsError: '' });
+    try {
+      const goods = await listCommunityGoods(this.data.goodsSort);
+      if (version !== this._goodsLoadVersion) return;
+      this._goodsLoaded = true;
+      this.setData({ goods });
+      this.filterGoods();
+    } catch (e) {
+      if (version === this._goodsLoadVersion) {
+        if (silent) wx.showToast({ title: '刷新失败，请稍后下拉重试', icon: 'none' });
+        else this.setData({ goodsError: errorText(e) });
+      }
+    } finally {
+      if (version === this._goodsLoadVersion) this.setData({ goodsLoading: false });
+    }
+  },
+  filterGoods() {
+    const query = this.data.goodsQuery.trim().toLocaleLowerCase();
+    const goods = this.data.goods.filter((item) => !query || `${item.name} ${item.merchantType}`.toLocaleLowerCase().includes(query));
+    this.setData({ goodsColumns: [goods.filter((_, i) => i % 2 === 0), goods.filter((_, i) => i % 2 === 1)], goodsCount: goods.length });
+  },
+  selectGoodsSort(e) {
+    const goodsSort = e.currentTarget.dataset.sort;
+    if (!['latest', 'popular'].includes(goodsSort) || goodsSort === this.data.goodsSort) return;
+    this.setData({ goodsSort, goods: [], goodsColumns: [[], []], goodsCount: 0 });
+    this.loadGoods();
+  },
+  searchHome(e) {
+    if (this.data.homeTab === 'goods') {
+      this.setData({ goodsQuery: e.detail.value });
+      this.filterGoods();
+    } else this.onSearch(e);
+  },
+  clearHomeSearch() { this.searchHome({ detail: { value: '' } }); },
+  openGoods(e) {
+    wx.navigateTo({ url: `/pages/goods/detail?id=${encodeURIComponent(e.detail.id)}` });
+  },
+  askGoods(e) {
+    const item = this.data.goods.find((goods) => goods.id === e.detail.id);
+    if (item) askAboutGoods(item);
+  },
+  onUnload() {
+    this._goodsLoadVersion = (this._goodsLoadVersion || 0) + 1;
+    this._feedLoadVersion = (this._feedLoadVersion || 0) + 1;
   },
   openReminders() {
     const hasReminders = (loadStore().reminders || []).length > 0;
