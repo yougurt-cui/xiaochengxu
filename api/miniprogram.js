@@ -3,7 +3,7 @@ const origin = config.apiBaseUrl.replace(/\/$/, '');
 export const mediaUrl = (url) => (url && url.startsWith('/') ? origin + url : url || '');
 export const hasSession = () => Boolean(wx.getStorageSync('miniprogram_token'));
 export const errorText = (error) => error.message || '连接失败，请检查网络后重试';
-export function api(path, method = 'GET', data = {}) {
+export function api(path, method = 'GET', data = {}, options = {}) {
   const anonymousView = method === 'POST' && /^\/moments\/[a-zA-Z0-9_-]+\/view$/.test(path);
   if (method !== 'GET' && path !== '/auth/wechat-login' && !anonymousView && !hasSession()) {
     requireSession();
@@ -17,6 +17,7 @@ export function api(path, method = 'GET', data = {}) {
       data,
       timeout: 30000,
       header: {
+        ...options.headers,
         'content-type': 'application/json',
         Authorization: `Bearer ${requestToken}`,
       },

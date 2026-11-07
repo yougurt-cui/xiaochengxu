@@ -11,6 +11,8 @@ export const categories = [
 export function mapPost(p) {
   return {
     id: p.id,
+    postType: p.post_type || 'normal',
+    products: Array.isArray(p.products) ? p.products : [],
     userId: p.user_id,
     liked: !!p.liked,
     likes: Number(p.likes) || 0,

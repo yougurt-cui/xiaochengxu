@@ -84,7 +84,7 @@
     {
       "root": "pages/goods",
       "name": "goods",
-      "pages": ["detail"]
+      "pages": ["detail", "publish", "mine", "bind"]
     }
   ],
   "window": {

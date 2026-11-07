@@ -61,6 +61,11 @@
         </view>
       </button>
 
+      <button class="menu-row" bindtap="openMyGoods">
+        <image class="menu-image" src="/static/goods/shop.svg" />
+        <view class="row-copy">我的商品</view>
+        <image class="menu-arrow" src="/static/design/arrow-small.svg" />
+      </button>
       <button class="menu-row" bindtap="goSettings">
         <image class="menu-image" src="/static/design/settings.svg" />
         <view class="row-copy">设置</view>

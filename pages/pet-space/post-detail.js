@@ -1,3 +1,4 @@
+import { mapGoods } from '../../utils/goods';
 import { shareCard, timelineCard } from '../../utils/share';
 import { displayPostBody } from '../../utils/post-content';
 import { api, mediaUrl, errorText, hasSession, requireSession } from '../../api/miniprogram';
@@ -51,6 +52,9 @@ Page({
       if (this.data.commentsVisible) this.openComments();
     }
   },
+  openLinkedGoods(e) {
+    wx.navigateTo({ url: `/pages/goods/detail?id=${encodeURIComponent(e.currentTarget.dataset.id)}` });
+  },
   async loadPost() {
     if (!this.postId) {
       this.setData({ loading: false, error: '未找到帖子，请返回后重新打开。' });
@@ -60,9 +64,9 @@ Page({
     try {
       const result = await api(`/moments/${encodeURIComponent(this.postId)}`);
       if (this._disposed) return;
-      const post = { ...mapPost(result.item), avatar: mediaUrl(result.item.author && result.item.author.avatar) };
+      const post = { ...mapPost(result.item), goods: (result.item.products || []).map((item) => mapGoods(item)), avatar: mediaUrl(result.item.author && result.item.author.avatar) };
       this.setData({
-        post: { ...post, displayBody: displayPostBody(post.title, post.body), editedText: formatEdited(post.editedAt) },
+        post: { ...post, goodsCount: post.goods.length, displayBody: displayPostBody(post.title, post.body), editedText: formatEdited(post.editedAt) },
         saved: loadStore().favorites.includes(post.id),
         photoIndex: 0,
       });

@@ -1,0 +1,9 @@
+@import '../../styles/tokens.less';
+.binding-product { display: block; margin-bottom: @space-lg; font-size: @type-cardTitle; font-weight: @weight-medium; overflow-wrap: anywhere; }
+.bind-post { display: flex; align-items: center; justify-content: space-between; gap: @space-md; padding: @space-lg; margin: 0 0 @space-md; background: @colors-surface; border-radius: @radius-medium; text-align: left; font-size: @type-body; line-height: @leading-body; border: 2rpx solid transparent; }
+.bind-post.selected { border-color: @colors-primary; }
+.bind-post[disabled] { color: @colors-secondary; background: @colors-surface; }
+.bind-post-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.bound-label { color: @colors-secondary; font-size: @type-small; flex-shrink: 0; }
+.bind-radio { display: flex; align-items: center; justify-content: center; width: 36rpx; height: 36rpx; border: 2rpx solid @colors-line; border-radius: 50%; flex-shrink: 0; }
+.selected .bind-radio { border-color: @colors-primary; background: @colors-primarySoft; }

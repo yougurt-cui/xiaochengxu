@@ -326,3 +326,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.linked-goods { display: flex; flex-direction: column; gap: @space-sm; margin: @space-md 0; }
+.linked-goods-card { display: flex; align-items: center; gap: @space-md; width: 100%; margin: 0; padding: @space-md; box-sizing: border-box; background: @colors-surface; border: 1rpx solid @colors-line; border-radius: @radius-medium; text-align: left; line-height: @leading-body; }
+.linked-goods-photo { width: 120rpx; height: 120rpx; flex-shrink: 0; border-radius: @radius-small; }
+.linked-goods-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: @space-xs; }
+.linked-goods-name { color: @colors-text; font-size: @type-body; overflow-wrap: anywhere; }
+.linked-goods-price { color: @colors-danger; font-size: @type-title; font-weight: @weight-medium; }

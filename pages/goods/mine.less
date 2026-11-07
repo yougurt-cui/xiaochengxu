@@ -1,0 +1,14 @@
+@import '../../styles/tokens.less';
+.my-goods-page { padding-bottom: env(safe-area-inset-bottom); background: @colors-page; }
+.my-goods-list { display: flex; flex-direction: column; gap: @space-md; }
+.my-goods-row { display: flex; align-items: center; gap: @space-md; margin: 0; padding: @space-md; width: 100%; box-sizing: border-box; border-radius: @radius-medium; background: @colors-surface; text-align: left; line-height: @leading-body; }
+.my-goods-photo { flex-shrink: 0; width: 160rpx; height: 160rpx; border-radius: @radius-small; }
+.my-goods-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: @space-sm; }
+.my-goods-name { color: @colors-text; font-size: @type-body; font-weight: @weight-medium; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.my-goods-price { color: @colors-danger; font-size: @type-pageTitle; font-weight: @weight-medium; font-variant-numeric: tabular-nums; }
+.list-feedback { display: flex; flex-direction: column; align-items: center; padding: @space-lg; color: @colors-secondary; font-size: @type-small; text-align: center; }
+.my-goods-empty { padding: (@space-xl * 2) 0; display: flex; justify-content: center; }
+.my-goods-empty image { width: 64rpx; height: 64rpx; filter: grayscale(1); opacity: 0.55; }
+
+.my-goods-item { background: @colors-surface; border-radius: @radius-medium; overflow: hidden; }
+.my-goods-actions { display: flex; justify-content: flex-end; padding: 0 @space-md; border-top: 1rpx solid @colors-line; }

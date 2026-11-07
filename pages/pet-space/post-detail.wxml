@@ -37,6 +37,7 @@
   <text class="post-title" selectable>{{post.title}}</text>
   <text wx:if="{{post.displayBody}}" class="post-body" selectable>{{post.displayBody}}</text>
 </view>
+<view wx:if="{{post.goodsCount}}" class="linked-goods"><button wx:for="{{post.goods}}" wx:key="id" class="linked-goods-card" data-id="{{item.id}}" bindtap="openLinkedGoods"><p-image image-class="linked-goods-photo" src="{{item.image}}" alt="{{item.name}}" /><view class="linked-goods-copy"><text class="linked-goods-name">{{item.name}}</text><text class="linked-goods-price">{{item.price !== '' ? '¥' + item.price : '价格待确认'}}</text></view><p-icon name="arrow" tone="muted" size="28" /></button></view>
 <view class="post-meta"><text>{{post.editedText}}编辑</text><text wx:if="{{post.tag}}" class="tag">{{post.tag}}</text></view>
 <view id="post-comments" class="post-comments">
  <text class="comments-title">共 {{post.commentCount || 0}} 条评论</text>

@@ -1,3 +1,4 @@
+import { getMerchantIdentity } from '../../utils/merchant';
 import { listCommunityGoods, askAboutGoods } from '../../utils/goods';
 import { deviceRequest } from '../../utils/device-api';
 import { showHalloweenTaskPrompt } from '../../utils/halloween-task-prompt';
@@ -20,6 +21,7 @@ Page({
   },
   data: {
     homeTab: 'community',
+    isMerchant: false,
     headerHeight: 84,
     goodsQuery: '',
     goods: [],
@@ -56,6 +58,14 @@ Page({
   },
   onShow() {
     syncModalTabBar(this);
+    this.loadMerchantIdentity();
+    const publishedKey = accountKey('goods-published');
+    if (wx.getStorageSync(publishedKey)) {
+      wx.removeStorageSync(publishedKey);
+      this.setData({ homeTab: 'goods', goodsSort: 'latest', goodsQuery: '' });
+      this.loadGoods();
+      this._reloadFeedOnShow = true;
+    }
     this.loadDeviceSummary();
     if (this.getTabBar()) this.getTabBar().setData({ value: 'home' });
     if (this._feedPreferenceAccount !== accountKey('home-feed')) {
@@ -120,6 +130,20 @@ Page({
       if (isCurrent()) this.setData({ loading: false });
     }
   },
+  async loadMerchantIdentity() {
+    const version = this._merchantVersion = (this._merchantVersion || 0) + 1;
+    const account = accountKey('merchant-identity');
+    this.setData({ isMerchant: false });
+    try {
+      const identity = await getMerchantIdentity();
+      if (version === this._merchantVersion && account === accountKey('merchant-identity')) {
+        this.setData({ isMerchant: identity.is_merchant === true });
+      }
+    } catch (_) { /* Recheck on the next visit; the publish page also verifies identity. */ }
+  },
+  openGoodsPublish() {
+    wx.navigateTo({ url: '/pages/goods/publish' });
+  },
   selectHomeTab(e) {
     const homeTab = e.currentTarget.dataset.tab;
     if (!['community', 'goods'].includes(homeTab) || homeTab === this.data.homeTab) return;
@@ -181,6 +205,7 @@ Page({
     if (item) askAboutGoods(item);
   },
   onUnload() {
+    this._merchantVersion = (this._merchantVersion || 0) + 1;
     this._goodsLoadVersion = (this._goodsLoadVersion || 0) + 1;
     this._feedLoadVersion = (this._feedLoadVersion || 0) + 1;
   },

@@ -97,6 +97,9 @@ Page({
   openPosts() {
     wx.navigateTo({ url: '/pages/pet-space/library?mode=posts' });
   },
+  openMyGoods() {
+    wx.navigateTo({ url: '/pages/goods/mine' });
+  },
   goSettings() {
     wx.navigateTo({ url: '/pages/setting/index' });
   },

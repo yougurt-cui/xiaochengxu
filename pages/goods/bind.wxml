@@ -1,0 +1,18 @@
+<view class="page has-page-actions">
+  <page-header title="绑定已有帖子" back />
+  <view class="screen-body">
+    <text wx:if="{{productName}}" class="binding-product">{{productName}}</text>
+    <view wx:if="{{needsLogin}}" class="empty-state">登录后选择自己的帖子<button class="text-button" bindtap="login">登录 / 注册</button></view>
+    <view wx:elif="{{loading}}" class="empty-state">正在加载我的帖子…</view>
+    <view wx:elif="{{error}}" class="empty-state">{{error}}<button class="text-button" bindtap="loadPosts">重试</button></view>
+    <block wx:else>
+      <view wx:if="{{!postCount}}" class="empty-state">暂无可绑定的已发布帖子</view>
+      <button wx:for="{{posts}}" wx:key="id" class="bind-post {{selectedId === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectPost" disabled="{{saving || item.bound}}" aria-label="{{item.title + (item.bound ? '，已绑定' : selectedId === item.id ? '，已选中' : '')}}"><text class="bind-post-title">{{item.title}}</text><text wx:if="{{item.bound}}" class="bound-label">已绑定</text><view wx:else class="bind-radio"><p-icon wx:if="{{selectedId === item.id}}" name="check" tone="primary" size="28" /></view></button>
+      <text wx:if="{{limited}}" class="caption">当前可选择最近100篇帖子</text>
+    </block>
+  </view>
+  <view wx:if="{{!needsLogin && !loading && !error && postCount}}" class="page-action-footer">
+    <button wx:if="{{boundPostId}}" class="primary-button" bindtap="viewPost">查看已绑定帖子</button>
+    <button wx:else class="primary-button" bindtap="bind" loading="{{saving}}" disabled="{{saving || !selectedId}}">{{saving ? '正在绑定' : '确认绑定'}}</button>
+  </view>
+</view>

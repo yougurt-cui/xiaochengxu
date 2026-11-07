@@ -1,0 +1,37 @@
+<view class="page has-page-actions goods-publish-page">
+  <page-header title="发布商品" back />
+  <view class="screen-body publish-body">
+    <view wx:if="{{publishedId}}" class="publish-result"><p-icon name="check" size="72" /><text class="publish-result-title">商品已发布</text><text class="caption">已同步到社区分享</text><button class="primary-button" bindtap="viewProduct">查看商品</button></view>
+    <view wx:elif="{{checking}}" class="empty-state">正在确认商家身份…</view>
+    <view wx:elif="{{!loggedIn}}" class="empty-state">登录后发布商品<button class="text-button" bindtap="login">登录 / 注册</button></view>
+    <view wx:elif="{{identityError}}" class="empty-state">{{identityError}}<button class="text-button" bindtap="checkIdentity">重新加载</button></view>
+    <view wx:elif="{{!isMerchant}}" class="empty-state">当前账号尚未通过商家认证<button class="text-button" bindtap="checkIdentity">重新确认身份</button></view>
+    <block wx:else>
+      <picker class="merchant-picker" range="{{merchants}}" range-key="label" value="{{merchantIndex}}" bindchange="selectMerchant" disabled="{{saving || merchants.length < 2}}">
+        <view class="merchant-card">
+          <image class="merchant-icon" src="/static/goods/shop.svg" mode="aspectFit" />
+          <view class="merchant-copy"><text class="merchant-caption">发布商家</text><text class="merchant-name">{{merchantIndex >= 0 ? merchants[merchantIndex].merchant_type : '请选择商家'}}</text></view>
+          <p-icon name="arrow" tone="muted" size="28" />
+        </view>
+      </picker>
+      <view class="publish-card photo-card">
+        <view class="publish-photo-heading"><text>商品图片</text><text class="photo-count">{{images.length}} / 9</text></view>
+        <view class="photo-grid">
+          <view wx:for="{{images}}" wx:key="path" class="photo" data-index="{{index}}" bindtap="previewImage">
+            <p-image image-class="release-photo" src="{{item.url || item.path}}" />
+            <text wx:if="{{index === 0}}" class="cover-label">封面</text>
+            <button class="remove-photo" data-index="{{index}}" catchtap="removeImage" disabled="{{saving}}" aria-label="移除图片"><view class="remove-photo-disc"><p-icon name="close" tone="muted" size="28" /></view></button>
+          </view>
+          <button wx:if="{{images.length < 9}}" class="add-photo" bindtap="chooseImages" disabled="{{saving || choosing}}" aria-label="添加商品图片"><text class="photo-plus">＋</text><text>添加图片</text></button>
+        </view>
+        <text class="photo-hint">最多9张，每张不超过10MB</text>
+      </view>
+      <view class="publish-card info-card">
+        <view class="publish-field"><text class="field-label">商品名称</text><input class="name-input" data-key="name" value="{{name}}" bindinput="input" maxlength="200" placeholder="填写商品名称" placeholder-class="publish-placeholder" disabled="{{saving}}" /></view>
+        <view class="publish-field price-field"><text class="field-label">商品价格</text><view class="price-input-wrap"><text>¥</text><input class="price-input" data-key="price" value="{{price}}" type="digit" bindinput="input" maxlength="11" placeholder="0.00" placeholder-class="publish-placeholder" disabled="{{saving}}" aria-label="商品价格，单位元" /></view></view>
+        <view class="publish-field description-field"><text class="field-label">商品介绍</text><textarea class="description-input" data-key="content" value="{{content}}" bindinput="input" maxlength="20000" placeholder="介绍商品特点、规格及适用情况" placeholder-class="publish-placeholder" disabled="{{saving}}" cursor-spacing="120" /></view>
+      </view>
+    </block>
+  </view>
+  <view wx:if="{{isMerchant && !checking && !publishedId}}" class="page-action-footer publish-footer"><button class="primary-button" bindtap="publish" loading="{{saving}}" disabled="{{saving || choosing || !canPublish}}">{{saving ? progress : '发布商品'}}</button></view>
+</view>

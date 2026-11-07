@@ -1,0 +1,19 @@
+<view class="page my-goods-page">
+  <page-header title="我的商品" back />
+  <view class="screen-body">
+    <view wx:if="{{needsLogin}}" class="empty-state">登录后查看我发布的商品<button class="text-button" bindtap="login">登录 / 注册</button></view>
+    <block wx:else>
+      <view class="my-goods-list">
+        <view wx:for="{{items}}" wx:key="id" class="my-goods-item"><button class="my-goods-row" data-id="{{item.id}}" bindtap="openGoods" aria-label="{{'查看商品：' + item.name}}">
+          <p-image image-class="my-goods-photo" src="{{item.image}}" alt="{{item.name}}" />
+          <view class="my-goods-copy"><text class="my-goods-name">{{item.name}}</text><text class="my-goods-price">{{item.price !== '' ? '¥' + item.price : '价格待确认'}}</text></view>
+          <p-icon name="arrow" tone="muted" size="28" />
+        </button><view class="my-goods-actions"><button class="text-button" data-id="{{item.id}}" bindtap="bindPost">绑定已有帖子</button></view></view>
+      </view>
+      <view wx:if="{{loading}}" class="list-feedback">{{items.length ? '正在加载更多…' : '正在加载商品…'}}</view>
+      <view wx:elif="{{error}}" class="list-feedback"><text>{{error}}</text><button class="text-button" bindtap="retry">重试</button></view>
+      <view wx:elif="{{!items.length}}" class="my-goods-empty" role="status" aria-label="暂无发布的商品"><image src="/static/goods/shop.svg" mode="aspectFit" /></view>
+      <view wx:elif="{{!hasMore}}" class="list-feedback">已全部加载</view>
+    </block>
+  </view>
+</view>
