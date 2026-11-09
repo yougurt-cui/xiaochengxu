@@ -16,6 +16,7 @@ Page({
     deleting: false,
     recognizing: false,
     recognitionNote: '',
+    recognitionFailed: false,
     breedCatalog: {},
     breedOptions: [],
     breedCandidates: [],
@@ -156,7 +157,7 @@ Page({
           wx.showToast({ title: '请选择不超过 10MB 的照片', icon: 'none' });
           return;
         }
-        this.setData({ recognizing: true, recognitionNote: '', breedCandidates: [], appearanceRecognitionText: '' });
+        this.setData({ recognizing: true, recognitionNote: '', recognitionFailed: false, breedCandidates: [], appearanceRecognitionText: '' });
         try {
           const result = await recognizePetImage(file.tempFilePath);
           if (this._disposed) return;
@@ -171,6 +172,8 @@ Page({
               form.type = { cat: '猫咪', dog: '狗狗', unknown: '未知' }[kind];
             }
             if (suggestions.breed && suggestions.breed.value) form.breed = suggestions.breed.value;
+            const sex = suggestions.sex && suggestions.sex.value;
+            if (['male', 'female'].includes(sex)) form.sex = sex;
             breedCandidates = ((suggestions.breed && suggestions.breed.candidates) || []).filter(
               (item) => item && typeof item.value === 'string' && item.value,
             );
@@ -198,13 +201,14 @@ Page({
             breedOptions: this.data.breedCatalog[form.animal_type] || [],
             breedCandidates,
             appearanceRecognitionText,
+            recognitionFailed: result.recognition_status !== 'success',
             recognitionNote:
               result.recognition_status === 'success'
-                ? '已填入识别建议，品种请核对或从候选中选择。花色、毛长单独展示，不代表品种或血统；体重仅为照片估算，请按实际填写。'
+                ? ''
                 : '照片已上传，可作为头像。暂未识别出档案信息，请手动填写，或点击上方更换照片重试。',
           });
         } catch (e) {
-          if (!this._disposed) this.setData({ recognitionNote: `${errorText(e)}，可点击上方重试，或继续手动填写。` });
+          if (!this._disposed) this.setData({ recognitionFailed: true, recognitionNote: `${errorText(e)}，可点击上方重试，或继续手动填写。` });
         } finally {
           if (!this._disposed) this.setData({ recognizing: false });
         }
