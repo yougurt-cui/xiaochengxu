@@ -9,10 +9,12 @@ Component({
           rightWidth: this.barWidth(dimension.right),
         })),
       }));
-      this.setData({ comparisons, activeTab: 'advice', showScores: false });
+      const questions = Array.isArray(report?.next_steps?.questions) ? report.next_steps.questions : [];
+      this.setData({ comparisons, activeTab: report?.scene === 'switch_impact' ? 'switch' : 'advice', showScores: false,
+        questions, questionPage: 0, visibleQuestions: questions.slice(0, 3) });
     } },
   },
-  data: { activeTab: 'advice', showScores: false, comparisons: [] },
+  data: { activeTab: 'advice', showScores: false, comparisons: [], questions: [], questionPage: 0, visibleQuestions: [] },
   methods: {
     barWidth(dimension) {
       const { score, scale_max: maximum } = dimension || {};
@@ -21,7 +23,17 @@ Component({
     },
     selectTab(event) {
       const { tab } = event.currentTarget.dataset;
-      if (['advice', 'community'].includes(tab)) this.setData({ activeTab: tab });
+      if (['advice', 'community', 'switch'].includes(tab)) this.setData({ activeTab: tab });
+    },
+    nextQuestions() {
+      const count = Math.ceil(this.data.questions.length / 3);
+      if (count < 2) return;
+      const questionPage = (this.data.questionPage + 1) % count;
+      this.setData({ questionPage, visibleQuestions: this.data.questions.slice(questionPage * 3, questionPage * 3 + 3) });
+    },
+    ask(event) {
+      const question = this.data.visibleQuestions[Number(event.currentTarget.dataset.index)];
+      if (question) this.triggerEvent('question', { question });
     },
     toggleScores() { this.setData({ showScores: !this.data.showScores }); },
   },

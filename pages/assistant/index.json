@@ -2,7 +2,8 @@
   "navigationStyle": "custom",
   "usingComponents": {
     "p-image": "/components/p-image",
-    "guardian-report": "/components/guardian-report/index"
+    "guardian-report": "/components/guardian-report/index",
+    "health-knowledge": "/components/health-knowledge/index"
   },
   "disableScroll": true
 }

@@ -1,0 +1,10 @@
+.health-knowledge { color:#29223d; padding:8rpx 0; }
+.heading { display:flex; align-items:center; justify-content:space-between; gap:16rpx; margin-bottom:18rpx; }
+.title { font-size:30rpx; font-weight:600; }.page,.note { color:#847b97; font-size:22rpx; }
+.intro { display:block; font-size:25rpx; line-height:1.7; margin-bottom:18rpx; }
+.cause-card { background:linear-gradient(130deg,#fff,#f8f5ff); border:1rpx solid #eae2ff; border-radius:24rpx; padding:24rpx; margin-bottom:18rpx; }
+.cause-heading { display:flex; gap:12rpx; align-items:flex-start; }.cause-icon { color:#8b61e8; }.cause-title { font-size:28rpx; font-weight:600; line-height:1.5; }
+.mechanism { display:block; font-size:25rpx; line-height:1.7; margin:14rpx 0; }
+.detail { border-top:1rpx solid #eee7fc; padding-top:14rpx; margin-top:14rpx; }.detail-title { display:block; font-size:24rpx; color:#7854c2; font-weight:600; margin-bottom:6rpx; }.detail-text { display:block; font-size:24rpx; line-height:1.7; }
+.note { display:block; line-height:1.6; margin:18rpx 0; }.more { font-size:25rpx; color:#7951cc; background:#f1ebff; border-radius:24rpx; }.more::after,.refresh::after,.question::after { border:0; }
+.followups { margin-top:28rpx; }.refresh { margin:0; padding:0 10rpx; font-size:23rpx; line-height:1.8; color:#8259d5; background:transparent; }.question { display:flex; justify-content:space-between; gap:12rpx; text-align:left; background:#f6f2fe; color:#514565; padding:20rpx; font-size:25rpx; line-height:1.6; border-radius:18rpx; margin:12rpx 0; }
