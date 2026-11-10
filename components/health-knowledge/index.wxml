@@ -1,0 +1,13 @@
+<view wx:if="{{knowledge}}" class="health-knowledge">
+  <view class="heading"><text class="title">可能的原因与判断</text><text wx:if="{{pageCount > 1}}" class="page">{{page + 1}} / {{pageCount}}</text></view>
+  <text class="intro" selectable>{{knowledge.text}}</text>
+  <view wx:for="{{visibleGroups}}" wx:for-item="group" wx:key="cause" class="cause-card">
+    <view class="cause-heading"><text class="cause-icon">✦</text><text class="cause-title" selectable>{{group.cause}}</text></view>
+    <text class="mechanism" selectable>{{group.mechanism}}</text>
+    <view class="detail"><text class="detail-title">伴随表现</text><text wx:for="{{group.manifestations}}" wx:for-item="line" wx:key="*this" class="detail-text" selectable>· {{line}}</text><text wx:if="{{!group.manifestations.length}}" class="detail-text">资料未提供</text></view>
+    <view class="detail supporting"><text class="detail-title">判断依据</text><text wx:for="{{group.supporting}}" wx:for-item="line" wx:key="*this" class="detail-text" selectable>· {{line}}</text><text wx:if="{{!group.supporting.length}}" class="detail-text">资料未提供</text></view>
+  </view>
+  <button wx:if="{{pageCount > 1}}" class="more" bindtap="nextGroup">换一组原因</button>
+  <text wx:if="{{knowledge.review_note}}" class="note">{{knowledge.review_note}}</text>
+  <view wx:if="{{visibleQuestions.length}}" class="followups"><view class="heading"><text class="title">继续了解</text><button wx:if="{{questions.length > 3}}" class="refresh" bindtap="nextQuestions">换一组</button></view><button wx:for="{{visibleQuestions}}" wx:for-item="question" wx:for-index="index" wx:key="*this" class="question" data-index="{{index}}" bindtap="ask">{{question}}<text>›</text></button></view>
+</view>

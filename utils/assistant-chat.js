@@ -142,6 +142,7 @@ export function mapChatMessage(message) {
     images: (message.attachments || []).filter((a) => a.type === 'chat_image' && /^[a-f0-9]{32}$/.test(a.image_id))
       .map((a) => `/api/miniprogram/pet-images/${a.image_id}`),
     guardianReport,
+    healthKnowledge: message.role === 'assistant' && message.result?.health_knowledge?.version === 1 ? message.result.health_knowledge : null,
     text: message.content || message.reply || '',
     blocks: messageBlocks(message),
     knowledgeCards: knowledgeCards(message),
@@ -187,6 +188,20 @@ export function mapChatMessage(message) {
 }
 
 export const chatMethods = {
+  showTaskStart(event) {
+    const id = event.currentTarget.dataset.id;
+    if (!this.data.chatMessages.some((item) => item.id === id)) return;
+    this.setData({ chatScrollTarget: '' }, () => this.setData({ chatScrollTarget: 'chat-' + id }));
+  },
+  askTaskQuestion(event) {
+    if (this.data.sending || !requireSession()) return;
+    const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
+    const question = event.detail?.question;
+    const allowed = [...(message?.healthKnowledge?.questions || []), ...(message?.guardianReport?.next_steps?.questions || [])];
+    if (typeof question !== 'string' || !allowed.includes(question)) return;
+    if (this._cloudPetId && this._cloudPetId !== this.data.boundPet?.id) return;
+    return this.sendCloudMessage({ message: question }, question);
+  },
   askKnowledgeQuestion(event) {
     if (this.data.sending || !requireSession()) return;
     const { id, cardIndex, questionIndex } = event.currentTarget.dataset;

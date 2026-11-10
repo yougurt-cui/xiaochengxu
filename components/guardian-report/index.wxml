@@ -2,7 +2,7 @@
   <view class="report-header">
     <text class="eyebrow">宠物管家 · 专属喂养建议</text>
     <text class="report-title">{{report.pet.name || '当前宠物'}}的饮食报告</text>
-    <view class="pet-tags"><text>{{report.pet.breed || '品种未填写'}}</text><text>{{report.pet.life_stage || '阶段未填写'}}</text></view>
+    <view class="pet-tags"><text class="pet-tag">{{report.pet.breed || '品种未填写'}}</text><text class="pet-tag">{{report.pet.life_stage || '阶段未填写'}}</text></view>
   </view>
   <view class="report-section summary">
     <text class="section-title">整体总结</text>
@@ -11,6 +11,7 @@
   </view>
   <view class="report-tabs">
     <button class="tab {{activeTab === 'advice' ? 'active' : ''}}" data-tab="advice" bindtap="selectTab">当前建议</button>
+    <button wx:if="{{report.feeding.task_nutrition}}" class="tab {{activeTab === 'switch' ? 'active' : ''}}" data-tab="switch" bindtap="selectTab">换粮影响</button>
     <button class="tab {{activeTab === 'community' ? 'active' : ''}}" data-tab="community" bindtap="selectTab">社区经验</button>
   </view>
   <view wx:if="{{activeTab === 'advice'}}">
@@ -18,7 +19,7 @@
       <text class="section-title">喂养建议</text>
       <text class="body-text" selectable>{{report.feeding.text}}</text>
     </view>
-    <view wx:for="{{report.feeding.products}}" wx:for-item="product" wx:key="id" class="report-section product">
+    <view wx:if="{{!report.feeding.task_nutrition}}" wx:for="{{report.feeding.products}}" wx:for-item="product" wx:key="id" class="report-section product">
       <view class="product-heading"><text class="section-title">{{product.label}}</text><text wx:if="{{product.status === 'provisional'}}" class="stage">初算 · 待核对</text></view>
       <text wx:if="{{product.structure.headline}}" class="note" selectable>{{product.structure.headline}}</text>
       <view wx:if="{{product.strengths.length}}" class="points strengths">
@@ -31,6 +32,22 @@
       </view>
       <text wx:for="{{product.data_notes}}" wx:for-item="note" wx:key="index" class="note" selectable>{{note.text}}</text>
       <text wx:if="{{product.note}}" class="note" selectable>{{product.note}}</text>
+    </view>
+    <view wx:if="{{report.feeding.task_nutrition}}" class="task-nutrition">
+      <text class="note">{{report.feeding.task_nutrition.note}}</text>
+      <view wx:for="{{report.feeding.task_nutrition.pairs}}" wx:for-item="pair" wx:key="right_id">
+        <text class="pair-title">{{pair.from_label}} / {{pair.to_label}}</text>
+        <view wx:for="{{pair.products}}" wx:for-item="product" wx:key="id" class="report-section">
+          <text class="section-title">{{product.label}}</text>
+          <view class="nutrition-grid"><view class="nutrition-advantages"><text class="point-heading">营养优势</text>
+            <text wx:for="{{product.strengths}}" wx:for-item="point" wx:key="rule_id" class="body-text" selectable>· {{point.text}}</text>
+            <text wx:if="{{!product.strengths.length}}" class="note">当前差值和规则未提供可解释的相对优势。</text>
+          </view><view class="nutrition-observations"><text class="point-heading">日常关注</text>
+            <text wx:for="{{product.observations}}" wx:for-item="point" wx:key="rule_id" class="observation" selectable>{{point.text}}</text>
+            <text wx:if="{{!product.observations.length}}" class="note">暂缺对应观察资料。</text>
+          </view></view><text class="note">{{pair.note}}</text>
+        </view>
+      </view>
     </view>
     <view wx:if="{{comparisons.length}}" class="report-section comparison">
       <view class="product-heading"><text class="section-title">营养结构差异</text><button class="score-toggle" bindtap="toggleScores">{{showScores ? '直观对比' : '查看分值'}}</button></view>
@@ -47,6 +64,22 @@
       </view>
     </view>
   </view>
+  <view wx:elif="{{activeTab === 'switch'}}" class="switch-impact">
+    <view wx:for="{{report.feeding.task_nutrition.pairs}}" wx:for-item="pair" wx:key="right_id" class="report-section">
+      <text class="section-title">换粮影响分析</text><text class="body-text">{{pair.from_label}} → {{pair.to_label}}</text>
+      <text class="point-heading impact-heading">关键营养变化</text>
+      <view wx:for="{{pair.top_changes}}" wx:for-item="change" wx:key="key" class="impact-change">
+        <view class="product-heading"><text class="point-heading">{{change.title}} {{change.direction === 'increase' ? '↑' : '↓'}}</text><text class="note">{{change.from_score}} → {{change.to_score}} / {{change.scale_max}}</text></view>
+        <text wx:for="{{change.rules}}" wx:for-item="rule" wx:key="id" class="body-text" selectable>{{rule.recommendation_text}}</text>
+        <text wx:for="{{change.rules}}" wx:for-item="rule" wx:key="id" class="observation" selectable>观察：{{rule.owner_observation}}</text>
+        <text wx:if="{{!change.rules.length}}" class="note">暂缺这个变化方向的解释规则。</text>
+      </view>
+      <text wx:if="{{!pair.top_changes.length}}" class="note">暂无可比较的变化，可能分值相同或资料、版本不一致。</text>
+      <text class="point-heading impact-heading">可能出现的身体变化</text>
+      <view wx:for="{{pair.health_links}}" wx:for-item="link" wx:key="index" class="impact-change"><text wx:for="{{link.manifestations}}" wx:for-item="line" wx:key="*this" class="body-text">{{line}}</text><text class="note">{{link.relation}}</text></view>
+      <text wx:if="{{pair.health_note}}" class="note">{{pair.health_note}}</text><text class="note">{{pair.note}}</text>
+    </view><text wx:if="{{!report.feeding.task_nutrition.pairs.length}}" class="note">{{report.feeding.task_nutrition.note}}</text>
+  </view>
   <view wx:else class="report-section community">
     <text class="section-title">社区经验</text><text class="body-text" selectable>{{report.community.text}}</text>
     <view wx:for="{{report.community.items}}" wx:for-item="experience" wx:key="id" class="experience">
@@ -55,5 +88,6 @@
     </view>
     <text class="note">{{report.community.note}}</text>
   </view>
-  <view class="report-section next-steps"><text class="section-title">接下来</text><text class="body-text">{{report.next_steps.prompt}}</text></view>
+  <view wx:if="{{visibleQuestions.length}}" class="report-section task-questions"><view class="product-heading"><text class="section-title">继续了解</text><button wx:if="{{questions.length > 3}}" class="score-toggle" bindtap="nextQuestions">换一组</button></view><button wx:for="{{visibleQuestions}}" wx:for-item="question" wx:for-index="index" wx:key="*this" class="task-question" data-index="{{index}}" bindtap="ask">{{question}} ›</button></view>
+  <view class="report-section next-steps"><text class="section-title">接下来</text><text class="body-text">{{report.next_steps.prompt}}</text><text wx:for="{{report.next_steps.switch_plan.steps}}" wx:key="*this" class="body-text">· {{item}}</text><text wx:if="{{report.next_steps.switch_plan.confirmation}}" class="note">{{report.next_steps.switch_plan.confirmation}}</text></view>
 </view>
