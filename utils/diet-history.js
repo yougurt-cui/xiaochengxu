@@ -15,7 +15,20 @@ export function rememberDiet(pet) {
   const history = { ...(store.dietHistory || {}) };
   const next = petDiet(pet),
     previous = snapshots[pet.id];
-  if (previous && previous.brand === next.brand && previous.product === next.product) return;
+  if (previous && previous.brand === next.brand && previous.product === next.product) {
+    const identityKeys = ['product_id', 'formula_id'];
+    const sameIdentity = identityKeys.every((key) => String(previous[key] ?? '') === String(next[key] ?? ''));
+    if (sameIdentity) return;
+    const changedIdentity = identityKeys.some(
+      (key) => previous[key] != null && next[key] != null && String(previous[key]) !== String(next[key]),
+    );
+    if (!changedIdentity) {
+      // Filling in a legacy identity does not establish a new feeding period.
+      snapshots[pet.id] = { ...previous, ...next };
+      saveStore({ dietSnapshots: snapshots });
+      return;
+    }
+  }
   const now = new Date().toISOString();
   if (previous && (previous.brand || previous.product)) {
     history[pet.id] = [

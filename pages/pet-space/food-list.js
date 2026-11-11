@@ -119,6 +119,8 @@ Page({
       form: {
         brand: item.brand,
         product: item.product,
+        product_id: item.product_id != null && item.formula_id != null ? item.product_id : null,
+        formula_id: item.product_id != null && item.formula_id != null ? item.formula_id : null,
         started_on: '',
         ended_on: '',
         legacy_record_id: item.id,
