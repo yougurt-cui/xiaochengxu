@@ -1,6 +1,11 @@
 import { loadStore, saveStore } from './pet-store';
 export function petDiet(pet) {
-  return { brand: pet.food_brand || pet.diet?.brand || '', product: pet.food_product || pet.diet?.product || '' };
+  return {
+    brand: pet.food_brand || pet.diet?.brand || '',
+    product: pet.food_product || pet.diet?.product || '',
+    product_id: pet.food_product_id ?? pet.diet?.product_id ?? null,
+    formula_id: pet.food_formula_id ?? pet.diet?.formula_id ?? null,
+  };
 }
 // Dates describe when this device observed the change, not the start of feeding.
 export function rememberDiet(pet) {

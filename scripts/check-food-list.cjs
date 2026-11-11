@@ -48,6 +48,7 @@ const page = {
   },
 };
 (async () => {
+  assert.equal(context.mapFoodItem({ product_id: 143, formula_id: 289 }).formula_id, 289);
   page.data.kind = 'food';
   await page.refreshMine();
   assert.equal(calls[0][0], '/cat-profiles?limit=100');
@@ -66,6 +67,24 @@ const page = {
   assert.equal(write[1], 'PATCH');
   assert.deepEqual(JSON.parse(JSON.stringify(write[2])), { diet: { brand: '新品牌', product: '新系列' } });
   assert(!calls.some((c) => c[0].includes('food-submissions')));
+  calls = [];
+  page.data.editing = true;
+  page.data.selected = { id: 'formula:289', brand: '皇家', name: 'EP42', product_id: 143, formula_id: 289 };
+  page.addToMine();
+  assert.equal(page.data.dietForm.formula_id, 289);
+  await page.saveDiet();
+  assert.equal(calls.find(c => c[1] === 'PATCH')[2].diet.formula_id, 289);
+  page.inputDiet({ currentTarget: { dataset: { key: 'product' } }, detail: { value: 'F32' } });
+  assert.equal(page.data.dietForm.formula_id, null);
+  response = { suggestions: [{ brand: '皇家', product_name: 'F32', product_id: 188, formula_id: 342 }] };
+  page.data.editing = true;
+  await page.searchDiet();
+  assert.equal(page.data.dietChoices.length, 1);
+  page.selectDietFood({ currentTarget: { dataset: { id: '342' } } });
+  assert.equal(page.data.dietForm.formula_id, 342);
+  calls = [];
+  await page.saveDiet();
+  assert.equal(calls.find(c => c[1] === 'PATCH')[2].diet.formula_id, 342);
   page.openHunting();
   assert.equal(nav.url, '/pages/pet-space/hunting');
   response = { items: [] };

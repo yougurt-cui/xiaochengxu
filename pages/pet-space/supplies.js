@@ -23,6 +23,8 @@ const covers = [
 function mapFoodItem(p) {
   return {
     id: p.catalog_key || p.id,
+    product_id: p.product_id ?? null,
+    formula_id: p.formula_id ?? null,
     name: p.product_name || p.name || '',
     brand: p.brand || '',
     tag: p.brand || '',
@@ -64,6 +66,8 @@ Page({
     dietSaving: false,
     dietPetId: '',
     dietForm: { brand: '', product: '' },
+    dietChoices: [],
+    searchingDiet: false,
     kind: 'toys',
     title: '我的玩具',
     slides: [],
@@ -310,7 +314,7 @@ Page({
     if (this.data.kind === 'food') {
       this.closeDetail();
       this.editMine({ currentTarget: { dataset: {} } });
-      this.setData({ dietForm: { brand: p.brand || '', product: p.name || '' } });
+      this.setData({ dietForm: { brand: p.brand || '', product: p.name || '', product_id: p.product_id ?? null, formula_id: p.formula_id ?? null }, dietChoices: [] });
       return;
     }
     const supplies = loadStore().supplies;
@@ -425,6 +429,7 @@ Page({
   },
 
   editMine(e) {
+    this._dietSearchVersion = (this._dietSearchVersion || 0) + 1;
     if (this.data.kind === 'food') {
       if (this.data.mineLoading || this.data.mineError) return;
       if (!this.data.pets.length) {
@@ -441,7 +446,10 @@ Page({
         dietForm: {
           brand: pet.food_brand || pet.diet?.brand || '',
           product: pet.food_product || pet.diet?.product || '',
+          product_id: pet.food_product_id ?? pet.diet?.product_id ?? null,
+          formula_id: pet.food_formula_id ?? pet.diet?.formula_id ?? null,
         },
+        dietChoices: [],
       });
       return;
     }
@@ -458,6 +466,7 @@ Page({
 
   closeEditor() {
     if (this.data.dietSaving) return;
+    this._dietSearchVersion = (this._dietSearchVersion || 0) + 1;
     this.setData({ editing: false, editorMode: 'form' });
   },
 
@@ -603,7 +612,36 @@ Page({
     this.setData({ dietPetId: e.currentTarget.dataset.id });
   },
   inputDiet(e) {
-    this.setData({ ['dietForm.' + e.currentTarget.dataset.key]: e.detail.value });
+    this._dietSearchVersion = (this._dietSearchVersion || 0) + 1;
+    this.setData({ ['dietForm.' + e.currentTarget.dataset.key]: e.detail.value,
+      'dietForm.product_id': null, 'dietForm.formula_id': null, dietChoices: [] });
+  },
+  async searchDiet() {
+    if (this.data.dietSaving || this.data.searchingDiet || !requireSession()) return;
+    const q = [this.data.dietForm.brand, this.data.dietForm.product].filter(Boolean).join(' ').trim();
+    if (!q) { wx.showToast({ title: '先填写品牌或粮名再查找', icon: 'none' }); return; }
+    const version = (this._dietSearchVersion = (this._dietSearchVersion || 0) + 1);
+    const account = accountKey('supplies');
+    this.setData({ searchingDiet: true, dietChoices: [] });
+    try {
+      const response = await api('/products/search?q=' + encodeURIComponent(q) + '&limit=10');
+      if (!this._visible || !this.data.editing || version !== this._dietSearchVersion || account !== accountKey('supplies')) return;
+      const choices = (response.suggestions || []).filter((item) => item.product_id && item.formula_id);
+      this.setData({ dietChoices: choices });
+      if (!choices.length) wx.showToast({ title: '暂无匹配配方，可保留手工记录', icon: 'none' });
+    } catch (e) {
+      if (account === accountKey('supplies')) wx.showToast({ title: errorText(e), icon: 'none' });
+    } finally {
+      if (account === accountKey('supplies')) this.setData({ searchingDiet: false });
+    }
+  },
+  selectDietFood(e) {
+    if (this.data.dietSaving) return;
+    const item = this.data.dietChoices.find((row) => String(row.formula_id) === String(e.currentTarget.dataset.id));
+    if (!item) return;
+    this._dietSearchVersion = (this._dietSearchVersion || 0) + 1;
+    this.setData({ dietForm: { brand: item.brand, product: item.product_name,
+      product_id: Number(item.product_id), formula_id: Number(item.formula_id) }, dietChoices: [] });
   },
   async saveDiet() {
     if (!requireSession()) return;
@@ -611,6 +649,10 @@ Page({
     const id = this.data.dietPetId;
     if (!this.data.pets.some((p) => p.id === id)) return;
     const diet = { brand: this.data.dietForm.brand.trim(), product: this.data.dietForm.product.trim() };
+    if (this.data.dietForm.product_id && this.data.dietForm.formula_id) {
+      diet.product_id = Number(this.data.dietForm.product_id);
+      diet.formula_id = Number(this.data.dietForm.formula_id);
+    }
     if (!diet.brand || !diet.product) {
       wx.showToast({ title: '请填写口粮品牌和系列', icon: 'none' });
       return;

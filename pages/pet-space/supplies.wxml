@@ -195,6 +195,9 @@
   <text class="caption">每只宠物记录一份当前口粮，保存后将替换该宠物原来的口粮。</text>
   <view class="form-field"><text>品牌</text><input value="{{dietForm.brand}}" data-key="brand" bindinput="inputDiet" maxlength="128" placeholder="如：皇家" disabled="{{dietSaving}}" /></view>
   <view class="form-field"><text>产品 / 系列</text><input value="{{dietForm.product}}" data-key="product" bindinput="inputDiet" maxlength="512" placeholder="如：肠胃舒适" disabled="{{dietSaving}}" /></view>
+  <button class="text-button" bindtap="searchDiet" loading="{{searchingDiet}}" disabled="{{dietSaving || searchingDiet}}">查找并关联标准配方</button>
+  <button wx:for="{{dietChoices}}" wx:key="formula_id" class="text-button" data-id="{{item.formula_id}}" bindtap="selectDietFood" disabled="{{dietSaving}}">{{item.brand}} · {{item.product_name}}</button>
+  <text wx:if="{{dietForm.formula_id}}" class="caption">已关联标准配方</text>
   <button class="primary-button" bindtap="saveMine" loading="{{dietSaving}}" disabled="{{dietSaving}}">保存口粮</button>
 </view>
 <view wx:if="{{editing && kind === 'toys'}}" class="bottom-sheet">
