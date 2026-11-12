@@ -183,13 +183,36 @@ export async function recognizePetImage(path) {
     }),
   );
 }
+// Session-local cache: never reuse private files across authentication changes.
+const petImageCache = new Map();
+let petImageCacheToken = '';
+const PET_IMAGE_CACHE_LIMIT = 64;
+const PET_IMAGE_CACHE_TTL = 5 * 60 * 1000;
 export function downloadPetImage(url) {
   if (!isPrivatePetImage(url)) return Promise.resolve(url);
   const token = wx.getStorageSync('miniprogram_token');
+  if (token !== petImageCacheToken) {
+    petImageCache.clear();
+    petImageCacheToken = token;
+  }
   if (!token) return Promise.reject(new Error('请登录后查看宠物照片'));
-  return new Promise((resolve, reject) =>
+  const key = mediaUrl(url);
+  const cached = petImageCache.get(key);
+  if (cached && Date.now() - cached.createdAt < PET_IMAGE_CACHE_TTL) {
+    if (!cached.path) return cached.promise;
+    try {
+      wx.getFileSystemManager().accessSync(cached.path);
+      petImageCache.delete(key);
+      petImageCache.set(key, cached);
+      return Promise.resolve(cached.path);
+    } catch (_) { /* Temporary file was reclaimed; download again. */ }
+  }
+  petImageCache.delete(key);
+  const entry = { createdAt: Date.now(), path: '', promise: null };
+  const download = new Promise((resolve, reject) =>
     wx.downloadFile({
-      url: mediaUrl(url),
+      url: key,
+      timeout: 30000,
       header: { Authorization: `Bearer ${token}` },
       success(res) {
         if (res.statusCode === 200 && wx.getStorageSync('miniprogram_token') === token) resolve(res.tempFilePath);
@@ -198,4 +221,14 @@ export function downloadPetImage(url) {
       fail: () => reject(new Error('宠物照片加载失败')),
     }),
   );
+  entry.promise = download.then((path) => {
+    entry.path = path;
+    return path;
+  }).catch((error) => {
+    if (petImageCache.get(key) === entry) petImageCache.delete(key);
+    throw error;
+  });
+  petImageCache.set(key, entry);
+  while (petImageCache.size > PET_IMAGE_CACHE_LIMIT) petImageCache.delete(petImageCache.keys().next().value);
+  return entry.promise;
 }

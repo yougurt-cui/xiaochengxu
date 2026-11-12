@@ -5,16 +5,15 @@ const assert = require('node:assert/strict');
 let account = 'guest';
 const stores = new Map();
 const drafts = new Map();
-let response, lastPath, navigation, page, refreshStops = 0;
+let response, lastPath, navigation, page;
 const wx = {
   setStorageSync: (key, value) => drafts.set(key, value),
   removeStorageSync: (key) => drafts.delete(key),
   switchTab: (options) => { navigation = options; },
   showToast() {},
-  stopPullDownRefresh() { refreshStops += 1; },
 };
 const context = {
-  wx, console, categories: [],
+  wx, console, setTimeout, clearTimeout, categories: [],
   loadStore: () => stores.get(account) || {},
   saveStore: (patch) => stores.set(account, { ...(stores.get(account) || {}), ...patch }),
   accountKey: (key) => `${account}:${key}`,
@@ -28,12 +27,13 @@ function run(file) {
   vm.runInContext(fs.readFileSync(file, 'utf8').replace(/^import .*;$/gm, '').replace(/export /g, ''), context, { filename: file });
 }
 function bindPage() {
-  page.setData = function (patch) {
+  page.setData = function (patch, callback) {
     Object.entries(patch).forEach(([key, value]) => {
       const parts = key.split('.'); let target = this.data;
       while (parts.length > 1) target = target[parts.shift()];
       target[parts[0]] = value;
     });
+    if (callback) callback();
   };
 }
 const product = { product_id: 'SKU_TEST', product_name: '测试猫粮', product_price: '0.00', images: [{ url: '/api/miniprogram/moment-images/example' }], product_content: '商品说明' };
@@ -60,6 +60,51 @@ const product = { product_id: 'SKU_TEST', product_name: '测试猫粮', product_
   assert.match(drafts.get('guest:pending-goods-question'), /测试猫粮/);
   navigation.fail(); assert.equal(drafts.has('guest:pending-goods-question'), false);
   run('pages/home/index.js'); bindPage();
+  assert.equal(page.data.showNavSearch, false);
+  page._headerTransitionUntil = 0;
+  page._headerExpandThreshold = 400;
+  page.onFeedScroll({ detail: { scrollTop: 600 } });
+  assert.equal(page.data.headerCollapsed, true);
+  page.onFeedScroll({ detail: { scrollTop: 300 } });
+  assert.equal(page.data.headerCollapsed, true, 'layout clamping must not immediately expand the header');
+  page._headerTransitionUntil = 0;
+  page.onFeedScroll({ detail: { scrollTop: 700 } });
+  page.onFeedScroll({ detail: { scrollTop: 500 } });
+  assert.equal(page.data.headerCollapsed, true, 'remain collapsed beyond the first half screen');
+  page.onFeedScroll({ detail: { scrollTop: 350 } });
+  assert.equal(page.data.headerCollapsed, false);
+  page._headerTransitionUntil = 0;
+  page.onFeedScroll({ detail: { scrollTop: 500 } });
+  page.expandHomeHeader();
+  assert.equal(page.data.headerCollapsed, false, 'pulling down at the top restores the header');
+  page.resetFeedScroll();
+  page.onFeedScroll({ detail: { scrollTop: 100 } });
+  assert.equal(page.data.showNavSearch, true);
+  page.onFeedScroll({ detail: { scrollTop: 0 } });
+  assert.equal(page.data.showNavSearch, false);
+  page.onFeedScroll({ detail: { scrollTop: -10 } });
+  assert.equal(page.data.showNavSearch, false);
+  page.focusHomeSearch();
+  assert.equal(page.data.searchFocused, true);
+  page.blurHomeSearch();
+  assert.equal(page.data.searchFocused, false);
+  page.onFeedScroll({ detail: { scrollTop: 120 } });
+  page.resetFeedScroll();
+  assert.equal(page.data.feedScrollTop, 0);
+  assert.equal(page.data.showNavSearch, false);
+  page.onFeedScroll({ detail: { scrollTop: 200 } });
+  page._goodsLoaded = true;
+  page.selectHomeTab({ currentTarget: { dataset: { tab: 'goods' } } });
+  assert.equal(page.data.homeTab, 'goods');
+  assert.equal(page.data.feedScrollTop, 0);
+  assert.equal(page.data.showNavSearch, false);
+  const homeConfig = JSON.parse(fs.readFileSync('pages/home/index.json', 'utf8'));
+  assert.equal(homeConfig.disableScroll, true);
+  assert.equal(homeConfig.enablePullDownRefresh, false);
+  const homeTemplate = fs.readFileSync('pages/home/index.wxml', 'utf8');
+  assert.match(homeTemplate, /<scroll-view[^>]*bindscroll="onFeedScroll"/);
+  assert.match(homeTemplate, /refresher-triggered="{{feedRefreshing}}"/);
+  assert.match(homeTemplate, /bindrefresherrefresh="onPullDownRefresh"/);
   page.data.goods = items;
   page.data.goodsQuery = '测试'; page.filterGoods(); assert.equal(page.data.goodsCount, 2);
   page.data.goodsQuery = '不存在'; page.filterGoods(); assert.equal(page.data.goodsCount, 0);
@@ -76,15 +121,29 @@ const product = { product_id: 'SKU_TEST', product_name: '测试猫粮', product_
   page.data.homeTab = 'goods';
   page.data.goods = [{ id: 'kept', name: '保留商品', merchantType: '' }];
   await page.onPullDownRefresh();
-  assert.equal(refreshStops, 1); assert.equal(page.data.goods[0].id, 'kept');
+  assert.equal(page.data.feedRefreshing, false); assert.equal(page.data.goods[0].id, 'kept');
   assert.equal(page.data.goodsError, ''); assert.equal(page._pullRefreshing, false);
   context.listCommunityGoods = async () => [];
   await page.onPullDownRefresh();
-  assert.equal(refreshStops, 2); assert.equal(page.data.goodsCount, 0);
+  assert.equal(page.data.feedRefreshing, false); assert.equal(page.data.goodsCount, 0);
   page.data.homeTab = 'community';
   page.loadFeed = async () => { throw new Error('unexpected'); };
   await assert.rejects(page.onPullDownRefresh(), /unexpected/);
-  assert.equal(refreshStops, 3); assert.equal(page._pullRefreshing, false);
+  assert.equal(page.data.feedRefreshing, false); assert.equal(page._pullRefreshing, false);
+  let finishRefresh;
+  let refreshRequests = 0;
+  page.loadFeed = () => {
+    refreshRequests += 1;
+    return new Promise((resolve) => { finishRefresh = resolve; });
+  };
+  const refreshing = page.onPullDownRefresh();
+  assert.equal(page.data.feedRefreshing, true);
+  await page.onPullDownRefresh();
+  assert.equal(refreshRequests, 1);
+  finishRefresh();
+  await refreshing;
+  assert.equal(page.data.feedRefreshing, false);
+  console.log('PASS home internal scrolling, search visibility, tab reset and refresher completion/deduplication');
   run('pages/goods/detail.js'); bindPage(); page._id = 'SKU_TEST';
   response = { data: product }; await page.loadGoods(); assert.equal(page.data.goods.id, 'SKU_TEST');
   page.openContact(); assert.equal(page.data.showContact, true);

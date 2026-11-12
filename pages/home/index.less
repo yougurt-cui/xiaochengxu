@@ -784,6 +784,61 @@
 .home-nav-search input { font-weight: @weight-regular; }
 .home-main-tab { font-weight: @weight-medium; font-size: @type-body; }
 
+page { height: 100%; overflow: hidden; }
+.home-page {
+  height: 100vh;
+  min-height: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: calc(@layout-tabHeight + env(safe-area-inset-bottom));
+}
+.home-header-spacer { flex-shrink: 0; }
+.home-page .screen-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+.home-hero, .home-overview, .home-discovery { flex-shrink: 0; }
+.home-feed-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.home-discovery.has-feed-surface {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.home-feed-container.has-feed-surface {
+  padding: 0 @space-sm;
+  background: @colors-surface;
+  border-radius: 0 0 @radius-large @radius-large;
+}
+.home-feed-scroll { flex: 1; height: 0; min-height: 0; width: 100%; }
+.has-feed-surface .home-feed-scroll {
+  overflow: hidden;
+  border-radius: @radius-small @radius-small 0 0;
+}
+.home-feed-content { padding-bottom: 220rpx; }
+
+.home-hero { transition: height 200ms ease, opacity 160ms ease; }
+.home-overview { transition: margin-bottom 200ms ease; }
+.home-page.header-collapsed {
+  .home-hero { height: 0; opacity: 0; overflow: hidden; pointer-events: none; }
+  .home-overview { margin-bottom: 0; }
+  .overview-card { padding: 16rpx 22.4rpx; gap: 0; border-radius: 24rpx; }
+  .overview-heading { min-height: 56rpx; height: 56rpx; }
+  .overview-body, .overview-reminder-action, .overview-footer { display: none; }
+}
+
 .goods-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: (@space-xl * 2) @space-lg @space-xl; }
 .goods-empty-symbol { display: flex; align-items: center; justify-content: center; width: 144rpx; height: 144rpx; margin-bottom: @space-lg; }
 .goods-empty-symbol image { width: 64rpx; height: 64rpx; filter: grayscale(1); opacity: 0.55; }

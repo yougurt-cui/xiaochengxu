@@ -23,6 +23,11 @@ Page({
     homeTab: 'community',
     isMerchant: false,
     headerHeight: 84,
+    showNavSearch: false,
+    headerCollapsed: false,
+    searchFocused: false,
+    feedScrollTop: 0,
+    feedRefreshing: false,
     goodsQuery: '',
     goods: [],
     goodsColumns: [[], []],
@@ -50,6 +55,7 @@ Page({
   },
   onLoad() {
     const info = wx.getWindowInfo();
+    this._headerExpandThreshold = info.windowHeight / 2;
     const capsule = wx.getMenuButtonBoundingClientRect();
     const top = info.statusBarHeight || 20;
     this.setData({ headerHeight: top + ((capsule.top - top) * 2 + capsule.height || 44) });
@@ -148,19 +154,56 @@ Page({
     const homeTab = e.currentTarget.dataset.tab;
     if (!['community', 'goods'].includes(homeTab) || homeTab === this.data.homeTab) return;
     this.setData({ homeTab });
+    this.resetFeedScroll();
     if (homeTab === 'goods' && !this._goodsLoaded && !this.data.goodsLoading) this.loadGoods();
   },
   async onPullDownRefresh() {
     if (this._pullRefreshing) return;
     this._pullRefreshing = true;
+    this.setData({ feedRefreshing: true });
     try {
       if (this.data.homeTab === 'goods') await this.loadGoods({ silent: this.data.goods.length > 0 });
       else await this.loadFeed();
     } finally {
       this._pullRefreshing = false;
-      wx.stopPullDownRefresh();
+      this.setData({ feedRefreshing: false });
     }
   },
+  onFeedScroll(e) {
+    const previousTop = this._feedScrollTop || 0;
+    this._feedScrollTop = Math.max(0, e.detail.scrollTop || 0);
+    const showNavSearch = this._feedScrollTop > 0;
+    if (showNavSearch !== this.data.showNavSearch) this.setData({ showNavSearch });
+    // Resizing the list can clamp scrollTop; wait for the layout to settle.
+    if (Date.now() < (this._headerTransitionUntil || 0)) return;
+    if (!this.data.headerCollapsed && this._feedScrollTop > 24 && this._feedScrollTop > previousTop) {
+      this.setHeaderCollapsed(true);
+    } else if (this.data.headerCollapsed && this._feedScrollTop < previousTop
+      && this._feedScrollTop <= (this._headerExpandThreshold || 400)) {
+      this.setHeaderCollapsed(false);
+    }
+  },
+  setHeaderCollapsed(headerCollapsed) {
+    if (headerCollapsed === this.data.headerCollapsed) return;
+    this._headerTransitionUntil = Date.now() + 240;
+    this.setData({ headerCollapsed });
+  },
+  expandHomeHeader() {
+    this.setHeaderCollapsed(false);
+  },
+  onResize(e) {
+    this._headerExpandThreshold = e.size.windowHeight / 2;
+  },
+  resetFeedScroll() {
+    // Synchronize the native position before requesting zero again.
+    this.setData({ feedScrollTop: this._feedScrollTop || 0 }, () => {
+      this._feedScrollTop = 0;
+      this._headerTransitionUntil = Date.now() + 240;
+      this.setData({ feedScrollTop: 0, showNavSearch: false, searchFocused: false, headerCollapsed: false });
+    });
+  },
+  focusHomeSearch() { this.setData({ searchFocused: true }); },
+  blurHomeSearch() { this.setData({ searchFocused: false }); },
   async loadGoods({ silent = false } = {}) {
     const version = this._goodsLoadVersion = (this._goodsLoadVersion || 0) + 1;
     this.setData({ goodsLoading: !silent, goodsError: '' });
@@ -188,12 +231,13 @@ Page({
     const goodsSort = e.currentTarget.dataset.sort;
     if (!['latest', 'popular'].includes(goodsSort) || goodsSort === this.data.goodsSort) return;
     this.setData({ goodsSort, goods: [], goodsColumns: [[], []], goodsCount: 0 });
+    this.resetFeedScroll();
     this.loadGoods();
   },
   searchHome(e) {
     if (this.data.homeTab === 'goods') {
       this.setData({ goodsQuery: e.detail.value });
-      this.filterGoods();
+      this.scheduleSearch();
     } else this.onSearch(e);
   },
   clearHomeSearch() { this.searchHome({ detail: { value: '' } }); },
@@ -205,6 +249,7 @@ Page({
     if (item) askAboutGoods(item);
   },
   onUnload() {
+    clearTimeout(this._searchTimer);
     this._merchantVersion = (this._merchantVersion || 0) + 1;
     this._goodsLoadVersion = (this._goodsLoadVersion || 0) + 1;
     this._feedLoadVersion = (this._feedLoadVersion || 0) + 1;
@@ -266,11 +311,11 @@ Page({
   filterPosts() {
     const { category, query } = this.data;
     const q = query.trim();
-    this.setData({
-      posts: getFeedPosts().filter(
-        (p) => (category === 'all' || p.category === category) && (!q || `${p.title}${p.body}`.includes(q)),
-      ),
-    });
+    const posts = getFeedPosts().filter(
+      (p) => (category === 'all' || p.category === category) && (!q || `${p.title}${p.body}`.includes(q)),
+    );
+    // Pet/reminder refreshes should not resubmit an unchanged feed to the view layer.
+    if (JSON.stringify(posts) !== JSON.stringify(this.data.posts)) this.setData({ posts });
   },
   restoreFeedPreference() {
     const preference = loadStore().homeFeedPreference || {};
@@ -295,6 +340,7 @@ Page({
     if (this.data.category === 'all' && feedModeIndex === this.data.feedModeIndex) return;
     this.setData({ category: 'all', feedModeIndex, feedSort: feedModeIndex === 2 ? 'latest' : 'popular', posts: [], feedError: '' });
     this.saveFeedPreference();
+    this.resetFeedScroll();
     this.loadFeed();
   },
   selectCategory(e) {
@@ -302,11 +348,22 @@ Page({
     if (!categories.some((item) => item.id === category) || category === this.data.category) return;
     this.setData({ category, posts: [], feedError: '' });
     this.saveFeedPreference();
+    this.resetFeedScroll();
     this.loadFeed();
   },
   onSearch(e) {
     this.setData({ query: e.detail.value });
-    this.filterPosts();
+    this.scheduleSearch();
+  },
+  scheduleSearch() {
+    clearTimeout(this._searchTimer);
+    const tab = this.data.homeTab;
+    const apply = () => {
+      if (tab === 'goods') this.filterGoods();
+      else this.filterPosts();
+    };
+    if (!(tab === 'goods' ? this.data.goodsQuery : this.data.query).trim()) apply();
+    else this._searchTimer = setTimeout(apply, 200);
   },
   openPost(e) {
     this._reloadFeedOnShow = true;

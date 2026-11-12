@@ -5,7 +5,8 @@
     "p-image": "/components/p-image",
     "goods-card": "/components/goods-card"
   },
-  "enablePullDownRefresh": true,
+  "disableScroll": true,
+  "enablePullDownRefresh": false,
   "backgroundTextStyle": "dark",
   "backgroundColor": "#f8f8fb"
 }

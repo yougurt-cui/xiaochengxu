@@ -1,6 +1,6 @@
 import { api, hasSession, requireSession, errorText } from '../../api/miniprogram';
-import { accountKey, loadStore, saveStore } from '../../utils/pet-store';
-import { petDiet, dietHistory } from '../../utils/diet-history';
+import { accountKey } from '../../utils/pet-store';
+import { petDiet } from '../../utils/diet-history';
 Page({
   data: {
     history: false,
@@ -15,7 +15,6 @@ Page({
     hasMore: false,
     catalogChoices: [],
     searchingCatalog: false,
-    legacyItems: [],
     today: new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10),
   },
   onLoad(q) {
@@ -25,7 +24,7 @@ Page({
   switchMode(e) {
     const history = e.currentTarget.dataset.mode === 'history';
     if (this.data.saving || history === this.data.history) return;
-    this.setData({ history, editing: false, items: [], legacyItems: [], associationNote: '', hasMore: false });
+    this.setData({ history, editing: false, items: [], associationNote: '', hasMore: false });
     this.load();
   },
   onShow() {
@@ -46,7 +45,6 @@ Page({
         error: '请登录后查看清单',
         pet: null,
         items: [],
-        legacyItems: [],
         associationNote: '',
         editing: false,
       });
@@ -55,9 +53,9 @@ Page({
     const version = (this._version = (this._version || 0) + 1),
       account = accountKey('food-list');
     if (this._account && this._account !== account)
-      this.setData({ pet: null, items: [], legacyItems: [], editing: false });
+      this.setData({ pet: null, items: [], editing: false });
     this._account = account;
-    this.setData({ loading: true, error: '', legacyItems: [] });
+    this.setData({ loading: true, error: '' });
     try {
       const response = await api('/cat-profiles?limit=100');
       if (!this._active || version !== this._version || account !== accountKey('food-list')) return;
@@ -78,17 +76,14 @@ Page({
             .map((t) => t.label + '（' + t.conversation_count + '次咨询）')
             .join('、'),
         }));
-      const imported = (loadStore().legacyDietImports || {})[pet.id] || [];
-      const legacyItems = this.data.history ? dietHistory(pet.id).filter((item) => !imported.includes(item.id)) : [];
       this.setData({
         pet,
         items,
-        legacyItems,
         hasMore: responseHistory.has_more,
         associationNote: responseHistory.association_note,
       });
     } catch (e) {
-      if (version === this._version) this.setData({ error: errorText(e), pet: null, items: [], legacyItems: [] });
+      if (version === this._version) this.setData({ error: errorText(e), pet: null, items: [] });
     } finally {
       if (version === this._version) this.setData({ loading: false });
     }
@@ -106,26 +101,6 @@ Page({
       form: this.data.history
         ? { brand: '', product: '', started_on: '', ended_on: '', note: '' }
         : petDiet(this.data.pet),
-    });
-  },
-  importLegacy(e) {
-    if (this.data.saving || !requireSession()) return;
-    const item = this.data.legacyItems.find((i) => i.id === e.currentTarget.dataset.id);
-    if (!item) return;
-    this._catalogVersion = (this._catalogVersion || 0) + 1;
-    this.setData({
-      editing: true,
-      catalogChoices: [],
-      form: {
-        brand: item.brand,
-        product: item.product,
-        product_id: item.product_id != null && item.formula_id != null ? item.product_id : null,
-        formula_id: item.product_id != null && item.formula_id != null ? item.formula_id : null,
-        started_on: '',
-        ended_on: '',
-        legacy_record_id: item.id,
-        note: '本机旧记录，吃粮日期待确认',
-      },
     });
   },
   close() {
@@ -225,13 +200,6 @@ Page({
         await api('/cat-profiles/' + encodeURIComponent(pet.id), 'PATCH', { diet });
       }
       if (account !== accountKey('food-list')) return;
-      if (this.data.form.legacy_record_id) {
-        const legacyDietImports = { ...(loadStore().legacyDietImports || {}) };
-        legacyDietImports[pet.id] = [
-          ...new Set([...(legacyDietImports[pet.id] || []), this.data.form.legacy_record_id]),
-        ];
-        saveStore({ legacyDietImports });
-      }
       this.setData({ editing: false });
       if (this._active) await this.load();
     } catch (e) {
