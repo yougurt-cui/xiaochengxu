@@ -143,6 +143,9 @@ export function mapChatMessage(message) {
       .map((a) => `/api/miniprogram/pet-images/${a.image_id}`),
     guardianReport,
     healthKnowledge: message.role === 'assistant' && message.result?.health_knowledge?.version === 1 ? message.result.health_knowledge : null,
+    contextQuestions: message.role === 'assistant' && message.result?.context_answer?.version === 1
+      && Array.isArray(message.result.context_answer.questions)
+      ? message.result.context_answer.questions.filter((q) => typeof q === 'string' && q.trim() && q.length <= 60).slice(0, 3) : [],
     text: message.content || message.reply || '',
     blocks: messageBlocks(message),
     knowledgeCards: knowledgeCards(message),
@@ -197,10 +200,15 @@ export const chatMethods = {
     if (this.data.sending || !requireSession()) return;
     const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
     const question = event.detail?.question;
-    const allowed = [...(message?.healthKnowledge?.questions || []), ...(message?.guardianReport?.next_steps?.questions || [])];
+    const allowed = [...(message?.healthKnowledge?.questions || []), ...(message?.guardianReport?.next_steps?.questions || []), ...(message?.contextQuestions || [])];
     if (typeof question !== 'string' || !allowed.includes(question)) return;
     if (this._cloudPetId && this._cloudPetId !== this.data.boundPet?.id) return;
-    return this.sendCloudMessage({ message: question }, question);
+    return this.sendCloudMessage({ message: question, source_message_id: message.id }, question);
+  },
+  askContextQuestion(event) {
+    const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
+    const question = message?.contextQuestions?.[Number(event.currentTarget.dataset.index)];
+    if (question) return this.askTaskQuestion({ currentTarget: event.currentTarget, detail: { question } });
   },
   askKnowledgeQuestion(event) {
     if (this.data.sending || !requireSession()) return;
@@ -210,7 +218,7 @@ export const chatMethods = {
     const question = message?.knowledgeCards?.[Number(cardIndex)]?.questions?.[Number(questionIndex)];
     if (!question) return;
     if (this._cloudPetId && this._cloudPetId !== this.data.boundPet?.id) return;
-    return this.sendCloudMessage({ message: question }, question);
+    return this.sendCloudMessage({ message: question, source_message_id: message.id }, question);
   },
   openDietHistory() {
     if (this.data.sending || !requireSession()) return;
