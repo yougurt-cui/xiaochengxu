@@ -31,7 +31,7 @@
         <view wx:if="{{mode === 'badge'}}">
           <text class="card-title">选择徽章风格</text>
           <view class="style-tags badge-styles">
-            <button wx:for="{{badgeStyles}}" wx:key="id" class="style-tag {{badgeStyle === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectBadgeStyle">{{item.name}}</button>
+            <button wx:for="{{badgeStyles}}" wx:key="id" class="style-tag {{badgeStyle === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectBadgeStyle">{{item.name}}{{item.available === false ? '（待配置）' : ''}}</button>
           </view>
         </view>
         <block wx:else>

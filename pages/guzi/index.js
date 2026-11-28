@@ -144,6 +144,10 @@ Page({
     if (this._task || this.data.state === 'generating' || this.data.choosing) return;
     if (!this.data.photoPath) return this.choosePhoto();
     const badge = this.data.mode === 'badge';
+    if (badge && this.data.badgeStyles.find(item => item.id === this.data.badgeStyle)?.available === false) {
+      this.setData({ error: '该徽章风格正在配置中，请稍后再试' });
+      return;
+    }
     if (!badge && !this.data.prompt.trim()) {
       this.setData({ error: '请填写头像描述' });
       return;
@@ -200,7 +204,10 @@ Page({
     try {
       // Copy rather than move the temporary result: returning must preserve the preview.
       if (!this._shareImage || this._shareImage.source !== source || this._shareImage.account !== account) {
-        const path = `${wx.env.USER_DATA_PATH}/guzi-post-${Date.now()}-${Math.random().toString(36).slice(2)}.${this.data.mode === 'badge' ? 'png' : 'jpg'}`;
+        const info = await new Promise((resolve, reject) => wx.getImageInfo({ src: source, success: resolve, fail: reject }));
+        const extension = { jpeg: 'jpg', jpg: 'jpg', png: 'png' }[String(info.type).toLowerCase()];
+        if (!extension) throw new Error('图片格式不支持');
+        const path = `${wx.env.USER_DATA_PATH}/guzi-post-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
         await new Promise((resolve, reject) => wx.getFileSystemManager().copyFile({ srcPath: source, destPath: path, success: resolve, fail: reject }));
         this._shareImage = { source, account, path };
       }
